@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ECommerceBackend.Common.Application\ECommerceBackend.Common.Application.csproj" />
+    <ProjectReference Include="..\ECommerceBackend.Common.Domain\ECommerceBackend.Common.Domain.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>
