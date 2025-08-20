@@ -1,6 +1,9 @@
 ﻿namespace ECommerceBackend.Common.Domain;
 
 
+/// <summary>
+/// Categorizes application errors, typically mapped to HTTP status codes at the API boundary.
+/// </summary>
 public enum ErrorType
 {
     Failure = 0,

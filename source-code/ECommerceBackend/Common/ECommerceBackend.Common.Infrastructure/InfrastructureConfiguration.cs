@@ -10,9 +10,19 @@ using Npgsql;
 using StackExchange.Redis;
 
 namespace ECommerceBackend.Common.Infrastructure;
+/// <summary>
+/// Provides DI registrations for infrastructure services such as database, caching, and time providers.
+/// </summary>
 public static class InfrastructureConfiguration
 {
 
+    /// <summary>
+    /// Registers infrastructure services.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="databaseConnectionString">The PostgreSQL connection string.</param>
+    /// <param name="redisConnectionString">The Redis connection string.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         string databaseConnectionString,
