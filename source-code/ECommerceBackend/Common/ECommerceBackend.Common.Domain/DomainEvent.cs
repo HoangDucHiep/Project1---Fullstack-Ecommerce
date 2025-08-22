@@ -39,8 +39,8 @@ public abstract class DomainEvent : IDomainEvent
     }
 
     /// <inheritdoc />
-    public abstract Guid Id { get; init; }
+    public Guid Id { get; init; }
 
     /// <inheritdoc />
-    public abstract DateTimeOffset OccurredOnUtc { get; init; }
+    public DateTimeOffset OccurredOnUtc { get; init; }
 }

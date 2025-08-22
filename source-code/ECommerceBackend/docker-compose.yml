@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  # Api service for the ecommerce backend
+  ecommercebackend.api:
+    image: ${DOCKER_REGISTRY-}ecommercebackendapi
+    container_name: ecommercebackend-api-${DOCKER_TAG-}latest
+    build:
+      context: .
+      dockerfile: API/EcommerceBackend.Api/Dockerfile
+    ports:
+       - 5000:8080
+       - 5001:8081
+  # Database service for the ecommerce backend
+  ecommercebackend.database.postgres:
+    image: postgres:17
+    container_name: ecommercebackend-postgres-${DOCKER_TAG-}latest
+    environment:
+      POSTGRES_DB: ecommerceDb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - ./.containers/db/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  # PgAdmin service for managing the Postgres database
+  ecommercebackend.pgadmin:
+    image: elestio/pgadmin:REL-9_6
+    container_name: ecommercebackend-pgadmin-${DOCKER_TAG-}latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_LOGIN_BANNER="EcommerceBackend Database Admin"
+      - PGADMIN_CONFIG_MAX_LOGIN_ATTEMPTS=10
+      - PGADMIN_CONFIG_LOGIN_LOCKOUT_TIME=30
+    ports:
+      - 18080:80
+    depends_on:
+      - ecommercebackend.database.postgres
+    volumes:
+      - ./containers/pgadmin:/var/lib/pgadmin
