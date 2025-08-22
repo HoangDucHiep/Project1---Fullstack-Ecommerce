@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using ECommerceBackend.Common.Application.Behaviors;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerceBackend.Common.Application;
@@ -21,7 +22,8 @@ public static class ApplicationConfiguration
         {
             config.RegisterServicesFromAssemblies(modulesAssemblies);
 
-            // Add behaviors heres
+            // Exception handling behavior
+            config.AddOpenBehavior(typeof(ExceptionHandlingPipelineBehavior<,>));
         });
 
         // add validation.

@@ -1,4 +1,5 @@
 using EcommerceBackend.Api.Extensions;
+using EcommerceBackend.Api.Middleware;
 using ECommerceBackend.Common.Application;
 using ECommerceBackend.Common.Infrastructure;
 using ECommerceBackend.Common.Presentation.Endpoints;
@@ -10,6 +11,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
+// Add Global Exception Handler
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Add Modules Applications
 builder.Services.AddApplication([
@@ -55,5 +59,7 @@ if (app.Environment.IsDevelopment())
 
     app.ApplyMigrations();
 }
+
+app.UseExceptionHandler();
 
 await app.RunAsync();
