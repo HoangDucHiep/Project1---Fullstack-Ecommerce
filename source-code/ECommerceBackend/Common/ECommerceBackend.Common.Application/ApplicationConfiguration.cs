@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using ECommerceBackend.Common.Application.Behaviors;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerceBackend.Common.Application;
@@ -24,9 +25,13 @@ public static class ApplicationConfiguration
 
             // Exception handling behavior
             config.AddOpenBehavior(typeof(ExceptionHandlingPipelineBehavior<,>));
+
+            // Validation behavior
+            config.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
         });
 
         // add validation.
+        services.AddValidatorsFromAssemblies(modulesAssemblies, includeInternalTypes: true);
 
         return services;
     }
