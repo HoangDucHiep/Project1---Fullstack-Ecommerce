@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # Api service for the ecommerce backend
   ecommercebackend.api:
@@ -14,7 +12,7 @@ services:
   # Database service for the ecommerce backend
   ecommercebackend.database.postgres:
     image: postgres:17
-    container_name: ecommercebackend-postgres-${DOCKER_TAG-}latest
+    container_name: ecommercebackend-postgres-${DOCKER_TAG-}-17
     environment:
       POSTGRES_DB: ecommerceDb
       POSTGRES_USER: admin
@@ -26,7 +24,7 @@ services:
   # PgAdmin service for managing the Postgres database
   ecommercebackend.pgadmin:
     image: elestio/pgadmin:REL-9_6
-    container_name: ecommercebackend-pgadmin-${DOCKER_TAG-}latest
+    container_name: ecommercebackend-pgadmin-${DOCKER_TAG-}-REL-9_6
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
@@ -39,3 +37,15 @@ services:
       - ecommercebackend.database.postgres
     volumes:
       - ./containers/pgadmin:/var/lib/pgadmin
+  # Seq logging service
+  ecommercebackend.logging.seq:
+    image: datalust/seq:2025
+    container_name: ecommercebackend-logging-seq-${DOCKER_TAG-}-2025
+    environment:
+      - ACCEPT_EULA=y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+    ports:
+      - 5341:5341
+      - 8081:80
+
+

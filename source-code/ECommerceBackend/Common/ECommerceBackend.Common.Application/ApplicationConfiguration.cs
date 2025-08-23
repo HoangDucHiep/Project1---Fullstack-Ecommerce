@@ -26,6 +26,9 @@ public static class ApplicationConfiguration
             // Exception handling behavior
             config.AddOpenBehavior(typeof(ExceptionHandlingPipelineBehavior<,>));
 
+            // Logging behavior
+            config.AddOpenBehavior(typeof(RequestLoggingPipelineBehavior<,>));
+
             // Validation behavior
             config.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
         });

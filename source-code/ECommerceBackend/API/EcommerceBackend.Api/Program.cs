@@ -4,8 +4,13 @@ using ECommerceBackend.Common.Application;
 using ECommerceBackend.Common.Infrastructure;
 using ECommerceBackend.Common.Presentation.Endpoints;
 using ECommerceBackend.Modules.Users.Infrastructure;
+using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Config Serilog
+builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration));     // this use config from appsettings.json
+
 
 // OpenAPI and Swagger configuration
 builder.Services.AddOpenApi();
@@ -61,5 +66,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+
+// Use logging
+app.UseSerilogRequestLogging();
 
 await app.RunAsync();
