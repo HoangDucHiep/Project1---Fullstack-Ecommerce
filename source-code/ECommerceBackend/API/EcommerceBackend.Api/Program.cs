@@ -4,6 +4,8 @@ using ECommerceBackend.Common.Application;
 using ECommerceBackend.Common.Infrastructure;
 using ECommerceBackend.Common.Presentation.Endpoints;
 using ECommerceBackend.Modules.Users.Infrastructure;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -38,17 +40,27 @@ builder.Configuration.AddModuleConfiguration([
     "users"
     ]);
 
-
 // Add modules
 builder.Services.AddUsersModule(builder.Configuration);
 
+// Add Health Checks
+builder.Services.AddHealthChecks()
+    .AddNpgSql(databaseConnectionString)
+    .AddRedis(redisConnectionString);
+
+
+// APP BUILD //
 WebApplication app = builder.Build();
-
-
 
 app.MapGet("/", () => "Welcome to the Ecommerce Backend API!");
 
 app.MapEndpoints();
+
+// Add Health Check endpoint
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.UseHttpsRedirection();
 
