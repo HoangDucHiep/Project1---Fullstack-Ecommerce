@@ -2,50 +2,57 @@ services:
   # Api service for the ecommerce backend
   ecommercebackend.api:
     image: ${DOCKER_REGISTRY-}ecommercebackendapi
-    container_name: ecommercebackend-api-${DOCKER_TAG-}latest
+    container_name: ecommercebackend-api
     build:
       context: .
       dockerfile: API/EcommerceBackend.Api/Dockerfile
+    environment:
+      - ConnectionStrings__Database=${ConnectionStrings__Database}
+      - ConnectionStrings__Cache=${ConnectionStrings__Cache}
+      - Serilog__WriteTo__1__Args__serverUrl=${Serilog__WriteTo__1__Args__serverUrl}
     ports:
-       - 5000:8080
-       - 5001:8081
+       - ${API_HTTP_PORT}:${API_CONTAINER_HTTP_PORT}
+       - ${API_HTTPS_PORT}:${API_CONTAINER_HTTPS_PORT}
+    depends_on:
+      - ecommercebackend.database.postgres
+      - ecommercebackend.logging.seq
+  
   # Database service for the ecommerce backend
   ecommercebackend.database.postgres:
     image: postgres:17
-    container_name: ecommercebackend-postgres-${DOCKER_TAG-}-17
+    container_name: ecommercebackend-database-postgres-17
     environment:
-      POSTGRES_DB: ecommerceDb
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./.containers/db/postgres:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - ${POSTGRES_PORT}:5432
+  
   # PgAdmin service for managing the Postgres database
   ecommercebackend.pgadmin:
     image: elestio/pgadmin:REL-9_6
-    container_name: ecommercebackend-pgadmin-${DOCKER_TAG-}-REL-9_6
+    container_name: ecommercebackend-pgadmin
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
       - PGADMIN_CONFIG_LOGIN_BANNER="EcommerceBackend Database Admin"
-      - PGADMIN_CONFIG_MAX_LOGIN_ATTEMPTS=10
-      - PGADMIN_CONFIG_LOGIN_LOCKOUT_TIME=30
+      - PGADMIN_CONFIG_SESSION_EXPIRATION_TIME=86400
     ports:
-      - 18080:80
+      - ${PGADMIN_PORT}:80
     depends_on:
       - ecommercebackend.database.postgres
     volumes:
-      - ./containers/pgadmin:/var/lib/pgadmin
+      - ${PGADMIN_DATA_PATH}:/var/lib/pgadmin
+  
   # Seq logging service
   ecommercebackend.logging.seq:
     image: datalust/seq:2025
-    container_name: ecommercebackend-logging-seq-${DOCKER_TAG-}-2025
+    container_name: ecommercebackend-logging-seq-2025
     environment:
-      - ACCEPT_EULA=y
-      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+      - ACCEPT_EULA=${SEQ_ACCEPT_EULA}
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=${SEQ_FIRSTRUN_NOAUTHENTICATION}
     ports:
-      - 5341:5341
-      - 8081:80
-
-
+      - ${SEQ_API_PORT}:5341
+      - ${SEQ_WEB_PORT}:80
