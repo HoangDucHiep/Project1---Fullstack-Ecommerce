@@ -27,8 +27,8 @@ builder.Services.AddApplication([
 
 
 // Add Modules Infrastructure
-string databaseConnectionString = builder.Configuration.GetConnectionString("Database")!;
-string redisConnectionString = builder.Configuration.GetConnectionString("Cache")!;
+string databaseConnectionString = builder.Configuration.GetConnectionString("Database")!; // PostgreSQL
+string redisConnectionString = builder.Configuration.GetConnectionString("Cache")!; // Redis
 
 builder.Services.AddInfrastructure(
     databaseConnectionString,

@@ -25,3 +25,4 @@ public static class CacheOptions
             new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = expiration } :
             DefaultExpiration;
 }
+
