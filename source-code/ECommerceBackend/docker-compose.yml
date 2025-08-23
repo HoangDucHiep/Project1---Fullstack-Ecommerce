@@ -57,9 +57,11 @@ services:
       - ${SEQ_API_PORT}:5341
       - ${SEQ_WEB_PORT}:80
 
-  ecommercebackend.database.cache.redis:
+  ecommercebackend.database.redis:
     image: redis:8.2.0
-    container_name: ecommercebackend-database-cache-redis
+    container_name: ecommercebackend-database-redis
+    volumes:
+      - ${REDIS_DATA_PATH}:/data
     restart: always
     ports:
       - ${REDIS_PORT}:6379
