@@ -1,0 +1,68 @@
+services:
+  # Api service for the ecommerce backend
+  ecommercebackend.api:
+    image: ${DOCKER_REGISTRY-}ecommercebackendapi
+    container_name: ecommercebackend-api
+    build:
+      context: .
+      dockerfile: API/EcommerceBackend.Api/Dockerfile
+    environment:
+      - ConnectionStrings__Database=${ConnectionStrings__Database}
+      - ConnectionStrings__Cache=${ConnectionStrings__Cache}
+      - Serilog__WriteTo__1__Args__serverUrl=${Serilog__WriteTo__1__Args__serverUrl}
+    ports:
+       - ${API_HTTP_PORT}:${API_CONTAINER_HTTP_PORT}
+       - ${API_HTTPS_PORT}:${API_CONTAINER_HTTPS_PORT}
+    depends_on:
+      - ecommercebackend.database.postgres
+      - ecommercebackend.logging.seq
+  
+  # Database service for the ecommerce backend
+  ecommercebackend.database.postgres:
+    image: postgres:17
+    container_name: ecommercebackend-database-postgres-17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:5432
+  
+  # PgAdmin service for managing the Postgres database
+  ecommercebackend.pgadmin:
+    image: elestio/pgadmin:REL-9_6
+    container_name: ecommercebackend-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_CONFIG_LOGIN_BANNER="EcommerceBackend Database Admin"
+      - PGADMIN_CONFIG_SESSION_EXPIRATION_TIME=86400
+    ports:
+      - ${PGADMIN_PORT}:80
+    depends_on:
+      - ecommercebackend.database.postgres
+    volumes:
+      - ${PGADMIN_DATA_PATH}:/var/lib/pgadmin
+  
+  # Seq logging service
+  ecommercebackend.logging.seq:
+    image: datalust/seq:2025
+    container_name: ecommercebackend-logging-seq-2025
+    environment:
+      - ACCEPT_EULA=${SEQ_ACCEPT_EULA}
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=${SEQ_FIRSTRUN_NOAUTHENTICATION}
+    ports:
+      - ${SEQ_API_PORT}:5341
+      - ${SEQ_WEB_PORT}:80
+
+  ecommercebackend.database.redis:
+    image: redis:8.2.0
+    container_name: ecommercebackend-database-redis
+    volumes:
+      - ${REDIS_DATA_PATH}:/data
+    restart: always
+    ports:
+      - ${REDIS_PORT}:6379
+    

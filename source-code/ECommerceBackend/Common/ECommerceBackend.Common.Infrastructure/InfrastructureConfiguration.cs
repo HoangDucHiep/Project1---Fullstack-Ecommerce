@@ -35,7 +35,7 @@ public static class InfrastructureConfiguration
         services.TryAddScoped<IDbConnectionFactory, DbConnectionFactory>();
         services.TryAddSingleton<IDateTimeProvider, DateTimeProvider>();
 
-        // redis
+        // Add Redis caching with fallback to in-memory cache
         try
         {
             IConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
@@ -51,6 +51,7 @@ public static class InfrastructureConfiguration
             services.AddDistributedMemoryCache();
         }
 
+        // Register CacheService
         services.TryAddSingleton<ICacheService, CacheService>();
 
         return services;
