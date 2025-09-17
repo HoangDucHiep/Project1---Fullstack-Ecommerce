@@ -1,11 +1,16 @@
 ﻿using ECommerceBackend.Common.Domain;
 
 namespace ECommerceBackend.Modules.Users.Domain.Users;
-public sealed class UserProfileUpdatedDomainEvent(Guid userId, string firstName, string lastName) : DomainEvent
+
+/// HoangDucHiep - 08/2025
+/// <summary>
+/// Domain event raised when a user's profile is updated.
+/// </summary>
+/// <param name="userId"></param>
+/// <param name="email"></param>
+public sealed class UserProfileUpdatedDomainEvent(Guid userId, string email) : DomainEvent
 {
     public Guid UserId { get; init; } = userId;
 
-    public string FirstName { get; init; } = firstName;
-
-    public string LastName { get; init; } = lastName;
+    public string Email { get; init; } = email;
 }

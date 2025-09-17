@@ -1,9 +1,10 @@
 ﻿using ECommerceBackend.Common.Domain;
+using ECommerceBackend.Common.Domain.Utils;
 
 namespace ECommerceBackend.Modules.Users.Domain.Users;
 
 
-// Just a test module for setup project
+/// HoangDucHiep - 08/2025
 public sealed class User : Entity
 {
     private User()
@@ -11,21 +12,19 @@ public sealed class User : Entity
     }
 
     public Guid Id { get; private set; }
+    public string IdentityId { get; private set; }
 
     public string Email { get; private set; }
+    public string Phone { get; private set; }
 
-    public string FirstName { get; private set; }
 
-    public string LastName { get; private set; }
-
-    public static User Create(string email, string firstName, string lastName)
+    public static User Create(string phone, string identityId)
     {
         var user = new User
         {
-            Id = Guid.NewGuid(),
-            Email = email,
-            FirstName = firstName,
-            LastName = lastName,
+            Id = IdGenerator.GenerateId(),
+            Phone = phone,
+            IdentityId = identityId
         };
 
         user.Raise(new UserRegisteredDomainEvent(user.Id));
@@ -33,17 +32,11 @@ public sealed class User : Entity
         return user;
     }
 
-    public void Update(string firstName, string lastName)
+    public void Update(string email)
     {
-        if (FirstName == firstName && LastName == lastName)
-        {
-            return;
-        }
+        Email = email;
 
-        FirstName = firstName;
-        LastName = lastName;
-
-        Raise(new UserProfileUpdatedDomainEvent(Id, FirstName, LastName));
+        Raise(new UserProfileUpdatedDomainEvent(Id, Email));
     }
 }
 

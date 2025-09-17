@@ -8,6 +8,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace ECommerceBackend.Modules.Users.Presentation.Users;
+
+/// HoangDucHiep - 08/2025
+/// <summary>
+/// Endpoint for user registration
+/// </summary>
 internal sealed class RegisterUser : IEndpoint
 {
     public void MapEndpoints(IEndpointRouteBuilder app)
@@ -15,10 +20,8 @@ internal sealed class RegisterUser : IEndpoint
         app.MapPost("users/register", async (Request request, ISender sender) =>
         {
             Result<Guid> result = await sender.Send(new RegisterUserCommand(
-                request.Email,
-                request.Password,
-                request.FirstName,
-                request.LastName));
+                request.Phone,
+                request.Password));
 
             return result.Match(Results.Ok, ApiResults.Problem);
         })
@@ -29,11 +32,7 @@ internal sealed class RegisterUser : IEndpoint
 
 internal sealed class Request
 {
-    public string Email { get; init; }
+    public string Phone { get; init; }
 
     public string Password { get; init; }
-
-    public string FirstName { get; init; }
-
-    public string LastName { get; init; }
 }
