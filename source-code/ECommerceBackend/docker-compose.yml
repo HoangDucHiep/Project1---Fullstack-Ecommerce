@@ -1,3 +1,5 @@
+# HoangDucHiep - 08/2025
+
 services:
   # Api service for the ecommerce backend
   ecommercebackend.api:

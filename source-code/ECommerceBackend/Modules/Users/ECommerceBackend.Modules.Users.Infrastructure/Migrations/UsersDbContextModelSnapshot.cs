@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ECommerceBackend.Modules.Users.Infrastructure.Database.Migrations
+namespace ECommerceBackend.Modules.Users.Infrastructure.Migrations
 {
     [DbContext(typeof(UsersDbContext))]
     partial class UsersDbContextModelSnapshot : ModelSnapshot
@@ -31,22 +31,20 @@ namespace ECommerceBackend.Modules.Users.Infrastructure.Database.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)")
                         .HasColumnName("email");
 
-                    b.Property<string>("FirstName")
+                    b.Property<string>("IdentityId")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("first_name");
+                        .HasColumnType("text")
+                        .HasColumnName("identity_id");
 
-                    b.Property<string>("LastName")
+                    b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("last_name");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
 
                     b.HasKey("Id")
                         .HasName("pk_users");
@@ -54,6 +52,14 @@ namespace ECommerceBackend.Modules.Users.Infrastructure.Database.Migrations
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("IdentityId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_identity_id");
+
+                    b.HasIndex("Phone")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_phone");
 
                     b.ToTable("users", "users");
                 });

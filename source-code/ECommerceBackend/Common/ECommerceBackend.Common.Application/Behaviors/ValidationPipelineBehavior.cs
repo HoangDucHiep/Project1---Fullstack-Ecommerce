@@ -7,6 +7,7 @@ using MediatR;
 
 namespace ECommerceBackend.Common.Application.Behaviors;
 
+/// HoangDucHiep - 08/2025
 /// <summary>
 /// A MediatR pipeline behavior that validates requests before they are handled.
 /// </summary>
