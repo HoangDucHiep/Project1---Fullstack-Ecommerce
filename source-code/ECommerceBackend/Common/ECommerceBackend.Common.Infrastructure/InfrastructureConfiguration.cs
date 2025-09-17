@@ -1,6 +1,7 @@
 ﻿using ECommerceBackend.Common.Application.Caching;
 using ECommerceBackend.Common.Application.Clock;
 using ECommerceBackend.Common.Application.Data;
+using ECommerceBackend.Common.Infrastructure.Authentication;
 using ECommerceBackend.Common.Infrastructure.Caching;
 using ECommerceBackend.Common.Infrastructure.Clock;
 using ECommerceBackend.Common.Infrastructure.Data;
@@ -29,6 +30,11 @@ public static class InfrastructureConfiguration
         string redisConnectionString
     )
     {
+
+        // Register authentication services
+        services.AddAuthenticationInternal();
+
+        // Register NpgsqlDataSource and related services
         NpgsqlDataSource npgsqlDataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
 
         services.TryAddSingleton(npgsqlDataSource);
