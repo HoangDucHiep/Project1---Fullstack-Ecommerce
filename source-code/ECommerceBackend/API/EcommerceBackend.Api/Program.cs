@@ -46,7 +46,8 @@ builder.Services.AddUsersModule(builder.Configuration);
 // Add Health Checks
 builder.Services.AddHealthChecks()
     .AddNpgSql(databaseConnectionString)
-    .AddRedis(redisConnectionString);
+    .AddRedis(redisConnectionString)
+    .AddUrlGroup(new Uri(builder.Configuration.GetValue<string>("KeyCloak:HealthUrl")!), HttpMethod.Get, "keycloak");
 
 
 // APP BUILD //
@@ -81,5 +82,9 @@ app.UseExceptionHandler();
 
 // Use logging
 app.UseSerilogRequestLogging();
+
+// Use Authentication & Authorization
+app.UseAuthentication();
+app.UseAuthorization();
 
 await app.RunAsync();
