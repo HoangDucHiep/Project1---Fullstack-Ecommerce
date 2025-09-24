@@ -1,4 +1,4 @@
-﻿root = true
+root = true
 
 # C# files
 [*.cs]
@@ -385,9 +385,6 @@ dotnet_diagnostic.S3881.severity = none
 
 # S4136: Method overloads should be grouped together
 dotnet_diagnostic.S4136.severity = none
-
-# CA1515: Consider making public types internal
-dotnet_diagnostic.CA1515.severity = none
 
 # S6605: Collection-specific "Exists" method should be used instead of the "Any" extension
 dotnet_diagnostic.S6605.severity = none
