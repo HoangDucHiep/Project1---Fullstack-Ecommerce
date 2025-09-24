@@ -12,12 +12,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Directory.Packages.props", "."]
-COPY ["Directory.Build.props", "."]
 COPY ["src/ECommerceBackend.Api/ECommerceBackend.Api.csproj", "src/ECommerceBackend.Api/"]
-COPY ["src/ECommerceBackend.Application/ECommerceBackend.Application.csproj", "src/ECommerceBackend.Application/"]
-COPY ["src/ECommerceBackend.Domain/ECommerceBackend.Domain.csproj", "src/ECommerceBackend.Domain/"]
-COPY ["src/ECommerceBackend.Infrastructure/ECommerceBackend.Infrastructure.csproj", "src/ECommerceBackend.Infrastructure/"]
 RUN dotnet restore "./src/ECommerceBackend.Api/ECommerceBackend.Api.csproj"
 COPY . .
 WORKDIR "/src/src/ECommerceBackend.Api"

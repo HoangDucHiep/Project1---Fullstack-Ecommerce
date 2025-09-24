@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ECommerceBackend.Application\ECommerceBackend.Application.csproj" />
+  </ItemGroup>
+
+</Project>
