@@ -7,6 +7,7 @@
 /// </summary>
 public interface IUserRepository
 {
+    Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     void Add(User user);
 }
