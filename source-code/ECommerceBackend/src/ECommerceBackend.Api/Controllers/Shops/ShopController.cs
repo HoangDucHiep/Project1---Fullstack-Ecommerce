@@ -1,5 +1,4 @@
-﻿using ECommerceBackend.Application.Shops.ShopRegister;
-using ECommerceBackend.Domain.Abstracts;
+﻿using ECommerceBackend.Domain.Abstracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
