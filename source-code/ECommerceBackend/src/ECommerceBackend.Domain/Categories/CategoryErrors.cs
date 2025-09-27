@@ -12,7 +12,7 @@ namespace ECommerceBackend.Domain.Categories;
 /// These errors can be used throughout the domain and application layers
 /// to ensure consistent error handling and messaging.
 /// </remarks>
-internal static class CategoryErrors
+public static class CategoryErrors
 {
     /// <summary>
     /// Creates an error indicating that a category with the specified ID was not found.

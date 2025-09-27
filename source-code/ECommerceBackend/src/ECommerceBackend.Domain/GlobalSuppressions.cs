@@ -6,3 +6,7 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "<Pending>", Scope = "member", Target = "~M:ECommerceBackend.Domain.Categories.Category.Update(System.String,System.String)")]
+[assembly: SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "<Pending>", Scope = "member", Target = "~M:ECommerceBackend.Domain.Shops.Shop.Create(System.String,System.String,System.String,System.String,System.Guid)~ECommerceBackend.Domain.Shops.Shop")]
+[assembly: SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "<Pending>", Scope = "member", Target = "~M:ECommerceBackend.Domain.Shops.Shop.Update(System.String,System.String,System.String,System.String)")]
+[assembly: SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "<Pending>", Scope = "member", Target = "~M:ECommerceBackend.Domain.Categories.CategoryErrors.InvalidIconUrl(System.String)~ECommerceBackend.Domain.Abstracts.Error")]
+[assembly: SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "<Pending>", Scope = "member", Target = "~M:ECommerceBackend.Domain.Categories.Category.Create(System.String,System.String,System.Guid,System.Int32,System.Int32,System.Int32)~ECommerceBackend.Domain.Categories.Category")]
