@@ -3,6 +3,7 @@ using ECommerceBackend.Application.Abstracts.Clock;
 using ECommerceBackend.Application.Abstracts.Data;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Categories;
+using ECommerceBackend.Domain.Shops;
 using ECommerceBackend.Domain.Users;
 using ECommerceBackend.Infrastructure.Authentication;
 using ECommerceBackend.Infrastructure.Caching;
@@ -93,6 +94,7 @@ public static class InfrastructureConfiguration
         /// Register repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IShopRepository, ShopRepository>();
 
         services.TryAddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 

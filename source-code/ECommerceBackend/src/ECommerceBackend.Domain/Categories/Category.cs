@@ -28,7 +28,6 @@ public class Category : Entity
         // For ORM
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "<Pending>")]
     public static Category Create(string name, string iconUrl, Guid parentId, int lft, int rgt, int depth)
     {
         var category = new Category
