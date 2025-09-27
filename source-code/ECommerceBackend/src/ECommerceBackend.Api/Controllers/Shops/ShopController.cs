@@ -1,5 +1,7 @@
-﻿using ECommerceBackend.Application.Shops.ShopRegister;
+﻿using ECommerceBackend.Application.Shops.GetAllShops;
+using ECommerceBackend.Application.Shops.ShopRegister;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Shops;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,6 +39,18 @@ public class ShopController : ControllerBase
             return BadRequest(result.Error);
         }
 
+        return Ok(result.Value);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllShops(CancellationToken cancellationToken)
+    {
+        var query = new GetAllShopsQuery();
+        Result<List<Shop>> result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
         return Ok(result.Value);
     }
 }
