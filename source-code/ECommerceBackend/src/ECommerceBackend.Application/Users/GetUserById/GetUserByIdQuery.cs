@@ -2,4 +2,4 @@
 
 namespace ECommerceBackend.Application.Users.GetUserById;
 
-public sealed record GetCategoryByIdQuery(Guid UserId) : IQuery<CategoryResponse>;
+public sealed record GetUserByIdQuery(Guid UserId) : IQuery<UserResponse>;

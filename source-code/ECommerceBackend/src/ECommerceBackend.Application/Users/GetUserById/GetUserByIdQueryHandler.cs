@@ -6,16 +6,16 @@ using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Users;
 
 namespace ECommerceBackend.Application.Users.GetUserById;
-public sealed class GetCategoryByIdQueryHandler : IQueryHandler<GetCategoryByIdQuery, CategoryResponse>
+public sealed class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserResponse>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
 
-    public GetCategoryByIdQueryHandler(IDbConnectionFactory dbConnectionFactory)
+    public GetUserByIdQueryHandler(IDbConnectionFactory dbConnectionFactory)
     {
         _dbConnectionFactory = dbConnectionFactory;
     }
 
-    public async Task<Result<CategoryResponse>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<UserResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         await using DbConnection connection = await _dbConnectionFactory.OpenConnectionAsync();
         const string sql =
@@ -28,11 +28,11 @@ public sealed class GetCategoryByIdQueryHandler : IQueryHandler<GetCategoryByIdQ
             WHERE id = @UserId
             """;
 
-        CategoryResponse? user = await connection.QueryFirstOrDefaultAsync<CategoryResponse>(sql, new { request.UserId });
+        UserResponse? user = await connection.QueryFirstOrDefaultAsync<UserResponse>(sql, new { request.UserId });
 
         if (user is null)
         {
-            return Result.Failure<CategoryResponse>(UserErrors.NotFound(request.UserId));
+            return Result.Failure<UserResponse>(UserErrors.NotFound(request.UserId));
         }
 
         return user;
