@@ -46,8 +46,8 @@ public class UsersController : ControllerBase
         Guid userId,
         CancellationToken cancellationToken)
     {
-        var query = new GetUserByIdQuery(userId);
-        Result<UserResponse> result = await _sender.Send(query, cancellationToken);
+        var query = new GetCategoryByIdQuery(userId);
+        Result<CategoryResponse> result = await _sender.Send(query, cancellationToken);
         if (result.IsFailure)
         {
             return BadRequest(result.Error);
