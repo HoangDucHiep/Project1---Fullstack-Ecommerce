@@ -42,7 +42,7 @@ public class Category : Entity
             Depth = depth,
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow
-        };
+        }isu
 
         // Raise domain event if needed
 
