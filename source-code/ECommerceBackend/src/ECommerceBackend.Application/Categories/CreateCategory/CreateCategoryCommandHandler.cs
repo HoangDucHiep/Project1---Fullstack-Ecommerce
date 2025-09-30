@@ -49,9 +49,15 @@ public  class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryComma
 
         // TC-POST-03 – Parent không tồn tại  ParentNotFound
 
+        //if (request.ParentId.HasValue && !categories.Any(c => c.Id == request.ParentId.Value))
+        //{
+        //    return Result.Failure<Guid>(CategoryErrors.ParentNotFound(request.ParentId.Value));
+        //}
+
         if (request.ParentId.HasValue && !categories.Any(c => c.Id == request.ParentId.Value))
         {
             return Result.Failure<Guid>(CategoryErrors.ParentNotFound(request.ParentId.Value));
+
         }
 
 
@@ -76,7 +82,7 @@ public  class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryComma
         var category = Category.Create(
             request.Name,
             request.IconUrl,
-            request.ParentId ?? Guid.Empty,
+            request.ParentId,
             request.Lft,
             request.Rgt,
             request.Depth

@@ -28,7 +28,7 @@ public class Category : Entity
         // For ORM
     }
 
-    public static Category Create(string name, string iconUrl, Guid parentId, int lft, int rgt, int depth)
+    public static Category Create(string name, string iconUrl, Guid? parentId, int lft, int rgt, int depth)
     {
         var category = new Category
         {
