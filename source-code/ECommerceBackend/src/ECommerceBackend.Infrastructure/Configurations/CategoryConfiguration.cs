@@ -28,7 +28,8 @@ internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(20);
-        builder.Property(c => c.ParentId);
+        builder.Property(c => c.ParentId)
+            .IsRequired(false);
         builder.Property(c => c.Lft)
             .IsRequired();
         builder.Property(c => c.Rgt)
