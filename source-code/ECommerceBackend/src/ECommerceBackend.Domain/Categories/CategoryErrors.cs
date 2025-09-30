@@ -230,4 +230,9 @@ public static class CategoryErrors
     public static Error BatchOperationFailed(int successCount, int totalCount) =>
         Error.Problem("Category.BatchOperationFailed",
             $"Batch operation partially failed: {successCount}/{totalCount} categories processed successfully.");
+
+    public static Error InvalidStatus(CategoryStatus status)
+    {
+        throw new NotImplementedException();
+    }
 }
