@@ -29,11 +29,11 @@ public class CategoryController : ControllerBase
     {
         var command = new CreateCategoryCommand(
             request.Name,
-    request.IconUrl,
-    request.ParentId,
-    request.Lft,
-    request.Rgt,
-    request.Depth
+            request.IconUrl,
+            request.ParentId,
+            request.Lft,
+            request.Rgt,
+            request.Depth
 
             );
 

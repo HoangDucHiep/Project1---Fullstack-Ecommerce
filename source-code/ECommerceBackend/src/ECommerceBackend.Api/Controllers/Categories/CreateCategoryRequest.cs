@@ -7,8 +7,7 @@ public sealed record CreateCategoryRequest
 (
     string Name,
     string IconUrl,
-    CategoryStatus Status,
-    Guid ParentId,
+    Guid? ParentId,
     int Lft,
     int Rgt,
     int Depth

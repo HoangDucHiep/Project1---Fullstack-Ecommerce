@@ -48,16 +48,17 @@ internal sealed class CreateCategoryCommandHandler : ICommandHandler<CreateCateg
         }
 
         // TC-POST-03 – Parent không tồn tại  ParentNotFound
-        
-        if (request.ParentId != Guid.Empty && !categories.Any(c => c.Id == request.ParentId))
+
+        if (request.ParentId.HasValue && !categories.Any(c => c.Id == request.ParentId.Value))
         {
-            return Result.Failure<Guid>(CategoryErrors.ParentNotFound(request.ParentId));
+            return Result.Failure<Guid>(CategoryErrors.ParentNotFound(request.ParentId.Value));
         }
 
-        
+
+
 
         // TC-POST-04 – Buyer/Seller gọi → AccessDenied
-        
+
 
         //  Icon URL hợp lệ (nếu có): InvalidIconUrl
         //if (!string.IsNullOrEmpty(request.IconUrl) &&
@@ -75,7 +76,7 @@ internal sealed class CreateCategoryCommandHandler : ICommandHandler<CreateCateg
         var category = Category.Create(
             request.Name,
             request.IconUrl,
-            request.ParentId,
+            request.ParentId ?? Guid.Empty,
             request.Lft,
             request.Rgt,
             request.Depth
