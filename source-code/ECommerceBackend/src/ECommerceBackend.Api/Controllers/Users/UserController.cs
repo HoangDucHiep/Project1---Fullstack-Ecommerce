@@ -50,7 +50,7 @@ public class UsersController : ControllerBase
         Result<UserResponse> result = await _sender.Send(query, cancellationToken);
         if (result.IsFailure)
         {
-            return BadRequest(result.Error);
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
         return Ok(result.Value);
     }

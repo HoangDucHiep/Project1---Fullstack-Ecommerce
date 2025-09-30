@@ -39,7 +39,7 @@ public class ApplicationDbContext : DbContext, IUnitOfWork
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            throw new ConcurrencyException(new Error("ConcurrencyException", "Concurrency exception occurred.", ErrorType.Conflict), ex);
+            throw new ConcurrencyException(new Error("ConcurrencyException", "Concurrency exception occurred in ApplicationDbContext", ErrorType.Conflict), ex);
         }
 
     }

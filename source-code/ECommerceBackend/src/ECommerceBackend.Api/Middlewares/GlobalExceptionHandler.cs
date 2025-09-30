@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using ECommerceBackend.Domain.Abstracts;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using ApplicationException = ECommerceBackend.Application.Abstracts.Exceptions.ApplicationException;
 
 namespace ECommerceBackend.Api.Middlewares;
 
@@ -18,17 +20,51 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
     {
         _logger.LogError(exception, "Unhandled exception occurred");
 
-        var problemsDetails = new ProblemDetails
+        ProblemDetails problemsDetails = exception switch
         {
-            Status = StatusCodes.Status500InternalServerError,
-            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-            Title = "Server failure"
+            ApplicationException appEx when appEx.Error is not null => CreateProblemDetails(appEx.Error),
+            ApplicationException appEx => CreateDefaultApplicationProblemDetails(appEx),
+            _ => CreateDefaultProblemDetails()
         };
 
-        httpContext.Response.StatusCode = problemsDetails.Status.Value;
+        httpContext.Response.StatusCode = problemsDetails.Status!.Value;
 
         await httpContext.Response.WriteAsJsonAsync(problemsDetails, cancellationToken).ConfigureAwait(false);
 
         return true;
+    }
+
+    private static ProblemDetails CreateProblemDetails(Error error)
+    {
+        return new ProblemDetails
+        {
+            Status = error.Type.StatusCode,
+            Title = error.Type.Title,
+            Type = error.Type.ProblemType,
+            Detail = error.Description,
+            Extensions = { ["errorCode"] = error.Code }
+        };
+    }
+
+    private static ProblemDetails CreateDefaultApplicationProblemDetails(ApplicationException appException)
+    {
+        return new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
+            Title = "Bad Request",
+            Detail = $"An error occurred while processing request: {appException.RequestName}"
+        };
+    }
+
+    private static ProblemDetails CreateDefaultProblemDetails()
+    {
+        return new ProblemDetails
+        {
+            Status = StatusCodes.Status500InternalServerError,
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
+            Title = "Server failure",
+            Detail = "An unexpected error occurred while processing the request."
+        };
     }
 }

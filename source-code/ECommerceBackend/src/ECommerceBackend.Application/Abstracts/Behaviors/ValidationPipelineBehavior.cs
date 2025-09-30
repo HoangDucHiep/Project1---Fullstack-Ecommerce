@@ -99,5 +99,5 @@ internal sealed class ValidationPipelineBehavior<TRequest, TResponse>(
     /// <param name="validationFailures">The validation failures to convert.</param>
     /// <returns>A <see cref="ValidationError"/> representing the validation issues.</returns>
     private static ValidationError CreateValidationError(ValidationFailure[] validationFailures) =>
-        new(validationFailures.Select(f => Error.Problem(f.ErrorCode, f.ErrorMessage)).ToArray());
+        new(validationFailures.Select(f => Error.Validation(f.ErrorCode, f.ErrorMessage)).ToArray());
 }
