@@ -11,7 +11,7 @@ using ECommerceBackend.Domain.Categories;
 using ECommerceBackend.Domain.Users;
 
 namespace ECommerceBackend.Application.Categories.CategoryRegister;
-internal sealed class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryCommand, Guid>
+public  class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryCommand, Guid>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;

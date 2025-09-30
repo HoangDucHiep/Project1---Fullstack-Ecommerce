@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
 using ECommerceBackend.Api.Controllers.Users;
+using ECommerceBackend.Application.Categories.SearchCategory;
 using ECommerceBackend.Application.Users.RegisterUser;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Categories;
@@ -22,7 +23,7 @@ public class CategoryController : ControllerBase
         _sender = sender;
     }
 
-    [HttpPost("create")]
+    [HttpPost("Create")]
     public async Task<IActionResult> Create(
         CreateCategoryRequest request,
         CancellationToken cancellationToken)
@@ -46,4 +47,14 @@ public class CategoryController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    [HttpGet("Search")]
+    public async Task<IActionResult> Search([FromQuery] string q, CancellationToken cancellationToken)
+    {
+        var query = new SearchCategoryQuery(q);
+        Result<List<CategoryResponse>> result = await _sender.Send(query, cancellationToken);
+
+        return Ok(result.Value); 
+    }
+
 }

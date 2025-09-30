@@ -21,8 +21,8 @@ public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCo
             .NotEmpty().WithMessage("Đường dẫn Icon là bắt buộc.")
             .MaximumLength(250).WithMessage("Đường dẫn Icon không được vượt quá 250 ký tự.");
 
-        RuleFor(x => x.ParentId)
-            .NotEmpty().WithMessage("Danh mục cha là bắt buộc.");
+        //RuleFor(x => x.ParentId)
+        //    .NotEmpty().WithMessage("Danh mục cha là bắt buộc.");
 
         RuleFor(x => x.Lft)
             .GreaterThanOrEqualTo(0).WithMessage("Giá trị Lft phải lớn hơn hoặc bằng 0.");
