@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using ApplicationException = ECommerceBackend.Application.Abstracts.Exceptions.ApplicationException;
 
 namespace ECommerceBackend.Application.Abstracts.Behaviors;
 
@@ -25,10 +26,15 @@ internal sealed class ExceptionHandlingPipelineBehavior<TRequest, TResponse> : I
         {
             return await next(cancellationToken);
         }
+        catch (ApplicationException appEx)
+        {
+            _logger.LogError(appEx, "An error occurred while processing the request of type {RequestType}", typeof(TRequest).Name);
+
+            throw new ApplicationException(typeof(TRequest).Name, appEx.Error, innerException: appEx);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while processing the request of type {RequestType}", typeof(TRequest).Name);
-
+            _logger.LogError(ex, "An unexpected error occurred while processing the request of type {RequestType}", typeof(TRequest).Name);
             throw new ApplicationException(typeof(TRequest).Name, innerException: ex);
         }
     }

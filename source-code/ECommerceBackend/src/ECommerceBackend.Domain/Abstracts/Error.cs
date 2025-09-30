@@ -149,6 +149,6 @@ public record Error
     /// <summary>
     /// Creates a precondition failed error (HTTP 412).
     /// </summary>
-    public static Error PreconditionFailed(string code, string description) =>
-        new(code, description, ErrorType.PreconditionFailed);
+    //public static Error PreconditionFailed(string code, string description) =>
+    //    new(code, description, ErrorType.PreconditionFailed);
 }
