@@ -28,7 +28,7 @@ public class Category : Entity
         // For ORM
     }
 
-    public static Category Create(string name, string iconUrl, Guid parentId, int lft, int rgt, int depth)
+    public static Category Create(string name, string iconUrl, Guid? parentId, int lft, int rgt, int depth)
     {
         var category = new Category
         {
@@ -65,7 +65,7 @@ public class Category : Entity
         // Raise domain event if needed
     }
 
-    public void MoveCategory(Guid newParentId, int newLft, int newRgt, int newDepth)
+    public void MoveCategory(Guid? newParentId, int newLft, int newRgt, int newDepth)
     {
         ParentId = newParentId;
         Lft = newLft;
