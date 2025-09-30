@@ -17,7 +17,7 @@ namespace ECommerceBackend.Infrastructure.Repositories;
 public abstract class Repository<T>
     where T : Entity
 {
-    private readonly ApplicationDbContext _dbContext;
+    protected readonly ApplicationDbContext _dbContext;
 
     protected Repository(ApplicationDbContext dbContext)
     {
