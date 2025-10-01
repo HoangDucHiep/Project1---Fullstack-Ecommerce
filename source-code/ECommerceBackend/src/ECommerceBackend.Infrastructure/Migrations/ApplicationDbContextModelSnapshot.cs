@@ -17,6 +17,7 @@ namespace ECommerceBackend.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("ecommerce-domain")
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -96,7 +97,7 @@ namespace ECommerceBackend.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_addresses_user_id");
 
-                    b.ToTable("addresses", (string)null);
+                    b.ToTable("addresses", "ecommerce-domain");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Categories.Category", b =>
@@ -160,7 +161,7 @@ namespace ECommerceBackend.Infrastructure.Migrations
                     b.HasIndex("Lft", "Rgt")
                         .HasDatabaseName("ix_categories_lft_rgt");
 
-                    b.ToTable("categories", (string)null);
+                    b.ToTable("categories", "ecommerce-domain");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Shops.Shop", b =>
@@ -219,7 +220,7 @@ namespace ECommerceBackend.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_shops_owner_id");
 
-                    b.ToTable("shops", (string)null);
+                    b.ToTable("shops", "ecommerce-domain");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Users.User", b =>
@@ -234,7 +235,6 @@ namespace ECommerceBackend.Infrastructure.Migrations
                         .HasColumnName("created_at_utc");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("email");
@@ -246,7 +246,6 @@ namespace ECommerceBackend.Infrastructure.Migrations
                         .HasColumnName("identity_id");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("phone");
@@ -264,11 +263,21 @@ namespace ECommerceBackend.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_users");
 
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email")
+                        .HasFilter("\"email\" IS NOT NULL");
+
                     b.HasIndex("IdentityId")
                         .IsUnique()
                         .HasDatabaseName("ix_users_identity_id");
 
-                    b.ToTable("users", (string)null);
+                    b.HasIndex("Phone")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_phone")
+                        .HasFilter("\"phone\" IS NOT NULL");
+
+                    b.ToTable("users", "ecommerce-domain");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Addresses.Address", b =>

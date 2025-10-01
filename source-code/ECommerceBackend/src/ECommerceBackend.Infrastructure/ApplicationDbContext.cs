@@ -24,6 +24,8 @@ public class ApplicationDbContext : DbContext, IUnitOfWork
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
+        modelBuilder.HasDefaultSchema(Schemas.Application);
+
         base.OnModelCreating(modelBuilder);
     }
 

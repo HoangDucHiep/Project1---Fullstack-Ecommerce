@@ -88,7 +88,10 @@ public static class InfrastructureConfiguration
 
         services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseNpgsql(databaseConnectionString).UseSnakeCaseNamingConvention();
+            options.UseNpgsql(databaseConnectionString, options =>
+            {
+                options.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Application);
+            }).UseSnakeCaseNamingConvention();
         });
 
 

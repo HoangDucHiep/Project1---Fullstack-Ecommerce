@@ -12,18 +12,96 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerceBackend.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250927142013_AddShop")]
-    partial class AddShop
+    [Migration("20251001183929_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("ecommerce-domain")
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ECommerceBackend.Domain.Addresses.Address", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AddressLine")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("address_line");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("district");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<bool>("IsPickUpAddress")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_pick_up_address");
+
+                    b.Property<bool>("IsReturnAddress")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_return_address");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("Province")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("province");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<Guid>("UserId")
+                        .HasMaxLength(100)
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Ward")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ward");
+
+                    b.HasKey("Id")
+                        .HasName("pk_addresses");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_addresses_user_id");
+
+                    b.ToTable("addresses", "ecommerce-domain");
+                });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Categories.Category", b =>
                 {
@@ -56,7 +134,7 @@ namespace ECommerceBackend.Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
-                    b.Property<Guid>("ParentId")
+                    b.Property<Guid?>("ParentId")
                         .HasColumnType("uuid")
                         .HasColumnName("parent_id");
 
@@ -86,7 +164,7 @@ namespace ECommerceBackend.Infrastructure.Migrations
                     b.HasIndex("Lft", "Rgt")
                         .HasDatabaseName("ix_categories_lft_rgt");
 
-                    b.ToTable("categories", (string)null);
+                    b.ToTable("categories", "ecommerce-domain");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Shops.Shop", b =>
@@ -145,7 +223,7 @@ namespace ECommerceBackend.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_shops_owner_id");
 
-                    b.ToTable("shops", (string)null);
+                    b.ToTable("shops", "ecommerce-domain");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Users.User", b =>
@@ -160,7 +238,6 @@ namespace ECommerceBackend.Infrastructure.Migrations
                         .HasColumnName("created_at_utc");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("email");
@@ -172,7 +249,6 @@ namespace ECommerceBackend.Infrastructure.Migrations
                         .HasColumnName("identity_id");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("phone");
@@ -190,11 +266,41 @@ namespace ECommerceBackend.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_users");
 
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email")
+                        .HasFilter("\"email\" IS NOT NULL");
+
                     b.HasIndex("IdentityId")
                         .IsUnique()
                         .HasDatabaseName("ix_users_identity_id");
 
-                    b.ToTable("users", (string)null);
+                    b.HasIndex("Phone")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_phone")
+                        .HasFilter("\"phone\" IS NOT NULL");
+
+                    b.ToTable("users", "ecommerce-domain");
+                });
+
+            modelBuilder.Entity("ECommerceBackend.Domain.Addresses.Address", b =>
+                {
+                    b.HasOne("ECommerceBackend.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_addresses_user_user_id");
+                });
+
+            modelBuilder.Entity("ECommerceBackend.Domain.Shops.Shop", b =>
+                {
+                    b.HasOne("ECommerceBackend.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_shops_user_owner_id");
                 });
 #pragma warning restore 612, 618
         }

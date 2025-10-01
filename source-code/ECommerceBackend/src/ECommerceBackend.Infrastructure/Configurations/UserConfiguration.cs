@@ -12,9 +12,12 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
         builder.Property(u => u.Email)
+            .IsRequired(false)
             .HasMaxLength(255);
         builder.Property(u => u.Phone)
+            .IsRequired(false)
             .HasMaxLength(20);
+
         builder.Property(u => u.Status)
             .IsRequired()
             .HasConversion<string>()
@@ -23,6 +26,16 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired();
         builder.Property(u => u.UpdatedAtUtc)
             .IsRequired();
+
         builder.HasIndex(u => u.IdentityId).IsUnique();
+
+        // Unique indexes that ignore NULL values
+        builder.HasIndex(u => u.Email)
+            .IsUnique()
+            .HasFilter($"\"{nameof(User.Email).ToLowerInvariant()}\" IS NOT NULL");
+
+        builder.HasIndex(u => u.Phone)
+            .IsUnique()
+            .HasFilter($"\"{nameof(User.Phone).ToLowerInvariant()}\" IS NOT NULL");
     }
 }
