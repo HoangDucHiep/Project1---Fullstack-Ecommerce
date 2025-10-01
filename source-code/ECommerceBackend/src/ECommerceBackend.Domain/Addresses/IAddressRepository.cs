@@ -7,4 +7,6 @@ public interface IAddressRepository
 
     Task<List<Address>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     int Update(Address address);
+
+    void Delete(Address address);
 }

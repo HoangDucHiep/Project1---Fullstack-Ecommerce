@@ -1,7 +1,9 @@
 ﻿using ECommerceBackend.Api.Contracts.Addresses;
 using ECommerceBackend.Application.Addresses.AddNewAddress;
+using ECommerceBackend.Application.Addresses.DeleteAddress;
 using ECommerceBackend.Application.Addresses.GetAddressById;
 using ECommerceBackend.Application.Addresses.GetAddressesOfCurrentUser;
+using ECommerceBackend.Application.Addresses.UpdateAddress;
 using ECommerceBackend.Application.Contracts.Addresses;
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Domain.Abstracts;
@@ -10,6 +12,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceBackend.Api.Controllers.Addresses;
 
+///  HDHiep - 10/01/2025
+/// <summary>
+/// Controller for managing user addresses.
+/// </summary>
 [ApiController]
 public class AddressController : ControllerBase
 {
@@ -68,12 +74,24 @@ public class AddressController : ControllerBase
     [HttpPut("/me/addresses/{addressId:guid}")]
     public async Task<IActionResult> UpdateAddress([FromRoute] Guid addressId, [FromBody] AddressUpdateRequest request)
     {
-        // var command = new UpdateAddressCommand(addressId, request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
-        // Result<AddressDto> result = await _sender.Send(command);
-        // if (result.IsFailure)
-        // {
-        //     return StatusCode(result.Error.Type.StatusCode, result.Error);
-        // }
-        // return Ok(result.Value);
-        return StatusCode(501); // Not Implemented
+        var command = new UpdateAddressCommand(addressId, request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
+        Result<AddressDto> result = await _sender.Send(command);
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+        return Ok(result.Value);
     }
+
+    [HttpDelete("/me/addresses/{addressId:guid}")]
+    public async Task<IActionResult> DeleteAddress([FromRoute] Guid addressId)
+    {
+        var command = new DeleteAddressCommand(addressId);
+        Result result = await _sender.Send(command);
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+        return NoContent();
+    }
+}

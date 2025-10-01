@@ -43,4 +43,36 @@ public sealed class Address : Entity
         // Raise domain event if needed
         return address;
     }
+
+    /// Hdhiep - 10/01/2025
+    /// <summary>
+    /// Update address details
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="phone"></param>
+    /// <param name="province"></param>
+    /// <param name="district"></param>
+    /// <param name="ward"></param>
+    /// <param name="addressLine"></param>
+    /// <param name="isDefault"></param>
+    /// <param name="isPickUpAddress"></param>
+    /// <param name="isReturnAddress"></param>
+    /// <returns></returns>
+    public Address Update(string name, string phone, string province, string district, string ward, string addressLine, bool isDefault, bool isPickUpAddress, bool isReturnAddress)
+    {
+        Name = name;
+        Phone = phone;
+        Province = province;
+        District = district;
+        Ward = ward;
+        AddressLine = addressLine;
+        IsDefault = isDefault;
+        IsPickUpAddress = isPickUpAddress;
+        IsReturnAddress = isReturnAddress;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+        // Raise domain event if needed
+
+        return this;
+    }
 }
