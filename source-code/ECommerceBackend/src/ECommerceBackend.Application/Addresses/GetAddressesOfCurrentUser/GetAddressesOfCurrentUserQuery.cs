@@ -6,4 +6,4 @@ namespace ECommerceBackend.Application.Addresses.GetAddressesOfCurrentUser;
 public sealed record GetAddressesOfCurrentUserQuery(
     int Page,
     int PageSize
-    ) : IQuery<PaginationResult<AddressDto>>;
+    ) : IQuery<PaginationResult<AddressDto>>, IPaginableQuery;
