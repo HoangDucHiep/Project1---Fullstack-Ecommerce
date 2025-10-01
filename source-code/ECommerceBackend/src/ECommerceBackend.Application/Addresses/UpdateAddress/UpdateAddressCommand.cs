@@ -3,6 +3,7 @@ using ECommerceBackend.Application.Contracts.Addresses;
 
 namespace ECommerceBackend.Application.Addresses.UpdateAddress;
 public sealed record UpdateAddressCommand(
+    Guid Id,
     string Name,
     string Phone,
     string Province,
