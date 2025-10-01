@@ -38,4 +38,9 @@ public abstract class Repository<T>
     {
         _dbContext.Add(entity);
     }
+
+    public virtual void Delete(T entity)
+    {
+        _dbContext.Remove(entity);
+    }
 }

@@ -6,3 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "<Pending>", Scope = "type", Target = "~T:ECommerceBackend.Application.Shops.ShopRegister.ShopRegisterCommand")]
+[assembly: SuppressMessage("Spellchecker", "CRRSP09:A misspelled word has been found", Justification = "<Pending>", Scope = "type", Target = "~T:ECommerceBackend.Application.Contracts.Commons.IPaginableQuery")]
