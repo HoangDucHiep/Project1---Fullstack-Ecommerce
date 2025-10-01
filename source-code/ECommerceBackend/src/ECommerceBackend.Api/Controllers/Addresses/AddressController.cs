@@ -17,6 +17,7 @@ namespace ECommerceBackend.Api.Controllers.Addresses;
 /// Controller for managing user addresses.
 /// </summary>
 [ApiController]
+[Route("api/v1")]
 public class AddressController : ControllerBase
 {
     private readonly ISender _sender;

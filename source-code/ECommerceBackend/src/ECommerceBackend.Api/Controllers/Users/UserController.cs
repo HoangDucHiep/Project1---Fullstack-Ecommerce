@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerceBackend.Api.Controllers.Users;
 
 [ApiController]
-[Route("api/users")]
+[Route("api/v1/users")]
 public class UsersController : ControllerBase
 {
     private readonly ISender _sender;
