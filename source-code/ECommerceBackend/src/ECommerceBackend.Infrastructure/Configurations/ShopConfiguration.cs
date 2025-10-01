@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Domain.Shops;
+using ECommerceBackend.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -29,6 +30,12 @@ internal sealed class ShopConfiguration : IEntityTypeConfiguration<Shop>
         builder.Property(s => s.UpdatedAtUtc)
             .IsRequired();
         builder.HasIndex(s => s.OwnerId).IsUnique();
+
+        // Relationships
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(s => s.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
     }
 }
