@@ -14,13 +14,17 @@
     "antd": "^5.27.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-multi-carousel": "^2.8.6",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.9.3"
+    "react-router-dom": "^7.9.3",
+    "react-slick": "^0.31.0",
+    "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@types/react-slick": "^0.23.13",
     "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
