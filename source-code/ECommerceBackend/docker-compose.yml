@@ -12,6 +12,12 @@ services:
       
       # Logging configurations
       - Serilog__WriteTo__1__Args__serverUrl=${Serilog__WriteTo__1__Args__serverUrl}
+      
+      # JWT configurations
+      - Jwt__SecretKey=${JWT_SECRET_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__AccessTokenExpiryMinutes=${JWT_ACCESS_TOKEN_EXPIRY_MINUTES}
     ports:
        - ${API_HTTP_PORT}:${API_CONTAINER_HTTP_PORT}
        - ${API_HTTPS_PORT}:${API_CONTAINER_HTTPS_PORT}
