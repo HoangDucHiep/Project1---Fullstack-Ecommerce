@@ -2,6 +2,7 @@
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import ProductPage from "../pages/ProductPage";
+import Cart from "../pages/Cart";
 
 export interface AppRoute {
     id: string;
@@ -30,6 +31,13 @@ export const routes = [
         id: "ProductPage",
         path: "/ProductPage",
         page: ProductPage,
+        isShowHeader: false,  // không có header
+        isPrivate: false,
+    },
+    {
+        id: "CartPage",
+        path: "/CartPage",
+        page: Cart,
         isShowHeader: false,  // không có header
         isPrivate: false,
     },

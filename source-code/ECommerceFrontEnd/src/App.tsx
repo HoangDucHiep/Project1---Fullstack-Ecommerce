@@ -3,6 +3,8 @@ import { Fragment } from "react";
 import { routes } from "./routes";
 import DefaultComponent from "./components/DefaultComponent/DefaultComponent.tsx";
 import { useAppSelector } from "./hooks/reduxHooks.ts";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 function App() {
     const user = useAppSelector((state) => state.user);
