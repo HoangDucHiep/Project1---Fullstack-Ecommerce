@@ -1,4 +1,4 @@
-﻿using ECommerceBackend.Domain.Utils;
+﻿using ECommerceBackend.Domain.Abstracts.Utils;
 
 namespace ECommerceBackend.Domain.Abstracts;
 
