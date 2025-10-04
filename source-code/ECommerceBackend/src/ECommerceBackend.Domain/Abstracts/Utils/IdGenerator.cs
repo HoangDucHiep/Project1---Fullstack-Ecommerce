@@ -1,4 +1,4 @@
-﻿namespace ECommerceBackend.Domain.Utils;
+﻿namespace ECommerceBackend.Domain.Abstracts.Utils;
 
 
 /// HDHIep - 09/24/2025
