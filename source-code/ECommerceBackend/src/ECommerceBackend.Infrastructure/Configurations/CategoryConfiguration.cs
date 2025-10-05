@@ -45,5 +45,11 @@ internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
         // for hierarchical queries, consider indexing Lft and Rgt
         builder.HasIndex(c => new { c.Lft, c.Rgt });
         builder.HasIndex(c => new { c.ParentId });
+
+        // relationships
+        builder.HasOne<Category>()
+            .WithMany()
+            .HasForeignKey(c => c.ParentId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
