@@ -10,6 +10,7 @@ using ECommerceBackend.Infrastructure.Authentication;
 using ECommerceBackend.Infrastructure.Caching;
 using ECommerceBackend.Infrastructure.Clock;
 using ECommerceBackend.Infrastructure.Data;
+using ECommerceBackend.Infrastructure.Identity;
 using ECommerceBackend.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -86,11 +87,21 @@ public static class InfrastructureConfiguration
 
 
 
+        // Application Domain DBContext
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseNpgsql(databaseConnectionString, options =>
             {
                 options.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Application);
+            }).UseSnakeCaseNamingConvention();
+        });
+
+        // Application Identity DbContext
+        services.AddDbContext<IdentityDbContext>(options =>
+        {
+            options.UseNpgsql(databaseConnectionString, options =>
+            {
+                options.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Identity);
             }).UseSnakeCaseNamingConvention();
         });
 

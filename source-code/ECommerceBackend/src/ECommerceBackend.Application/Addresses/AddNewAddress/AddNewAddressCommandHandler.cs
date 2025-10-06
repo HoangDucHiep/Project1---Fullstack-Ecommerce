@@ -40,6 +40,7 @@ public sealed class AddNewAddressCommandHandler : ICommandHandler<AddNewAddressC
 
         var addressDto = newAdress.ToAddressDto();
 
+
         return addressDto;
     }
 }

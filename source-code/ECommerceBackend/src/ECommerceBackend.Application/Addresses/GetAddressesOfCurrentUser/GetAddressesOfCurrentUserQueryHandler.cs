@@ -36,14 +36,14 @@ internal sealed class GetAddressesOfCurrentUserQueryHandler : IQueryHandler<GetA
                 is_default AS {nameof(AddressDto.IsDefault)},
                 is_pick_up_address AS {nameof(AddressDto.IsPickUpAddress)},
                 is_return_address AS {nameof(AddressDto.IsReturnAddress)}
-            FROM addresses
+            FROM "ecommerce-domain".addresses
             WHERE user_id = @userId
             LIMIT @PageSize OFFSET (@Page - 1) * @PageSize
             """;
 
         string countSql = $"""
             SELECT COUNT(*) 
-            FROM addresses
+            FROM "ecommerce-domain".addresses
             WHERE user_id = @userId
             """;
 
