@@ -27,13 +27,14 @@ public sealed class User : Entity
     // Convenience property to get roles
     public IEnumerable<Role> Roles => _userRoles.Select(ur => ur.Role);
 
-    public static User Create(string identityId, string email, string phone)
+    public static User Create(string userName, string identityId, string? email = null, string? phone = null)
     {
         // Need to implement roles, events later
 
         return new User
         {
             IdentityId = identityId,
+            UserName = userName,
             Email = email,
             Phone = phone,
             Status = UserStatus.ACTIVE,

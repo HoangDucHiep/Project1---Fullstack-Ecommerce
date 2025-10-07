@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Api.Contracts.Addresses;
+using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Addresses.AddNewAddress;
 using ECommerceBackend.Application.Addresses.DeleteAddress;
 using ECommerceBackend.Application.Addresses.GetAddressById;
@@ -8,6 +9,7 @@ using ECommerceBackend.Application.Contracts.Addresses;
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceBackend.Api.Controllers.Addresses;
@@ -18,13 +20,16 @@ namespace ECommerceBackend.Api.Controllers.Addresses;
 /// </summary>
 [ApiController]
 [Route("api/v1")]
+[Authorize]
 public class AddressController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IUserContext _userContext;
 
-    public AddressController(ISender sender)
+    public AddressController(ISender sender, IUserContext userContext)
     {
         _sender = sender;
+        _userContext = userContext;
     }
 
 
@@ -44,8 +49,12 @@ public class AddressController : ControllerBase
     }
 
     [HttpGet("/me/addresses/{addressId:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAddressById([FromRoute] Guid addressId)
     {
+        Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
+        Console.WriteLine($"UserId: {_userContext.UserId}");
+
         var query = new GetAddressByIdQuery(addressId);
 
         Result<AddressDto> result = await _sender.Send(query);
@@ -61,6 +70,9 @@ public class AddressController : ControllerBase
     [HttpGet("/me/addresses")]
     public async Task<IActionResult> GetAddressesOfCurrentUser([FromQuery] GetAddressOfCurrentUserRequest request)
     {
+        Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
+        Console.WriteLine($"UserId: {_userContext.UserId}");
+
         var query = new GetAddressesOfCurrentUserQuery(request.Page, request.PageSize);
         Result<PaginationResult<AddressDto>> result = await _sender.Send(query);
 

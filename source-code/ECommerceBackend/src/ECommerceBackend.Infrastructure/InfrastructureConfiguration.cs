@@ -1,4 +1,6 @@
-﻿using ECommerceBackend.Application.Abstracts.Caching;
+﻿using System.Text;
+using ECommerceBackend.Application.Abstracts.Authentication;
+using ECommerceBackend.Application.Abstracts.Caching;
 using ECommerceBackend.Application.Abstracts.Clock;
 using ECommerceBackend.Application.Abstracts.Data;
 using ECommerceBackend.Domain.Abstracts;
@@ -11,11 +13,15 @@ using ECommerceBackend.Infrastructure.Caching;
 using ECommerceBackend.Infrastructure.Clock;
 using ECommerceBackend.Infrastructure.Data;
 using ECommerceBackend.Infrastructure.Identity;
+using ECommerceBackend.Infrastructure.IdentityAuthen;
 using ECommerceBackend.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using StackExchange.Redis;
 
@@ -43,6 +49,7 @@ public static class InfrastructureConfiguration
 
         services.TryAddSingleton<IDateTimeProvider, DateTimeProvider>();
         AddPersistence(services, configuration);
+        AddAuthentication(services, configuration);
 
         return services;
     }
@@ -53,11 +60,6 @@ public static class InfrastructureConfiguration
         string databaseConnectionString = configuration.GetConnectionString("Database")!; // PostgreSQL
         string redisConnectionString = configuration.GetConnectionString("Cache")!; // Redis
 
-        //Console.WriteLine($"Database Connection String: {databaseConnectionString}");
-        //Console.WriteLine($"Redis Connection String: {redisConnectionString}");
-
-        // Register authentication services
-        services.AddAuthenticationInternal();
 
         // Register NpgsqlDataSource and related services
         NpgsqlDataSource npgsqlDataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
@@ -96,14 +98,7 @@ public static class InfrastructureConfiguration
             }).UseSnakeCaseNamingConvention();
         });
 
-        // Application Identity DbContext
-        services.AddDbContext<IdentityDbContext>(options =>
-        {
-            options.UseNpgsql(databaseConnectionString, options =>
-            {
-                options.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Identity);
-            }).UseSnakeCaseNamingConvention();
-        });
+
 
 
         /// Register repositories
@@ -117,7 +112,78 @@ public static class InfrastructureConfiguration
 
     }
 
+    private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
+    {
+
+        // Services for Identity and Authentication
+        string databaseConnectionString = configuration.GetConnectionString("Database")!; // PostgreSQL
+
+        // Application Identity DbContext
+        services.AddDbContext<IdentityDbContext>(options =>
+        {
+            options.UseNpgsql(databaseConnectionString, options =>
+            {
+                options.MigrationsHistoryTable("__EFMigrationsHistory", Schemas.Identity);
+            }).UseSnakeCaseNamingConvention();
+        });
 
 
+        services.TryAddScoped<IIdentityUnitOfWork>(provider => provider.GetRequiredService<IdentityDbContext>());
 
+
+        // Configure Identity
+        services.AddIdentity<ApplicationIdentityUser, IdentityRole>(options =>
+        {
+            // Password settings
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequiredLength = 6;
+
+            // User settings
+            options.User.RequireUniqueEmail = false; // We handle this manually
+            options.SignIn.RequireConfirmedEmail = false;
+            options.SignIn.RequireConfirmedPhoneNumber = false;
+        })
+        .AddEntityFrameworkStores<IdentityDbContext>()
+        .AddDefaultTokenProviders();
+
+        // Add JWT Authentication
+        IConfigurationSection jwtSettings = configuration.GetSection("Jwt");
+        string? accessTokenSecretKey = jwtSettings["AccessTokenSecretKey"];
+
+        if (string.IsNullOrWhiteSpace(accessTokenSecretKey))
+        {
+            throw new ApplicationException("JWT AccessTokenSecretKey is not configured.");
+        }
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidAudience = jwtSettings["Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(accessTokenSecretKey!)),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IUserContext, UserContext>();
+
+
+    }
 }

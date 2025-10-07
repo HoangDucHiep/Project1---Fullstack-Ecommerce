@@ -1,11 +1,13 @@
-﻿using ECommerceBackend.Infrastructure.IdentityAuthen;
+﻿using ECommerceBackend.Application.Abstracts.Exceptions;
+using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Infrastructure.IdentityAuthen;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBackend.Infrastructure.Identity;
 
-public class IdentityDbContext : IdentityDbContext<ApplicationIdentityUser>
+public class IdentityDbContext : IdentityDbContext<ApplicationIdentityUser>, IIdentityUnitOfWork
 {
     public IdentityDbContext(DbContextOptions<IdentityDbContext> options) : base(options)
     {
@@ -57,5 +59,19 @@ public class IdentityDbContext : IdentityDbContext<ApplicationIdentityUser>
         builder.Entity<IdentityUserLogin<string>>(entity => entity.ToTable("UserLogins"));
         builder.Entity<IdentityRoleClaim<string>>(entity => entity.ToTable("RoleClaims"));
         builder.Entity<IdentityUserToken<string>>(entity => entity.ToTable("UserTokens"));
+    }
+
+
+    public async override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            int result = await base.SaveChangesAsync(cancellationToken);
+            return result;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConcurrencyException(new Error("ConcurrencyException", "Concurrency exception occurred in ApplicationDbContext", ErrorType.Conflict), ex);
+        }
     }
 }
