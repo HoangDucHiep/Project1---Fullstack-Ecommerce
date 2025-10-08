@@ -3,6 +3,8 @@ import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import ProductPage from "../pages/ProductPage";
 import Cart from "../pages/Cart";
+import SearchPage from "../pages/SearchPage";
+import ProductDetail from "../pages/ProductDetail";
 
 export interface AppRoute {
     id: string;
@@ -38,6 +40,20 @@ export const routes = [
         id: "CartPage",
         path: "/CartPage",
         page: Cart,
+        isShowHeader: false,  // không có header
+        isPrivate: false,
+    },
+    {
+        id: "SearchPage",
+        path: "/SearchPage",
+        page: SearchPage,
+        isShowHeader: false,  // không có header
+        isPrivate: false,
+    },
+    {
+        id: "ProductDetail",
+        path: "/ProductDetail",
+        page: ProductDetail,
         isShowHeader: false,  // không có header
         isPrivate: false,
     },
