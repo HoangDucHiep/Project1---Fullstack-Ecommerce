@@ -6,7 +6,7 @@ namespace ECommerceBackend.Infrastructure.Caching;
 /// <summary>
 /// Helper factory for creating <see cref="DistributedCacheEntryOptions"/> with sensible defaults.
 /// </summary>
-public static class CacheOptions
+public static class RedisOptions
 {
     /// <summary>
     /// Gets the default expiration policy (absolute 2 minutes).
