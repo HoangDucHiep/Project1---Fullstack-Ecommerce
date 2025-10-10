@@ -34,7 +34,7 @@ public class AddressController : ControllerBase
     }
 
 
-    [HttpPost("me/addresses")]
+    [HttpPost("/me/addresses")]
     public async Task<IActionResult> CreateAddress([FromBody] AddressCreateRequest request)
     {
         if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
@@ -114,7 +114,7 @@ public class AddressController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpDelete("me/addresses/{addressId:guid}")]
+    [HttpDelete("/me/addresses/{addressId:guid}")]
     public async Task<IActionResult> DeleteAddress([FromRoute] Guid addressId)
     {
         if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
