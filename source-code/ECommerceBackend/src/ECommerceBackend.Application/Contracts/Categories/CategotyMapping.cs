@@ -26,16 +26,16 @@ public static class CategoryMappings
         };
     }
 
-    //public static Category ToCategoryEntity(this CategoryDto dto)
-    //{
-    //    return Category.Create(
-    //        dto.Name,
-    //        dto.IconUrl,
-    //        dto.ParentId,
-    //        dto.Lft,
-    //        dto.Rgt,
-    //        dto.Depth
-    //    );
-    //}
+    public static Category ToCategoryEntity(this CategoryDto categoryDto)
+    {
+        return Category.Create(
+           categoryDto.Name,
+           categoryDto.IconUrl,
+           categoryDto.ParentId,
+           categoryDto.Lft,
+           categoryDto.Rgt,
+           categoryDto.Depth
+        );
+    }
 }
 
