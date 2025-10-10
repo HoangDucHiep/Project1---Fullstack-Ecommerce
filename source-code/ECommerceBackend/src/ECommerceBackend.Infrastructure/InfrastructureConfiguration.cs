@@ -85,7 +85,7 @@ public static class InfrastructureConfiguration
         }
 
         // Register CacheService
-        services.TryAddSingleton<ICacheService, CacheService>();
+        services.TryAddSingleton<IRedisService, RedisService>();
 
 
 
