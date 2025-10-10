@@ -27,7 +27,7 @@ public class Category : Entity
     {
         // For ORM
     }
-
+    //PBNMinh - 08/10/2025
     public static Category Create(string name, string iconUrl, Guid? parentId, int lft, int rgt, int depth)
     {
         var category = new Category

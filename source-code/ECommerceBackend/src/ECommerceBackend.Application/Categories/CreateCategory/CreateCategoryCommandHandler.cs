@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
 using ECommerceBackend.Application.Abstracts.Messaging;
+using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Application.Users.RegisterUser;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Categories;
@@ -52,14 +53,16 @@ public class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryComman
         }
 
 
-        var category = Category.Create(
-            request.Name,
-            request.IconUrl,
-            request.ParentId,
-            request.Lft,
-            request.Rgt,
-            request.Depth
-        );
+        var categoryDto = new CategoryDto
+        {
+            Name = request.Name,
+            IconUrl = request.IconUrl,
+            ParentId = request.ParentId,
+            Lft = request.Lft,
+            Rgt = request.Rgt,
+            Depth = request.Depth
+        };
+        Category category = categoryDto.ToCategoryEntity();
 
         _categoryRepository.Add(category);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
