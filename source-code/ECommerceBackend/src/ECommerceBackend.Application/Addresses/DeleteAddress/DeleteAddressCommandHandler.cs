@@ -3,7 +3,7 @@ using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Addresses;
 
 namespace ECommerceBackend.Application.Addresses.DeleteAddress;
-internal sealed class DeleteAddressCommandHandler : ICommandHandler<DeleteAddressCommand>
+public sealed class DeleteAddressCommandHandler : ICommandHandler<DeleteAddressCommand>
 {
     private readonly IAddressRepository _addressRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -17,22 +17,21 @@ internal sealed class DeleteAddressCommandHandler : ICommandHandler<DeleteAddres
     public async Task<Result> Handle(DeleteAddressCommand request, CancellationToken cancellationToken)
     {
         Address? address = await _addressRepository.GetByIdAsync(request.AddressId, cancellationToken);
-        if (address is null)
+
+        if (address is null || address.UserId != request.UserId)
         {
-            return Result.Failure(AddressErrors.NotFound());
+            return Result.Failure(Error.NotFound("AddressNotFound", "Address not found."));
         }
 
-        // Check if the address belongs to the current user
-        // TODO: Use UserContext to get current user ID and verify ownership
-        // For demonstration, assuming a fixed user ID
-        var currentUserId = Guid.Parse("01998678-85b2-7474-883c-d17e816f46aa"); // Replace with actual user ID from context
-
-        if (address.UserId != currentUserId)
+        // Kiểm tra nếu là mặc định/pickup/return và cần replacement
+        if (address.IsDefault || address.IsPickUpAddress || address.IsReturnAddress)
         {
-            return Result.Failure(AddressErrors.Forbidden());
+            // TODO: Kiểm tra replacement theo business rules
+            return Result.Failure(Error.BadRequest("ReplacementRequired", "Cannot delete default/pickup/return address without replacement."));
         }
 
         _addressRepository.Delete(address);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

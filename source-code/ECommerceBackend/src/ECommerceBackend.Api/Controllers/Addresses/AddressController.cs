@@ -114,15 +114,21 @@ public class AddressController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpDelete("/me/addresses/{addressId:guid}")]
+    [HttpDelete("me/addresses/{addressId:guid}")]
     public async Task<IActionResult> DeleteAddress([FromRoute] Guid addressId)
     {
-        var command = new DeleteAddressCommand(addressId);
+        if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
+        { return Unauthorized(); }
+
+        var userId = Guid.Parse(_userContext.UserId!);
+
+        var command = new DeleteAddressCommand(addressId, userId);
         Result result = await _sender.Send(command);
+
         if (result.IsFailure)
-        {
-            return StatusCode(result.Error.Type.StatusCode, result.Error);
-        }
+        { return StatusCode(result.Error.Type.StatusCode, result.Error); }
+
         return NoContent();
     }
+
 }
