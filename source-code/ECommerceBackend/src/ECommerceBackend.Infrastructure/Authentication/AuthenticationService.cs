@@ -105,9 +105,53 @@ public class AuthenticationService : IAuthenticationService
         throw new NotImplementedException();
     }
 
-    public Task<Result<AuthenticationResult>> LoginAsync(string identifier, string password)
+    public async Task<Result<AuthenticationResult>> LoginAsync(string identifier, string password)
     {
-        throw new NotImplementedException();
+        // Determine if identifier is email or phone number
+        bool isEmail = identifier.Contains('@');
+
+        ApplicationIdentityUser? identityUser = !isEmail
+            ? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == identifier)
+            : await _userManager.FindByEmailAsync(identifier);
+
+        if (identityUser == null)
+        {
+            return Result.Failure<AuthenticationResult>(UserErrors.InvalidCredentials);
+        }
+
+        // Check password
+        SignInResult signInResult = await _signInManager.CheckPasswordSignInAsync(identityUser, password, lockoutOnFailure: false);
+
+        if (!signInResult.Succeeded)
+        {
+            return Result.Failure<AuthenticationResult>(UserErrors.InvalidCredentials);
+        }
+
+        // Generate tokens
+        string accessToken = _jwtService.GenerateAccessToken(
+            identityUser.Id,
+            email: identityUser.Email,
+            phoneNumber: identityUser.PhoneNumber);
+
+        string refreshToken = _jwtService.GenerateRefreshToken();
+
+        // Create and save refresh token
+        var rt = RefreshToken.Create(
+            token: refreshToken,
+            jwtId: ExtractJwtIdFromToken(accessToken),
+            expiresAtUtc: _dateTimeProvider.UtcNow.AddDays(_jwtService.GetRefreshTokenExpirationInDays()),
+            identityUserId: identityUser.Id
+        );
+
+        await _refreshTokenRepository.AddAsync(rt);
+        await _identityUnitOfWork.SaveChangesAsync();
+
+        return Result.Success(new AuthenticationResult(
+            AccessToken: accessToken,
+            RefreshToken: refreshToken,
+            AccessTokenExpiration: _dateTimeProvider.UtcNow.AddMinutes(_jwtService.GetAccessTokenExpirationInMinutes()).UtcDateTime,
+            RefreshTokenExpiration: rt.ExpiresAtUtc.UtcDateTime,
+            IdentityUserId: identityUser.Id.ToString()));
     }
 
     public Task<Result> LogoutAsync(string userId)

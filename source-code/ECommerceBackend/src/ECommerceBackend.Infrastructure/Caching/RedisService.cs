@@ -11,16 +11,16 @@ namespace ECommerceBackend.Infrastructure.Caching;
 /// This service allows storing, retrieving, and removing objects in distributed cache,
 /// with support for JSON serialization/deserialization.
 /// </summary>
-public sealed class CacheService : ICacheService
+public sealed class RedisService : IRedisService
 {
     private readonly IDistributedCache _cache;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CacheService"/> class.
+    /// Initializes a new instance of the <see cref="RedisService"/> class.
     /// </summary>
     /// <param name="cache">The distributed cache implementation to use.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="cache"/> is null.</exception>
-    public CacheService(IDistributedCache cache)
+    public RedisService(IDistributedCache cache)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
@@ -51,7 +51,7 @@ public sealed class CacheService : ICacheService
     public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default)
     {
         byte[] bytes = Serialize(value);
-        return _cache.SetAsync(key, bytes, CacheOptions.Create(expiration), cancellationToken);
+        return _cache.SetAsync(key, bytes, RedisOptions.Create(expiration), cancellationToken);
     }
 
     /// <summary>
