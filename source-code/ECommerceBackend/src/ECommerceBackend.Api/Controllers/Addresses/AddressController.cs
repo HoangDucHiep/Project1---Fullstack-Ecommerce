@@ -8,6 +8,7 @@ using ECommerceBackend.Application.Addresses.UpdateAddress;
 using ECommerceBackend.Application.Contracts.Addresses;
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,20 +34,37 @@ public class AddressController : ControllerBase
     }
 
 
-    [HttpPost("/me/addresses")]
+    [HttpPost("me/addresses")]
     public async Task<IActionResult> CreateAddress([FromBody] AddressCreateRequest request)
     {
-        var command = new AddNewAddressCommand(request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
+        if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
+        { return Unauthorized(); }
+
+        var userId = Guid.Parse(_userContext.UserId!);
+
+        var command = new AddNewAddressCommand(
+            request.Name,
+            request.Phone,
+            request.Province,
+            request.District,
+            request.Ward,
+            request.AddressLine,
+            request.IsDefault,
+            request.IsPickUpAddress,
+            request.IsReturnAddress,
+            userId 
+        );
 
         Result<AddressDto> result = await _sender.Send(command);
 
         if (result.IsFailure)
-        {
-            return StatusCode(result.Error.Type.StatusCode, result.Error);
-        }
+        { return StatusCode(result.Error.Type.StatusCode, result.Error); }
 
         return CreatedAtAction(nameof(GetAddressById), new { addressId = result.Value.Id }, result.Value);
     }
+
+
+
 
     [HttpGet("/me/addresses/{addressId:guid}")]
     [AllowAnonymous]
