@@ -33,7 +33,7 @@ public class AddressController : ControllerBase
         _userContext = userContext;
     }
 
-
+    //PBNMinh- 10/10/2025
     [HttpPost("/me/addresses")]
     public async Task<IActionResult> CreateAddress([FromBody] AddressCreateRequest request)
     {
@@ -85,13 +85,20 @@ public class AddressController : ControllerBase
         return Ok(result.Value);
     }
 
+    //PBNMinh- 11/10/2025
     [HttpGet("/me/addresses")]
     public async Task<IActionResult> GetAddressesOfCurrentUser([FromQuery] GetAddressOfCurrentUserRequest request)
     {
-        Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
-        Console.WriteLine($"UserId: {_userContext.UserId}");
+        if (!_userContext.IsAuthenticated)
+        {
+            return Unauthorized(new { message = "User not authenticated" });
+        }
 
-        var query = new GetAddressesOfCurrentUserQuery(request.Page, request.PageSize);
+        var query = new GetAddressesOfCurrentUserQuery(
+            request.Page,
+            request.PageSize
+        );
+
         Result<PaginationResult<AddressDto>> result = await _sender.Send(query);
 
         if (result.IsFailure)
@@ -101,6 +108,8 @@ public class AddressController : ControllerBase
 
         return Ok(result.Value);
     }
+
+
 
     [HttpPut("/me/addresses/{addressId:guid}")]
     public async Task<IActionResult> UpdateAddress([FromRoute] Guid addressId, [FromBody] AddressUpdateRequest request)
@@ -114,6 +123,7 @@ public class AddressController : ControllerBase
         return Ok(result.Value);
     }
 
+    //PBNMinh- 10/10/2025
     [HttpDelete("/me/addresses/{addressId:guid}")]
     public async Task<IActionResult> DeleteAddress([FromRoute] Guid addressId)
     {
