@@ -1,0 +1,72 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
+using ECommerceBackend.Application.Abstracts.Messaging;
+using ECommerceBackend.Application.Contracts.Categories;
+using ECommerceBackend.Application.Users.RegisterUser;
+using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Categories;
+using ECommerceBackend.Domain.Users;
+
+namespace ECommerceBackend.Application.Categories.CategoryRegister;
+
+/// PBNMinh- 08/09/2025
+public class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryCommand, Guid>
+{
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private const int MaxCategoryNameLength = 100;
+    public CreateCategoryCommandHandler(ICategoryRepository categoryRepository, IUnitOfWork unitOfWork)
+    {
+        _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+    }
+    public async Task<Result<Guid>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return Result.Failure<Guid>(CategoryErrors.EmptyName());
+        }
+
+        if (request.Name.Length > MaxCategoryNameLength)
+        {
+            return Result.Failure<Guid>(CategoryErrors.NameTooLong(100));
+        }
+
+        List<Category> categories = await _categoryRepository.GetAllAsync(cancellationToken);
+        bool exists = categories.Any(c =>
+            c.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase) &&
+            c.ParentId == request.ParentId);
+
+        if (exists)
+        { 
+            return Result.Failure<Guid>(CategoryErrors.DuplicateName(request.Name, request.ParentId));
+        }
+
+        if (request.ParentId.HasValue && !categories.Any(c => c.Id == request.ParentId.Value))
+        {
+            return Result.Failure<Guid>(CategoryErrors.ParentNotFound(request.ParentId.Value));
+
+        }
+
+
+        var categoryDto = new CategoryDto
+        {
+            Name = request.Name,
+            IconUrl = request.IconUrl,
+            ParentId = request.ParentId,
+            Lft = request.Lft,
+            Rgt = request.Rgt,
+            Depth = request.Depth
+        };
+        Category category = categoryDto.ToCategoryEntity();
+
+        _categoryRepository.Add(category);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result<Guid>.Success(category.Id);
+    }
+}
