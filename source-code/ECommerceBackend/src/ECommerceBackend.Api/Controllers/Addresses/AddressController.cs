@@ -8,6 +8,7 @@ using ECommerceBackend.Application.Addresses.UpdateAddress;
 using ECommerceBackend.Application.Contracts.Addresses;
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Addresses;
 using ECommerceBackend.Domain.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -112,14 +113,51 @@ public class AddressController : ControllerBase
 
 
     [HttpPut("/me/addresses/{addressId:guid}")]
-    public async Task<IActionResult> UpdateAddress([FromRoute] Guid addressId, [FromBody] AddressUpdateRequest request)
+    public async Task<IActionResult> UpdateAddress(
+    [FromRoute] Guid addressId,
+    [FromBody] AddressUpdateRequest request,
+    CancellationToken cancellationToken)
     {
-        var command = new UpdateAddressCommand(addressId, request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
-        Result<AddressDto> result = await _sender.Send(command);
+        // ✅ Kiểm tra xác thực user
+        if (!_userContext.IsAuthenticated)
+        {
+            return Unauthorized(new { message = "User not authenticated" });
+        }
+
+        var userId = Guid.Parse(_userContext.UserId!);
+
+        // ✅ Gửi command cập nhật địa chỉ
+        var command = new UpdateAddressCommand(
+            Id: addressId,
+            Name: request.Name,
+            Phone: request.Phone,
+            Province: request.Province,
+            District: request.District,
+            Ward: request.Ward,
+            AddressLine: request.AddressLine,
+            IsDefault: request.IsDefault,
+            IsPickUpAddress: request.IsPickUpAddress,
+            IsReturnAddress: request.IsReturnAddress
+        );
+
+        Result<AddressDto> result = await _sender.Send(command, cancellationToken);
+
+        // ✅ Xử lý lỗi từ domain
         if (result.IsFailure)
         {
+            if (result.Error == AddressErrors.NotFound())
+            {
+                return NotFound(new { message = "Address not found" });
+            }
+            if (result.Error == AddressErrors.Forbidden())
+            {
+                return Forbid("You are not allowed to update this address.");
+            }
+            // fallback: trả mã lỗi chi tiết
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
+
+        // ✅ Thành công
         return Ok(result.Value);
     }
 
