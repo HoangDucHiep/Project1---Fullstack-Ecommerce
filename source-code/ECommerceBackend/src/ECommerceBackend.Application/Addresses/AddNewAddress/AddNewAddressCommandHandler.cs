@@ -9,7 +9,6 @@ public sealed class AddNewAddressCommandHandler : ICommandHandler<AddNewAddressC
 
     private readonly IAddressRepository _addressRepository;
     private readonly IUnitOfWork _unitOfWork;
-    // TODO: Need to get UserContext later
 
     public AddNewAddressCommandHandler(IAddressRepository addressRepository, IUnitOfWork unitOfWork)
     {

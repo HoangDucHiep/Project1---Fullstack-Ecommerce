@@ -8,4 +8,6 @@ public static class AddressErrors
 
     public static Error Forbidden() =>
         Error.Forbidden("Addresses.Forbidden", $"Bạn không có quyền truy cập địa chỉ này");
+    public static Error Unauthorized() =>
+       Error.Unauthorized("Addresses.Unauthorized", "User không được xác thực");
 }

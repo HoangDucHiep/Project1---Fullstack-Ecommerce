@@ -1,27 +1,36 @@
 ﻿using System.Data.Common;
 using Dapper;
+using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Abstracts.Data;
 using ECommerceBackend.Application.Abstracts.Messaging;
 using ECommerceBackend.Application.Contracts.Addresses;
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Addresses;
 
 namespace ECommerceBackend.Application.Addresses.GetAddressesOfCurrentUser;
 internal sealed class GetAddressesOfCurrentUserQueryHandler : IQueryHandler<GetAddressesOfCurrentUserQuery, PaginationResult<AddressDto>>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IUserContext _userContext;
 
-    public GetAddressesOfCurrentUserQueryHandler(IDbConnectionFactory dbConnectionFactory)
+    public GetAddressesOfCurrentUserQueryHandler(IDbConnectionFactory dbConnectionFactory, IUserContext userContext)
     {
         _dbConnectionFactory = dbConnectionFactory;
+        _userContext = userContext;
     }
 
     public async Task<Result<PaginationResult<AddressDto>>> Handle(GetAddressesOfCurrentUserQuery request, CancellationToken cancellationToken)
     {
         DbConnection dbConnection = await _dbConnectionFactory.OpenConnectionAsync();
 
-        // TODO: Use UserContext to get current user ID and fetch addresses
-        var userId = Guid.Parse("01998678-85b2-7474-883c-d17e816f46aa"); // Replace with actual user ID from context
+        if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
+        {
+            return Result.Failure<PaginationResult<AddressDto>>(AddressErrors.Unauthorized());
+        }
+
+
+        var userId = Guid.Parse(_userContext.UserId!);
 
         string mainSql = $"""
             SELECT 
