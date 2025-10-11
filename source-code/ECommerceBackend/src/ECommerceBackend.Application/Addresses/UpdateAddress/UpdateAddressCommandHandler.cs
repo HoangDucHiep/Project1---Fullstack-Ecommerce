@@ -24,7 +24,6 @@ internal sealed class UpdateAddressCommandHandler : ICommandHandler<UpdateAddres
 
     public async Task<Result<AddressDto>> Handle(UpdateAddressCommand request, CancellationToken cancellationToken)
     {
-        // Lấy thông tin user hiện tại
         if (!_userContext.IsAuthenticated)
         {
             return Result.Failure<AddressDto>(AddressErrors.Forbidden());
@@ -32,7 +31,6 @@ internal sealed class UpdateAddressCommandHandler : ICommandHandler<UpdateAddres
 
         var currentUserId = Guid.Parse(_userContext.UserId!);
 
-        // Tìm địa chỉ cần cập nhật
         Address? existingAddress = await _addressRepository.GetByIdAsync(request.Id, cancellationToken);
 
         if (existingAddress is null)
@@ -40,13 +38,11 @@ internal sealed class UpdateAddressCommandHandler : ICommandHandler<UpdateAddres
             return Result.Failure<AddressDto>(AddressErrors.NotFound());
         }
 
-        // Kiểm tra quyền sở hữu
         if (existingAddress.UserId != currentUserId)
         {
             return Result.Failure<AddressDto>(AddressErrors.Forbidden());
         }
 
-        // Cập nhật các trường
         existingAddress.Update(
             name: request.Name,
             phone: request.Phone,

@@ -65,15 +65,10 @@ public class AddressController : ControllerBase
     }
 
 
-
-
     [HttpGet("/me/addresses/{addressId:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetAddressById([FromRoute] Guid addressId)
     {
-        Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
-        Console.WriteLine($"UserId: {_userContext.UserId}");
-
         var query = new GetAddressByIdQuery(addressId);
 
         Result<AddressDto> result = await _sender.Send(query);
@@ -92,7 +87,8 @@ public class AddressController : ControllerBase
     {
         if (!_userContext.IsAuthenticated)
         {
-            return Unauthorized(new { message = "User not authenticated" });
+            return StatusCode(AddressErrors.Unauthorized().Type.StatusCode, AddressErrors.Unauthorized());
+
         }
 
         var query = new GetAddressesOfCurrentUserQuery(
@@ -111,22 +107,17 @@ public class AddressController : ControllerBase
     }
 
 
-
+    //PBNMinh- 11/10/2025
     [HttpPut("/me/addresses/{addressId:guid}")]
-    public async Task<IActionResult> UpdateAddress(
-    [FromRoute] Guid addressId,
-    [FromBody] AddressUpdateRequest request,
-    CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateAddress([FromRoute] Guid addressId, [FromBody] AddressUpdateRequest request,CancellationToken cancellationToken)
     {
-        // ✅ Kiểm tra xác thực user
         if (!_userContext.IsAuthenticated)
         {
-            return Unauthorized(new { message = "User not authenticated" });
+            return Unauthorized(AddressErrors.Unauthorized());
         }
 
         var userId = Guid.Parse(_userContext.UserId!);
 
-        // ✅ Gửi command cập nhật địa chỉ
         var command = new UpdateAddressCommand(
             Id: addressId,
             Name: request.Name,
@@ -142,22 +133,21 @@ public class AddressController : ControllerBase
 
         Result<AddressDto> result = await _sender.Send(command, cancellationToken);
 
-        // ✅ Xử lý lỗi từ domain
         if (result.IsFailure)
         {
             if (result.Error == AddressErrors.NotFound())
             {
-                return NotFound(new { message = "Address not found" });
+                return NotFound(result.Error);
             }
+
             if (result.Error == AddressErrors.Forbidden())
             {
-                return Forbid("You are not allowed to update this address.");
+                return Forbid(result.Error.Description);
             }
-            // fallback: trả mã lỗi chi tiết
+
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
 
-        // ✅ Thành công
         return Ok(result.Value);
     }
 

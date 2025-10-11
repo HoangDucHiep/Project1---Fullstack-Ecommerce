@@ -18,8 +18,10 @@ public sealed class AddNewAddressCommandHandler : ICommandHandler<AddNewAddressC
 
     public async Task<Result<AddressDto>> Handle(AddNewAddressCommand request, CancellationToken cancellationToken)
     {
-
-        // Tạo address entity với UserId từ command
+        if (request.UserId == Guid.Empty)
+        {
+            return Result.Failure<AddressDto>(AddressErrors.Unauthorized());
+        }
         var newAddress = Address.Create(
             userId: request.UserId,
             name: request.Name,
@@ -38,7 +40,6 @@ public sealed class AddNewAddressCommandHandler : ICommandHandler<AddNewAddressC
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var addressDto = newAddress.ToAddressDto();
-
 
         return Result.Success(addressDto);
     }

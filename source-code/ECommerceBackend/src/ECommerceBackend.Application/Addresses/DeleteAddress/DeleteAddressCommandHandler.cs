@@ -20,14 +20,12 @@ public sealed class DeleteAddressCommandHandler : ICommandHandler<DeleteAddressC
 
         if (address is null || address.UserId != request.UserId)
         {
-            return Result.Failure(Error.NotFound("AddressNotFound", "Address not found."));
+            return Result.Failure(AddressErrors.NotFound());
         }
 
-        // Kiểm tra nếu là mặc định/pickup/return và cần replacement
         if (address.IsDefault || address.IsPickUpAddress || address.IsReturnAddress)
         {
-            // TODO: Kiểm tra replacement theo business rules
-            return Result.Failure(Error.BadRequest("ReplacementRequired", "Cannot delete default/pickup/return address without replacement."));
+            return Result.Failure(AddressErrors.ReplacementRequired());
         }
 
         _addressRepository.Delete(address);

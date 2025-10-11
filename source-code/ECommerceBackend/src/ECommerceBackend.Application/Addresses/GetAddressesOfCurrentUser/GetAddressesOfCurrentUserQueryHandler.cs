@@ -29,7 +29,6 @@ internal sealed class GetAddressesOfCurrentUserQueryHandler : IQueryHandler<GetA
             return Result.Failure<PaginationResult<AddressDto>>(AddressErrors.Unauthorized());
         }
 
-
         var userId = Guid.Parse(_userContext.UserId!);
 
         string mainSql = $"""
@@ -56,7 +55,6 @@ internal sealed class GetAddressesOfCurrentUserQueryHandler : IQueryHandler<GetA
             WHERE user_id = @userId
             """;
 
-        // Do pagination later
         IEnumerable<AddressDto> addresses = await dbConnection.QueryAsync<AddressDto>(mainSql, new { userId, request.Page, request.PageSize });
         int totalCount = await dbConnection.ExecuteScalarAsync<int>(countSql, new { userId });
 
