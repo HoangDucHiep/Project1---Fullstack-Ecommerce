@@ -10,6 +10,12 @@ using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Users;
 
 namespace ECommerceBackend.Application.Authentication.RegisterUserWithOtp;
+
+/// <summary>
+/// Handler for verifying OTP during user registration.
+/// Completes the registration process by verifying the OTP,
+/// creating the user account, and returning authentication tokens.
+/// </summary>
 public class VerifyRegistrationOtpCommandHandler : ICommandHandler<VerifyRegistrationOtpCommand, AuthenticationResult>
 {
     private readonly IAuthenticationService _authenticationService;
@@ -27,7 +33,7 @@ public class VerifyRegistrationOtpCommandHandler : ICommandHandler<VerifyRegistr
         IOtpService otpService,
         IRateLimiterService rateLimiterService,
         IEncryptionService encryptionService,
-        ICacheService redisSeervice,
+        ICacheService redisService,
         IUserRepository userRepository,
         IDateTimeProvider dateTimeProvider)
     {
@@ -36,43 +42,47 @@ public class VerifyRegistrationOtpCommandHandler : ICommandHandler<VerifyRegistr
         _otpService = otpService;
         _rateLimiterService = rateLimiterService;
         _encryptionService = encryptionService;
-        _redisService = redisSeervice;
+        _redisService = redisService;
         _userRepository = userRepository;
         _dateTimeProvider = dateTimeProvider;
     }
 
-
     public async Task<Result<AuthenticationResult>> Handle(VerifyRegistrationOtpCommand request, CancellationToken cancellationToken)
     {
-        string otpKey = $"otp:register:{request.PhoneNumber}";
-        string sessionKey = $"session:register:{request.PhoneNumber}";
-        string lockKey = $"lock:register:{request.PhoneNumber}";
+        string otpKey = RegisterUserKeyConstants.GetOtpKey(request.PhoneNumber);
+        string sessionKey = RegisterUserKeyConstants.GetSessionKey(request.PhoneNumber);
+        string verificationLockKey = $"lock:verification:{request.PhoneNumber}";
 
-        // Check if rate limit locked
-        Result<bool> lockedResult = await _rateLimiterService.IsLockedAsync(lockKey, cancellationToken);
+        // Check if verification is locked due to too many failed attempts
+        Result<bool> lockedResult = await _rateLimiterService.IsLockedAsync(verificationLockKey, cancellationToken);
 
         if (lockedResult.IsSuccess && lockedResult.Value)
         {
-            return Result.Failure<AuthenticationResult>(RateLimiterErrors.Locked(15));
+            int lockTimeLeft = await GetLockTimeLeftAsync(verificationLockKey, cancellationToken);
+            return Result.Failure<AuthenticationResult>(RateLimiterErrors.Locked(lockTimeLeft / 60));
         }
 
         // Verify OTP
-        Result otpVerifyResult = await _otpService.VerifyOtpAsync(otpKey, request.Otp, 5, cancellationToken);
+        Result otpVerifyResult = await _otpService.VerifyOtpAsync(
+            otpKey,
+            request.Otp,
+            RegisterUserKeyConstants.OTP_MAX_VERIFICATION_ATTEMPTS,
+            cancellationToken);
 
         if (otpVerifyResult.IsFailure)
         {
-            // Check if max attempts reached to apply lock
+            // Apply verification lock on max attempts exceeded
             if (otpVerifyResult.Error.Code == OtpErrors.MaxAttemptsExceeded.Code)
             {
-                await _rateLimiterService.LockAsync(lockKey, durationSeconds: 900, cancellationToken);
-                await _redisService.RemoveAsync(otpKey, cancellationToken);
+                await _rateLimiterService.LockAsync(verificationLockKey, 900, cancellationToken); // 15 minutes lock
+                await CleanupRegistrationDataAsync(request.PhoneNumber, cancellationToken);
             }
 
             return Result.Failure<AuthenticationResult>(otpVerifyResult.Error);
         }
 
         // Get registration session data
-        RegistrationSession sessionResult = await _redisService.GetAsync<RegistrationSession>(sessionKey, cancellationToken);
+        RegistrationSession? sessionResult = await _redisService.GetAsync<RegistrationSession>(sessionKey, cancellationToken);
 
         if (sessionResult is null)
         {
@@ -83,24 +93,52 @@ public class VerifyRegistrationOtpCommandHandler : ICommandHandler<VerifyRegistr
         Result<string> decryptedPassword = _encryptionService.Decrypt(sessionResult.PasswordHash);
         if (decryptedPassword.IsFailure)
         {
+            await CleanupRegistrationDataAsync(request.PhoneNumber, cancellationToken);
             return Result.Failure<AuthenticationResult>(decryptedPassword.Error);
         }
 
         // Register user
         Result<AuthenticationResult> registrationResult = await _authenticationService.RegisterUserAsync(
-             phoneNumber: sessionResult.PhoneNumber,
-             password: decryptedPassword.Value
-         );
+            phoneNumber: sessionResult.PhoneNumber,
+            password: decryptedPassword.Value
+        );
 
         if (registrationResult.IsFailure)
         {
+            await CleanupRegistrationDataAsync(request.PhoneNumber, cancellationToken);
             return Result.Failure<AuthenticationResult>(registrationResult.Error);
         }
 
-        // Clean up
-        await _otpService.RemoveOtpAsync(otpKey, cancellationToken);
-        await _redisService.RemoveAsync(sessionKey, cancellationToken);
+        // Clean up successful registration data
+        await CleanupRegistrationDataAsync(request.PhoneNumber, cancellationToken);
 
         return Result.Success(registrationResult.Value);
     }
+
+    #region Private Helper Methods
+
+    /// <summary>
+    /// Gets the remaining lock time in seconds.
+    /// </summary>
+    private async Task<int> GetLockTimeLeftAsync(string lockKey, CancellationToken cancellationToken)
+    {
+        Result<int> lockTimeResult = await _rateLimiterService.GetLockSecondsAliveLeft(lockKey, cancellationToken);
+        return lockTimeResult.IsSuccess ? lockTimeResult.Value : 0;
+    }
+
+    /// <summary>
+    /// Cleans up all registration-related data.
+    /// </summary>
+    private async Task CleanupRegistrationDataAsync(string phoneNumber, CancellationToken cancellationToken)
+    {
+        string otpKey = RegisterUserKeyConstants.GetOtpKey(phoneNumber);
+        string sessionKey = RegisterUserKeyConstants.GetSessionKey(phoneNumber);
+        string resendDelayKey = RegisterUserKeyConstants.GetResendDelayKey(phoneNumber);
+
+        await _otpService.RemoveOtpAsync(otpKey, cancellationToken);
+        await _redisService.RemoveAsync(sessionKey, cancellationToken);
+        await _rateLimiterService.RemoveAsync(resendDelayKey, cancellationToken);
+    }
+
+    #endregion
 }

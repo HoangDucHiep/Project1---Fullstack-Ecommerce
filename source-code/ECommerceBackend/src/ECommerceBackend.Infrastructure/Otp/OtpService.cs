@@ -7,46 +7,25 @@ namespace ECommerceBackend.Infrastructure.Otp;
 
 /// HDHiep - 10/11/2025
 /// <summary>
-/// Implementation of OTP (One-Time Password) service that provides secure OTP generation,
-/// storage, verification, and management capabilities using distributed caching.
+/// Clean OTP service focused solely on OTP operations without business logic.
+/// Handles OTP generation, storage, verification, and basic management.
 /// </summary>
-/// <remarks>
-/// This service handles the complete OTP lifecycle including:
-/// - Cryptographically secure OTP generation
-/// - Redis-based storage with TTL management
-/// - Verification with failed attempt tracking
-/// - Regeneration with resend limits
-/// - Automatic cleanup and expiration handling
 public class OtpService : IOtpService
 {
-    /// <summary>
-    /// The cache service used for storing and retrieving OTP data.
-    /// </summary>
+    private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);
     private readonly ICacheService _redisService;
 
-    /// <summary>
-    /// The default time-to-live for OTPs when no custom TTL is specified.
-    /// Set to 5 minutes for security best practices.
-    /// </summary>
-    private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OtpService"/> class.
-    /// </summary>
-    /// <param name="redisService">The cache service implementation for OTP storage.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="redisService"/> is null.</exception>
     public OtpService(ICacheService redisService)
     {
         _redisService = redisService;
     }
 
-
     /// <summary>
     /// Generates a cryptographically secure numeric OTP of specified length.
     /// </summary>
-    /// <param name="length"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <param name="length">Length of the OTP (default: 6)</param>
+    /// <returns>Generated OTP string</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when length is less than or equal to zero</exception>
     public string GenerateOtp(int length = 6)
     {
         if (length <= 0)
@@ -68,38 +47,19 @@ public class OtpService : IOtpService
         }
 
         return new string(otpChars);
-
     }
 
     /// <summary>
-    /// Stores an OTP in the cache with associated metadata and expiration settings.
+    /// Creates and stores a new OTP with the specified parameters.
     /// </summary>
-    /// <param name="key">The unique cache key to associate with the OTP.</param>
-    /// <param name="otp">The OTP string to store.</param>
-    /// <param name="ttl">
-    /// Optional time-to-live for the OTP. If null, uses <see cref="DefaultTtl"/> (5 minutes).
-    /// </param>
-    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
-    /// <returns>
-    /// A <see cref="Result"/> indicating success or failure of the storage operation.
-    /// </returns>
-    /// <remarks>
-    /// Creates an <see cref="OtpData"/> object with:
-    /// - Zero failed attempts
-    /// - Zero resent count
-    /// - Expiration time based on the provided or default TTL
-    /// </remarks>
-    /// <example>
-    /// <code>
-    /// var result = await SetOtpAsync("user123", "Xk9pLm==", TimeSpan.FromMinutes(10));
-    /// if (result.IsSuccess)
-    /// {
-    ///     // OTP stored successfully
-    /// }
-    /// </code>
-    /// </example>
-    public async Task<Result> SetOtpAsync(string key, string otp, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
+    /// <param name="key">The unique cache key to associate with the OTP</param>
+    /// <param name="otpLength">Length of the OTP to generate</param>
+    /// <param name="ttl">Optional time-to-live for the OTP. If null, uses DefaultTtl (5 minutes)</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation</param>
+    /// <returns>A Result containing the generated OTP if successful</returns>
+    public async Task<Result<string>> CreateOtpAsync(string key, int otpLength, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
     {
+        string otp = GenerateOtp(otpLength);
 
         var otpData = new OtpData(
             Otp: otp,
@@ -109,33 +69,62 @@ public class OtpService : IOtpService
         );
 
         await _redisService.SetAsync(key, otpData, ttl ?? DefaultTtl, cancellationToken);
+        return Result.Success(otp);
+    }
 
-        return Result.Success();
+    /// <summary>
+    /// Regenerates a new OTP for an existing key, incrementing the resend count.
+    /// </summary>
+    /// <param name="key">The cache key associated with the existing OTP</param>
+    /// <param name="ttl">Optional time-to-live for the new OTP. If null, uses DefaultTtl</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation</param>
+    /// <returns>A Result containing the new OTP if successful</returns>
+    public async Task<Result<string>> RegenerateOtpAsync(string key, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
+    {
+        Result<OtpData> result = await GetOtpAsync(key, cancellationToken);
+        if (result.IsFailure)
+        {
+            return Result.Failure<string>(result.Error);
+        }
+
+        OtpData otpData = result.Value;
+
+        // Generate new OTP and increment resend count
+        string newOtp = GenerateOtp(otpData.Otp.Length);
+        OtpData updatedOtpData = otpData with
+        {
+            Otp = newOtp,
+            ResentCount = otpData.ResentCount + 1,
+            ExpiresAt = DateTimeOffset.UtcNow.Add(ttl ?? DefaultTtl),
+            FailedAttempts = 0 // Reset failed attempts on regeneration
+        };
+
+        await _redisService.SetAsync(key, updatedOtpData, ttl ?? DefaultTtl, cancellationToken);
+        return Result.Success(newOtp);
+    }
+
+    /// <summary>
+    /// Legacy method for backward compatibility - Creates OTP with additional parameters.
+    /// </summary>
+    public async Task<Result<string>> SetOtpAsync(string key, int otpLength, int resendDelayInSecond = 60, TimeSpan? ttl = null, CancellationToken cancellationToken = default)
+    {
+        return await CreateOtpAsync(key, otpLength, ttl, cancellationToken);
+    }
+
+    /// <summary>
+    /// Legacy method for backward compatibility - Regenerates OTP with additional parameters.
+    /// </summary>
+    public async Task<Result<string>> RegenerateOtpAsync(string key, int maxResends, int resendDelayInSecond, CancellationToken cancellationToken = default)
+    {
+        return await RegenerateOtpAsync(key, null, cancellationToken);
     }
 
     /// <summary>
     /// Retrieves OTP data from the cache by key.
     /// </summary>
-    /// <param name="key">The cache key associated with the desired OTP.</param>
-    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
-    /// <returns>
-    /// A <see cref="Result{OtpData}"/> containing the OTP data if found,
-    /// or a failure result with <see cref="OtpErrors.NotFound"/> if not found.
-    /// </returns>
-    /// <remarks>
-    /// This method does not perform expiration checks - it only retrieves data from cache.
-    /// Expiration validation should be done in consuming methods like <see cref="VerifyOtpAsync"/>.
-    /// </remarks>
-    /// <example>
-    /// <code>
-    /// var result = await GetOtpAsync("user123");
-    /// if (result.IsSuccess)
-    /// {
-    ///     var otpData = result.Value;
-    ///     Console.WriteLine($"OTP expires at: {otpData.ExpiresAt}");
-    /// }
-    /// </code>
-    /// </example>
+    /// <param name="key">The cache key associated with the desired OTP</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation</param>
+    /// <returns>A Result containing the OTP data if found, or a failure result if not found</returns>
     public async Task<Result<OtpData>> GetOtpAsync(string key, CancellationToken cancellationToken = default)
     {
         OtpData? otpData = await _redisService.GetAsync<OtpData>(key, cancellationToken);
@@ -149,43 +138,16 @@ public class OtpService : IOtpService
     }
 
     /// <summary>
-    /// Verifies a provided OTP against the stored value with comprehensive validation and attempt tracking.
+    /// Verifies a provided OTP against the stored value with attempt tracking.
     /// </summary>
-    /// <param name="key">The cache key associated with the OTP to verify.</param>
-    /// <param name="otp">The OTP string provided by the user for verification.</param>
-    /// <param name="maxFailedAttempts">
-    /// Maximum number of failed verification attempts allowed before invalidating the OTP.
-    /// Default is 5 attempts.
-    /// </param>
-    /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
-    /// <returns>
-    /// A <see cref="Result"/> indicating the verification outcome:
-    /// - Success: OTP is valid and matches
-    /// - Failure: OTP not found, expired, invalid, or max attempts exceeded
-    /// </returns>
-    /// <remarks>
-    /// <para>Verification process:</para>
-    /// <list type="number">
-    /// <item>Retrieves OTP data from cache</item>
-    /// <item>Checks if OTP has expired (removes if expired)</item>
-    /// <item>Compares provided OTP with stored value</item>
-    /// <item>Increments failed attempts on mismatch</item>
-    /// <item>Removes OTP if max attempts exceeded</item>
-    /// <item>Updates cache with new attempt count if under limit</item>
-    /// </list>
-    /// 
-    /// <para>Possible error results:</para>
-    /// <list type="bullet">
-    /// <item><see cref="OtpErrors.NotFound"/>: No OTP found for the key</item>
-    /// <item><see cref="OtpErrors.Expired"/>: OTP has passed its expiration time</item>
-    /// <item><see cref="OtpErrors.Invalid"/>: OTP doesn't match (under attempt limit)</item>
-    /// <item><see cref="OtpErrors.MaxAttemptsExceeded"/>: Too many failed attempts</item>
-    /// </list>
-    /// </remarks>
+    /// <param name="key">The cache key associated with the OTP to verify</param>
+    /// <param name="otp">The OTP string provided by the user for verification</param>
+    /// <param name="maxFailedAttempts">Maximum number of failed verification attempts allowed (default: 5)</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation</param>
+    /// <returns>A Result indicating the verification outcome</returns>
     public async Task<Result> VerifyOtpAsync(string key, string otp, int maxFailedAttempts = 5, CancellationToken cancellationToken = default)
     {
         Result<OtpData> result = await GetOtpAsync(key, cancellationToken);
-
         if (result.IsFailure)
         {
             return Result.Failure(result.Error);
@@ -193,72 +155,89 @@ public class OtpService : IOtpService
 
         OtpData otpData = result.Value;
 
-
-        // If the OTP is already expired
+        // Check expiration
         if (otpData.ExpiresAt < DateTimeOffset.UtcNow)
         {
             await RemoveOtpAsync(key, cancellationToken);
             return Result.Failure(OtpErrors.Expired);
         }
 
-        // If the OTP matches
+        // Verify OTP
         if (otpData.Otp != otp)
         {
-            // First we increment the failed attempts
-            OtpData updatedOptData = otpData with { FailedAttempts = otpData.FailedAttempts + 1 };
+            OtpData updatedOtpData = otpData with { FailedAttempts = otpData.FailedAttempts + 1 };
 
-            // If exceeded max attempts, remove the OTP and return error
-            if (updatedOptData.FailedAttempts >= maxFailedAttempts)
+            if (updatedOtpData.FailedAttempts >= maxFailedAttempts)
             {
                 await RemoveOtpAsync(key, cancellationToken);
                 return Result.Failure(OtpErrors.MaxAttemptsExceeded);
             }
 
-            // Otherwise, update the OTP data in cache
-            await _redisService.SetAsync(key, updatedOptData, updatedOptData.ExpiresAt - DateTimeOffset.UtcNow, cancellationToken);
-            return Result.Failure(OtpErrors.Invalid(maxFailedAttempts - updatedOptData.FailedAttempts));
+            // Update OTP data with new attempt count, preserving remaining TTL
+            TimeSpan remainingTime = updatedOtpData.ExpiresAt - DateTimeOffset.UtcNow;
+            if (remainingTime > TimeSpan.Zero)
+            {
+                await _redisService.SetAsync(key, updatedOtpData, remainingTime, cancellationToken);
+            }
+
+            return Result.Failure(OtpErrors.Invalid(maxFailedAttempts - updatedOtpData.FailedAttempts));
         }
 
-        // If OTP is valid, done
+        // OTP is valid - remove it to prevent reuse
+        await RemoveOtpAsync(key, cancellationToken);
         return Result.Success();
     }
 
     /// <summary>
-    /// Regenerates a new OTP for the given key, with limits on the number of resends.
-    /// </summary>      
-    public async Task<Result<string>> RegenerateOtpAsync(string key, int maxResends = 3, CancellationToken cancellationToken = default)
-    {
-        Result<OtpData> result = await GetOtpAsync(key, cancellationToken);
-        if (result.IsFailure)
-        {
-            return Result.Failure<string>(result.Error);
-        }
-
-        OtpData otpData = result.Value;
-
-        // If the OTP session is already reached max resend attempts
-        if (otpData.ResentCount >= maxResends)
-        {
-            return Result.Failure<string>(OtpErrors.ResendLimitReached);
-        }
-
-        // Generate a new OTP
-        string newOtp = GenerateOtp(otpData.Otp.Length);
-        OtpData updatedOtpData = otpData with
-        {
-            Otp = newOtp,
-            ResentCount = otpData.ResentCount + 1,
-            ExpiresAt = DateTimeOffset.UtcNow.Add(otpData.ExpiresAt - (DateTimeOffset.UtcNow - (otpData.ExpiresAt - otpData.ExpiresAt.AddMinutes(-5))))
-        };
-
-        await _redisService.SetAsync(key, updatedOtpData, updatedOtpData.ExpiresAt - DateTimeOffset.UtcNow, cancellationToken);
-
-        return Result.Success(newOtp);
-    }
-
+    /// Removes an OTP from the cache.
+    /// </summary>
+    /// <param name="key">The cache key associated with the OTP</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation</param>
+    /// <returns>A Result indicating success</returns>
     public async Task<Result> RemoveOtpAsync(string key, CancellationToken cancellationToken = default)
     {
         await _redisService.RemoveAsync(key, cancellationToken);
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Gets the number of resend attempts left for the given OTP.
+    /// </summary>
+    /// <param name="key">The cache key associated with the OTP</param>
+    /// <param name="maxResends">Maximum allowed resend attempts</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation</param>
+    /// <returns>A Result containing the number of resend attempts left</returns>
+    public async Task<Result<int>> GetResendLeft(string key, int maxResends, CancellationToken cancellationToken = default)
+    {
+        Result<OtpData> result = await GetOtpAsync(key, cancellationToken);
+        if (result.IsFailure)
+        {
+            return Result.Failure<int>(result.Error);
+        }
+
+        return Result.Success(Math.Max(0, maxResends - result.Value.ResentCount));
+    }
+
+    /// <summary>
+    /// Checks if an OTP exists and is still valid (not expired).
+    /// </summary>
+    /// <param name="key">The cache key associated with the OTP</param>
+    /// <param name="cancellationToken">Token to cancel the asynchronous operation</param>
+    /// <returns>A Result indicating whether the OTP exists and is valid</returns>
+    public async Task<Result<bool>> IsOtpValidAsync(string key, CancellationToken cancellationToken = default)
+    {
+        Result<OtpData> result = await GetOtpAsync(key, cancellationToken);
+        if (result.IsFailure)
+        {
+            return Result.Success(false);
+        }
+
+        bool isValid = result.Value.ExpiresAt > DateTimeOffset.UtcNow;
+        if (!isValid)
+        {
+            await RemoveOtpAsync(key, cancellationToken);
+        }
+
+        return Result.Success(isValid);
     }
 }

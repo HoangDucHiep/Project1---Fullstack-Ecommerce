@@ -59,7 +59,7 @@ public class AuthenticationService : IAuthenticationService
             // random string as user name
             UserName = Guid.NewGuid().ToString("N")[..10],
             PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = true, // TODO: Confirm phone number via OTP
+            PhoneNumberConfirmed = true,
         };
 
         IdentityResult result = !string.IsNullOrEmpty(password)
@@ -104,6 +104,40 @@ public class AuthenticationService : IAuthenticationService
     {
         throw new NotImplementedException();
     }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="identifier"></param>
+    /// <param name="password"></param>
+    /// <returns></returns>
+    public async Task<Result<string>> VerifyIdentityAndPasswordAsync(string identifier, string password)
+    {
+        // Determine if identifier is email or phone number
+        bool isEmail = identifier.Contains('@');
+
+        ApplicationIdentityUser? identityUser = !isEmail
+            ? await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == identifier)
+            : await _userManager.FindByEmailAsync(identifier);
+
+        if (identityUser == null)
+        {
+            return Result.Failure<string>(UserErrors.InvalidCredentials);
+        }
+
+
+        // Check password
+        SignInResult signInResult = await _signInManager.CheckPasswordSignInAsync(identityUser, password, lockoutOnFailure: false);
+
+        if (!signInResult.Succeeded)
+        {
+            return Result.Failure<string>(UserErrors.InvalidCredentials);
+        }
+
+        return identityUser.Id;
+    }
+
 
     public async Task<Result<AuthenticationResult>> LoginAsync(string identifier, string password)
     {
@@ -154,6 +188,8 @@ public class AuthenticationService : IAuthenticationService
             IdentityUserId: identityUser.Id.ToString()));
     }
 
+
+
     public Task<Result> LogoutAsync(string userId)
     {
         throw new NotImplementedException();
@@ -179,4 +215,6 @@ public class AuthenticationService : IAuthenticationService
 
         return jtiClaim?.Value ?? Guid.NewGuid().ToString();
     }
+
+
 }

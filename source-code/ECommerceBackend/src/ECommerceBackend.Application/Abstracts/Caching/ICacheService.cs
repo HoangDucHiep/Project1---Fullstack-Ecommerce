@@ -31,4 +31,6 @@ public interface ICacheService
     /// <param name="key">Cache key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+
+    Task<int> GetTTLAsync(string key, CancellationToken cancellationToken = default);
 }
