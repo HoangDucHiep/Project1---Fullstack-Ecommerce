@@ -11,7 +11,7 @@ namespace ECommerceBackend.Infrastructure.Caching;
 /// This service allows storing, retrieving, and removing objects in distributed cache,
 /// with support for JSON serialization/deserialization.
 /// </summary>
-public sealed class RedisService : IRedisService
+public sealed class RedisService : ICacheService
 {
     private readonly IDistributedCache _cache;
 

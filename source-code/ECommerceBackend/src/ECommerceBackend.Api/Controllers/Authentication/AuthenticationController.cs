@@ -1,6 +1,8 @@
 ﻿using ECommerceBackend.Api.Contracts.Authentication;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Authentication;
+using ECommerceBackend.Application.Authentication.Register;
+using ECommerceBackend.Application.Authentication.RegisterUserWithOtp;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +23,22 @@ public class AuthenticationController : ControllerBase
     [HttpPost("register/phone")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
     {
-        var command = new RegisterUserCommand(request.PhoneNumber, request.Password);
+        var command = new RegisterWithOtpCommand(request.PhoneNumber, request.Password);
+        Result result = await _sender.Send(command);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(new { Message = "OTP sent successfully" });
+    }
+
+
+    [HttpPost("register/phone/verify")]
+    public async Task<IActionResult> VerifyPhoneNumber(VerifyOtpRegisterRequest request)
+    {
+        var command = new VerifyRegistrationOtpCommand(request.phoneNumber, request.otp);
+
         Result<AuthenticationResult> result = await _sender.Send(command);
 
         if (result.IsFailure)
@@ -29,22 +46,7 @@ public class AuthenticationController : ControllerBase
             return BadRequest(result.Error);
         }
 
-        return Ok(new AuthenticationResponse
-        {
-            AccessToken = result.Value.AccessToken,
-            RefreshToken = result.Value.RefreshToken,
-            AccessTokenExpiration = result.Value.AccessTokenExpiration,
-            RefreshTokenExpiration = result.Value.RefreshTokenExpiration,
-            IdentityUserId = result.Value.IdentityUserId
-        });
-    }
-
-
-    [HttpPost("register/phone/verify")]
-    [ValidateAntiForgeryToken]
-    public Task<IActionResult> VerifyPhoneNumber()
-    {
-        throw new NotImplementedException();
+        return Ok(result.Value);
     }
 
 

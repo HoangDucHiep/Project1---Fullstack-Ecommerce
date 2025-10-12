@@ -10,5 +10,5 @@
 /// <param name="Password"></param>
 public record RegisterUserRequest(
     string PhoneNumber,
-    string? Password = null
+    string Password
 );

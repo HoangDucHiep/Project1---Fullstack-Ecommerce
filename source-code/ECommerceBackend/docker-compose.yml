@@ -20,6 +20,9 @@ services:
       - Jwt__Audience=${JWT_AUDIENCE}
       - Jwt__AccessTokenExpiryMinutes=${JWT_ACCESS_TOKEN_EXPIRY_MINUTES}
       - Jwt__RefreshTokenExpirationDays=${JWT_REFRESH_TOKEN_EXPIRY_DAYS}
+
+      # Encryption configuration
+      - Encryption__Key=${ENCRYPTION_KEY}
     ports:
        - ${API_HTTP_PORT}:${API_CONTAINER_HTTP_PORT}
        - ${API_HTTPS_PORT}:${API_CONTAINER_HTTPS_PORT}
