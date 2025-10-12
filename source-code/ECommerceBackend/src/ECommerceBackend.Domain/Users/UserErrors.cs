@@ -13,4 +13,11 @@ public static class UserErrors
 
     public static Error PhoneNumberAlreadyRegistered(string phoneNumber) =>
         Error.BadRequest("Users.PhoneNumberAlreadyRegistered", $"The phone number {phoneNumber} is already registered");
+
+    public static Error EmailAlreadyExists(string email) =>
+        Error.Conflict("Users.EmailAlreadyExists", $"The email '{email}' is already registered");
+
+    public static Error PhoneAlreadyExists(string phone) =>
+        Error.Conflict("Users.PhoneAlreadyExists", $"The phone number '{phone}' is already registered");
+
 }

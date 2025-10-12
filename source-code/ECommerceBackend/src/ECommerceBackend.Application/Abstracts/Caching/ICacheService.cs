@@ -5,7 +5,7 @@
 /// <summary>
 /// Abstraction for a distributed cache service supporting generic get/set/remove operations.
 /// </summary>
-public interface IRedisService
+public interface ICacheService
 {
     /// <summary>
     /// Retrieves a value by cache key.

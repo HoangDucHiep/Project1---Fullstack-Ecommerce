@@ -3,6 +3,10 @@ using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Abstracts.Caching;
 using ECommerceBackend.Application.Abstracts.Clock;
 using ECommerceBackend.Application.Abstracts.Data;
+using ECommerceBackend.Application.Abstracts.Encryption;
+using ECommerceBackend.Application.Abstracts.Otp;
+using ECommerceBackend.Application.Abstracts.RateLimiter;
+using ECommerceBackend.Application.Abstracts.Sms;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Addresses;
 using ECommerceBackend.Domain.Categories;
@@ -12,9 +16,13 @@ using ECommerceBackend.Infrastructure.Authentication;
 using ECommerceBackend.Infrastructure.Caching;
 using ECommerceBackend.Infrastructure.Clock;
 using ECommerceBackend.Infrastructure.Data;
+using ECommerceBackend.Infrastructure.Encryption;
 using ECommerceBackend.Infrastructure.Identity;
 using ECommerceBackend.Infrastructure.IdentityAuthen;
+using ECommerceBackend.Infrastructure.Otp;
+using ECommerceBackend.Infrastructure.RateLimiter;
 using ECommerceBackend.Infrastructure.Repositories;
+using ECommerceBackend.Infrastructure.Sms;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +59,14 @@ public static class InfrastructureConfiguration
         AddPersistence(services, configuration);
         AddAuthentication(services, configuration);
 
+
+        services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddScoped<IOtpService, OtpService>();
+        services.AddScoped<ISmsService, SmsService>();
+        services.AddScoped<IRateLimiterService, RateLimiterService>();
+
+
+
         return services;
     }
 
@@ -85,7 +101,7 @@ public static class InfrastructureConfiguration
         }
 
         // Register CacheService
-        services.TryAddSingleton<IRedisService, RedisService>();
+        services.TryAddSingleton<ICacheService, RedisService>();
 
 
 
