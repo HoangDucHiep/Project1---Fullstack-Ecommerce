@@ -26,13 +26,7 @@ public interface IAuthenticationService
     Task<Result<AuthenticationResult>> RegisterUserAsync(string phoneNumber, string? password = null);
     Task<Result<AuthenticationResult>> RegisterEmployeeAsync(string email, string password);
 
-    /// HDHiep - 10/07/2025
-    /// <summary>
-    /// Login with identifier (phone number or email) and password
-    /// </summary>
-    /// <param name="identifier">phone or email</param>
-    /// <param name="password">password</param>
-    /// <returns></returns>
+    Task<Result<string>> VerifyIdentityAndPasswordAsync(string identifier, string password);
     Task<Result<AuthenticationResult>> LoginAsync(string identifier, string password);
 
     Task<Result<AuthenticationResult>> RefreshTokenAsync(string refreshToken);

@@ -34,8 +34,12 @@ public interface IRateLimiterService
     /// </summary>
     Task<Result<bool>> IsLockedAsync(string key, CancellationToken cancellationToken = default);
 
+    Task<Result<int>> GetLockSecondsAliveLeft(string key, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Removes rate limit or lock
     /// </summary>
     Task<Result> RemoveAsync(string key, CancellationToken cancellationToken = default);
+
+
 }

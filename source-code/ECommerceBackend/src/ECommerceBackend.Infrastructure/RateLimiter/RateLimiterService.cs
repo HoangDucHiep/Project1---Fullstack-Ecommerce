@@ -106,6 +106,21 @@ public class RateLimiterService : IRateLimiterService
     }
 
 
+    public async Task<Result<int>> GetLockSecondsAliveLeft(string key, CancellationToken cancellationToken = default)
+    {
+        Result<int> result = await _redisService.GetTTLAsync(key, cancellationToken);
+
+        if (result.Value < 0)
+        {
+            return Result.Failure<int>(RateLimiterErrors.LockNotFound());
+        }
+
+        return result.Value;
+
+    }
+
+
+
     /// <summary>
     /// Removes the rate limit or lock associated with the specified key.
     /// </summary>

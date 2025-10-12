@@ -15,4 +15,8 @@ public static class RateLimiterErrors
     public static Error Locked(int waitMinutes) => Error.Validation(
         "RateLimit.Locked",
         $"Resource locked. Please wait {waitMinutes} minutes.");
+
+    public static Error LockNotFound() => Error.NotFound(
+        "RateLimit.LockNotFound",
+        "Rate limit lock not found or already expired");
 }

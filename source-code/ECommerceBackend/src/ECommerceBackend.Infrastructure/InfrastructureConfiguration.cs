@@ -46,8 +46,6 @@ public static class InfrastructureConfiguration
     /// Registers infrastructure services.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="databaseConnectionString">The PostgreSQL connection string.</param>
-    /// <param name="redisConnectionString">The Redis connection string.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
@@ -99,6 +97,19 @@ public static class InfrastructureConfiguration
         {
             services.AddDistributedMemoryCache();
         }
+
+        // Register Redis services as Singleton to avoid DI lifetime issues
+        services.AddSingleton<IConnectionMultiplexer>(provider =>
+        {
+            return ConnectionMultiplexer.Connect(redisConnectionString);
+        });
+
+        services.AddSingleton<IDatabase>(provider =>
+        {
+            IConnectionMultiplexer multiplexer = provider.GetRequiredService<IConnectionMultiplexer>();
+            return multiplexer.GetDatabase();
+        });
+
 
         // Register CacheService
         services.TryAddSingleton<ICacheService, RedisService>();

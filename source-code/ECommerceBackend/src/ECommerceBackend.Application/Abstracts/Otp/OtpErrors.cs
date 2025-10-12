@@ -18,17 +18,25 @@ public static class OtpErrors
 
     public static Error Invalid(int attemptsLeft) => Error.Validation(
         "Otp.Invalid",
-        $"Invalid OTP code. {attemptsLeft} attempts left.");
+        $"Mã OTP không hợp lệ. Bạn còn {attemptsLeft} lần thử lại.");
 
     public static Error MaxAttemptsExceeded => Error.Validation(
         "Otp.MaxAttemptsExceeded",
-        "Maximum OTP verification attempts exceeded");
+        "Đã vượt quá số lần xác thực OTP tối đa.");
 
-    public static Error ResendLimitReached => Error.Validation(
+    public static Error ResendLimitReached(int secondLeft) => Error.Validation(
         "Otp.ResendLimitReached",
-        "Maximum OTP resend limit reached. Please restart the process.");
+        $"Bạn đã quá nhiều yêu cầu, vui lòng thử lại sau {(secondLeft < 60 ? $"{secondLeft} giây" : $"{secondLeft / 60} phút")}");
 
     public static Error SessionExpired => Error.Validation(
         "Otp.SessionExpired",
-        "OTP session has expired. Please restart the process.");
+        "Phiên OTP đã hết hạn. Vui lòng khởi động lại quá trình.");
+
+    public static Error InvalidOtp => Error.Validation(
+        "Otp.InvalidOtp",
+        "Mã OTP được cung cấp không hợp lệ");
+
+    public static Error OtpDelay(int delaySecs) => Error.Validation(
+        "Otp.OtpDelay",
+        $"Vui lòng thử lại sau {delaySecs} giây");
 }

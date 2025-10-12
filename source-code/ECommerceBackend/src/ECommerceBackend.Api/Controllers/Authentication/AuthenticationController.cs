@@ -51,10 +51,20 @@ public class AuthenticationController : ControllerBase
 
 
     [HttpPost("register/phone/resend")]
-    [ValidateAntiForgeryToken]
-    public Task<IActionResult> ResendPhoneNumberVerification()
+    //[ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendPhoneNumberVerification(RegisterUserCommandRequest request)
     {
-        throw new NotImplementedException();
+        var command = new RegisterOtpResendCommand(request.PhoneNumber);
+
+        Result<int> result = await _sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(new { Message = "OTP resent successfully", ResendLeft = result.Value });
+
     }
 
     [HttpPost("oauth/google")]

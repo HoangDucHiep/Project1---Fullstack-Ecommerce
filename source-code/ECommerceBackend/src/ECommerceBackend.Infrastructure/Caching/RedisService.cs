@@ -2,6 +2,7 @@
 using System.Text.Json;
 using ECommerceBackend.Application.Abstracts.Caching;
 using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 
 namespace ECommerceBackend.Infrastructure.Caching;
 
@@ -14,15 +15,17 @@ namespace ECommerceBackend.Infrastructure.Caching;
 public sealed class RedisService : ICacheService
 {
     private readonly IDistributedCache _cache;
+    private readonly IDatabase _database;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RedisService"/> class.
     /// </summary>
     /// <param name="cache">The distributed cache implementation to use.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="cache"/> is null.</exception>
-    public RedisService(IDistributedCache cache)
+    public RedisService(IDistributedCache cache, IDatabase database)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        _database = database ?? throw new ArgumentNullException(nameof(database));
     }
 
     /// <summary>
@@ -65,6 +68,35 @@ public sealed class RedisService : ICacheService
     }
 
     /// <summary>
+    /// Gets the Time To Live (TTL) of a Redis key in seconds.
+    /// </summary>
+    /// <param name="key">The unique cache key.</param>
+    /// <param name="cancellationToken">Optional cancellation token.</param>
+    /// <returns>TTL in seconds. Returns -1 if key exists but has no expiration, -2 if key doesn't exist.</returns>
+    public async Task<int> GetTTLAsync(string key, CancellationToken cancellationToken = default)
+    {
+
+        // First check if key exists
+        bool keyExists = await _database.KeyExistsAsync(key);
+        if (!keyExists)
+        {
+            return -2; // Key doesn't exist
+        }
+
+        // Get TTL for existing key
+        TimeSpan? ttl = await _database.KeyTimeToLiveAsync(key);
+
+        // If TTL is null, the key exists but has no expiration (persistent)
+        if (ttl is null)
+        {
+            return -1; // Key exists but has no expiration
+        }
+
+        // Return TTL in seconds
+        return (int)ttl.Value.TotalSeconds;
+    }
+
+    /// <summary>
     /// Deserializes a byte array to a strongly-typed object using <see cref="JsonSerializer"/>.
     /// </summary>
     /// <typeparam name="T">The target object type.</typeparam>
@@ -88,5 +120,7 @@ public sealed class RedisService : ICacheService
         JsonSerializer.Serialize(writer, value);
         return buffer.WrittenSpan.ToArray();
     }
+
+
 }
 
