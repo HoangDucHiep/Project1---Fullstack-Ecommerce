@@ -1,6 +1,7 @@
 ﻿using ECommerceBackend.Api.Contracts.Authentication;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Authentication;
+using ECommerceBackend.Application.Authentication.LoginUserWithOtp;
 using ECommerceBackend.Application.Authentication.Register;
 using ECommerceBackend.Application.Authentication.RegisterUserWithOtp;
 using ECommerceBackend.Domain.Abstracts;
@@ -20,7 +21,9 @@ public class AuthenticationController : ControllerBase
         _sender = sender;
     }
 
-    [HttpPost("register/phone")]
+    #region Registration Endpoints
+
+    [HttpPost("register/phone/otp")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
     {
         var command = new RegisterWithOtpCommand(request.PhoneNumber, request.Password);
@@ -33,8 +36,7 @@ public class AuthenticationController : ControllerBase
         return Ok(new { Message = "OTP sent successfully" });
     }
 
-
-    [HttpPost("register/phone/verify")]
+    [HttpPost("register/phone/otp/verify")]
     public async Task<IActionResult> VerifyPhoneNumber(VerifyOtpRegisterRequest request)
     {
         var command = new VerifyRegistrationOtpCommand(request.phoneNumber, request.otp);
@@ -46,11 +48,17 @@ public class AuthenticationController : ControllerBase
             return BadRequest(result.Error);
         }
 
-        return Ok(result.Value);
+        return Ok(new AuthenticationResponse
+        {
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken,
+            AccessTokenExpiration = result.Value.AccessTokenExpiration,
+            RefreshTokenExpiration = result.Value.RefreshTokenExpiration,
+            IdentityUserId = result.Value.IdentityUserId
+        });
     }
 
-
-    [HttpPost("register/phone/resend")]
+    [HttpPost("register/phone/otp/resend")]
     //[ValidateAntiForgeryToken]
     public async Task<IActionResult> ResendPhoneNumberVerification(RegisterUserCommandRequest request)
     {
@@ -64,15 +72,11 @@ public class AuthenticationController : ControllerBase
         }
 
         return Ok(new { Message = "OTP resent successfully", ResendLeft = result.Value });
-
     }
 
-    [HttpPost("oauth/google")]
-    [ValidateAntiForgeryToken]
-    public Task<IActionResult> GoogleOAuth()
-    {
-        throw new NotImplementedException();
-    }
+    #endregion
+
+    #region Login Endpoints
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginUserRequest request)
@@ -95,33 +99,54 @@ public class AuthenticationController : ControllerBase
         });
     }
 
-    [HttpPost("login/phone/verify")]
-    [ValidateAntiForgeryToken]
-    public Task<IActionResult> VerifyLoginWithPhoneNumber()
+    [HttpPost("login/otp")]
+    public async Task<IActionResult> LoginWithOtp([FromBody] LoginUserRequest request)
     {
-        throw new NotImplementedException();
+        var command = new LoginWithOtpCommand(request.Identifier, request.Password);
+        Result result = await _sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(new { Message = "OTP sent successfully for login verification" });
     }
 
-    // refresh token
-    [HttpPost("refresh")]
-    public Task<IActionResult> RefreshToken()
+    [HttpPost("login/otp/verify")]
+    public async Task<IActionResult> VerifyLoginOtp([FromBody] VerifyLoginOtpRequest request)
     {
-        throw new NotImplementedException();
+        var command = new VerifyLoginOtpCommand(request.Identifier, request.Otp);
+        Result<AuthenticationResult> result = await _sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(new AuthenticationResponse
+        {
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken,
+            AccessTokenExpiration = result.Value.AccessTokenExpiration,
+            RefreshTokenExpiration = result.Value.RefreshTokenExpiration,
+            IdentityUserId = result.Value.IdentityUserId
+        });
     }
 
-    // logout
-    [HttpPost("logout")]
-    public Task<IActionResult> Logout()
+    [HttpPost("login/otp/resend")]
+    public async Task<IActionResult> ResendLoginOtp([FromBody] LoginOtpResendRequest request)
     {
-        throw new NotImplementedException();
+        var command = new LoginOtpResendCommand(request.Identifier);
+        Result<int> result = await _sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(new { Message = "Login OTP resent successfully", ResendLeft = result.Value });
     }
 
-    // forgot-password
-    [HttpPost("forgot-password")]
-    public Task<IActionResult> ForgotPassword()
-    {
-        throw new NotImplementedException();
-    }
-
-
+    #endregion
 }

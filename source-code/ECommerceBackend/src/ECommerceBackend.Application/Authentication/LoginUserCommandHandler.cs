@@ -19,6 +19,6 @@ public sealed class LoginUserCommandHandler : ICommandHandler<LoginUserCommand, 
 
     public async Task<Result<AuthenticationResult>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        return await _authenticationService.LoginAsync(request.Identifier, request.Password);
+        return await _authenticationService.InternalLoginAsync(request.Identifier, request.Password);
     }
 }

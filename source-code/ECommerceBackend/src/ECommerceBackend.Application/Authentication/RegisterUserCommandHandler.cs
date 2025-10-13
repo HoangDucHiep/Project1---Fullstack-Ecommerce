@@ -15,7 +15,7 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, A
 
     public async Task<Result<AuthenticationResult>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        return await _authenticationService.RegisterUserAsync(
+        return await _authenticationService.InternalRegisterUserWithPhoneAsync(
             request.PhoneNumber,
             request.Password);
     }
