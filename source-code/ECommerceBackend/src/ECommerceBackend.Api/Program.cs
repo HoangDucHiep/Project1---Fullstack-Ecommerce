@@ -30,8 +30,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Add health checks
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("Database")!)
-    .AddRedis(builder.Configuration.GetConnectionString("Cache")!)
-    .AddUrlGroup(new Uri(builder.Configuration.GetValue<string>("KeyCloak:HealthUrl")!), HttpMethod.Get, "keycloak");
+    .AddRedis(builder.Configuration.GetConnectionString("Cache")!);
+//.AddUrlGroup(new Uri(builder.Configuration.GetValue<string>("KeyCloak:HealthUrl")!), HttpMethod.Get, "keycloak");
 
 
 // =========== Build and configure the app ===========

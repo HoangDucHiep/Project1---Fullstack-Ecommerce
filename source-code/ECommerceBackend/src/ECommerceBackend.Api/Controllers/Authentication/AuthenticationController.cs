@@ -23,8 +23,32 @@ public class AuthenticationController : ControllerBase
 
     #region Registration Endpoints
 
-    [HttpPost("register/phone/otp")]
+    /// <summary>
+    /// Instance Registration for quick development and testing
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("register/phone")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
+    {
+        var command = new RegisterUserCommand(request.PhoneNumber, request.Password);
+        Result<AuthenticationResult> result = await _sender.Send(command);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+        return Ok(new AuthenticationResponse
+        {
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken,
+            AccessTokenExpiration = result.Value.AccessTokenExpiration,
+            RefreshTokenExpiration = result.Value.RefreshTokenExpiration,
+            IdentityUserId = result.Value.IdentityUserId
+        });
+    }
+
+    [HttpPost("register/phone/otp")]
+    public async Task<IActionResult> RegisterUserWithOtp([FromBody] RegisterUserRequest request)
     {
         var command = new RegisterWithOtpCommand(request.PhoneNumber, request.Password);
         Result result = await _sender.Send(command);
@@ -78,6 +102,11 @@ public class AuthenticationController : ControllerBase
 
     #region Login Endpoints
 
+    /// <summary>
+    /// Instance Login for quick development and testing
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginUserRequest request)
     {
