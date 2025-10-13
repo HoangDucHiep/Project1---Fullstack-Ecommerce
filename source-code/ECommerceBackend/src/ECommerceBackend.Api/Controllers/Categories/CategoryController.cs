@@ -1,4 +1,6 @@
 ﻿using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
+using ECommerceBackend.Application.Categories;
+using ECommerceBackend.Application.Categories.GetCategories;
 using ECommerceBackend.Application.Categories.SearchCategory;
 using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Domain.Abstracts;
@@ -51,6 +53,20 @@ public class CategoryController : ControllerBase
     {
         var query = new SearchCategoryQuery(queryText);
         Result<List<CategoryDto>> result = await _sender.Send(query, cancellationToken);
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
+    {
+        var query = new GetCategoriesQuery();
+        Result<List<CategoriesDTO>> result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
 
         return Ok(result.Value);
     }
