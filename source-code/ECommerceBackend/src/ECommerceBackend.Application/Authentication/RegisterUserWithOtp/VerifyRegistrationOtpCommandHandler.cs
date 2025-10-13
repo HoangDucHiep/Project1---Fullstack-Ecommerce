@@ -98,7 +98,7 @@ public class VerifyRegistrationOtpCommandHandler : ICommandHandler<VerifyRegistr
         }
 
         // Register user
-        Result<AuthenticationResult> registrationResult = await _authenticationService.RegisterUserAsync(
+        Result<AuthenticationResult> registrationResult = await _authenticationService.InternalRegisterUserWithPhoneAsync(
             phoneNumber: sessionResult.PhoneNumber,
             password: decryptedPassword.Value
         );

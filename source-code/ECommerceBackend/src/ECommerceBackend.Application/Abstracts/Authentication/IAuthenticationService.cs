@@ -23,11 +23,16 @@ public record AuthenticationResult(
 /// </remarks>
 public interface IAuthenticationService
 {
-    Task<Result<AuthenticationResult>> RegisterUserAsync(string phoneNumber, string? password = null);
+    Task<Result<AuthenticationResult>> InternalRegisterUserWithPhoneAsync(string phoneNumber, string? password = null, bool phoneNumberConfirmed = true);
     Task<Result<AuthenticationResult>> RegisterEmployeeAsync(string email, string password);
 
-    Task<Result<string>> VerifyIdentityAndPasswordAsync(string identifier, string password);
+    // Wrapper methods for backward compatibility
+    Task<Result<AuthenticationResult>> RegisterUserAsync(string phoneNumber, string? password = null);
     Task<Result<AuthenticationResult>> LoginAsync(string identifier, string password);
+
+    Task<Result<string>> VerifyIdentityAndPasswordAsync(string identifier, string password);
+    Task<Result<AuthenticationResult>> InternalLoginAsync(string identifier, string password);
+    Task<Result<AuthenticationResult>> InternalLoginByIdentityIdAsync(string identityUserId);
 
     Task<Result<AuthenticationResult>> RefreshTokenAsync(string refreshToken);
     Task<Result> LogoutAsync(string userId);

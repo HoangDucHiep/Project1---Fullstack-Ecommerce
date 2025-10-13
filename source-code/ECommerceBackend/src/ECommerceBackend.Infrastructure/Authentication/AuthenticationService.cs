@@ -43,7 +43,16 @@ public class AuthenticationService : IAuthenticationService
         _identityUnitOfWork = identityUnitOfWork;
     }
 
-    public async Task<Result<AuthenticationResult>> RegisterUserAsync(string phoneNumber, string? password = null)
+
+    /// <summary>
+    /// Register a new user using their phone number and an optional password.
+    /// Needs to verify OTP before calling this method.
+    /// Use OtpService to handle OTP generation and verification.
+    /// </summary>
+    /// <param name="phoneNumber"></param>
+    /// <param name="password"></param>
+    /// <returns></returns>
+    public async Task<Result<AuthenticationResult>> InternalRegisterUserWithPhoneAsync(string phoneNumber, string? password = null, bool phoneNumberConfirmed = true)
     {
         // Check if phone number is already registered
         ApplicationIdentityUser? existing = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
@@ -59,7 +68,7 @@ public class AuthenticationService : IAuthenticationService
             // random string as user name
             UserName = Guid.NewGuid().ToString("N")[..10],
             PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = true,
+            PhoneNumberConfirmed = phoneNumberConfirmed,
         };
 
         IdentityResult result = !string.IsNullOrEmpty(password)
@@ -105,6 +114,21 @@ public class AuthenticationService : IAuthenticationService
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Wrapper method for backward compatibility
+    /// </summary>
+    public async Task<Result<AuthenticationResult>> RegisterUserAsync(string phoneNumber, string? password = null)
+    {
+        return await InternalRegisterUserWithPhoneAsync(phoneNumber, password);
+    }
+
+    /// <summary>
+    /// Wrapper method for backward compatibility
+    /// </summary>
+    public async Task<Result<AuthenticationResult>> LoginAsync(string identifier, string password)
+    {
+        return await InternalLoginAsync(identifier, password);
+    }
 
     /// <summary>
     /// 
@@ -138,8 +162,49 @@ public class AuthenticationService : IAuthenticationService
         return identityUser.Id;
     }
 
+    /// <summary>
+    /// Internal login by identity user ID for OTP-based authentication.
+    /// Used when password has already been verified during OTP initiation.
+    /// </summary>
+    /// <param name="identityUserId">The identity user ID</param>
+    /// <returns></returns>
+    public async Task<Result<AuthenticationResult>> InternalLoginByIdentityIdAsync(string identityUserId)
+    {
+        ApplicationIdentityUser? identityUser = await _userManager.FindByIdAsync(identityUserId);
 
-    public async Task<Result<AuthenticationResult>> LoginAsync(string identifier, string password)
+        if (identityUser == null)
+        {
+            return Result.Failure<AuthenticationResult>(UserErrors.InvalidCredentials);
+        }
+
+        // Generate tokens
+        string accessToken = _jwtService.GenerateAccessToken(
+            identityUser.Id,
+            email: identityUser.Email,
+            phoneNumber: identityUser.PhoneNumber);
+
+        string refreshToken = _jwtService.GenerateRefreshToken();
+
+        // Create and save refresh token
+        var rt = RefreshToken.Create(
+            token: refreshToken,
+            jwtId: ExtractJwtIdFromToken(accessToken),
+            expiresAtUtc: _dateTimeProvider.UtcNow.AddDays(_jwtService.GetRefreshTokenExpirationInDays()),
+            identityUserId: identityUser.Id
+        );
+
+        await _refreshTokenRepository.AddAsync(rt);
+        await _identityUnitOfWork.SaveChangesAsync();
+
+        return Result.Success(new AuthenticationResult(
+            AccessToken: accessToken,
+            RefreshToken: refreshToken,
+            AccessTokenExpiration: _dateTimeProvider.UtcNow.AddMinutes(_jwtService.GetAccessTokenExpirationInMinutes()).UtcDateTime,
+            RefreshTokenExpiration: rt.ExpiresAtUtc.UtcDateTime,
+            IdentityUserId: identityUser.Id.ToString()));
+    }
+
+    public async Task<Result<AuthenticationResult>> InternalLoginAsync(string identifier, string password)
     {
         // Determine if identifier is email or phone number
         bool isEmail = identifier.Contains('@');
