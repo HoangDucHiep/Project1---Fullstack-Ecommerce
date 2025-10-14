@@ -9,7 +9,6 @@ public sealed class AddNewAddressCommandHandler : ICommandHandler<AddNewAddressC
 
     private readonly IAddressRepository _addressRepository;
     private readonly IUnitOfWork _unitOfWork;
-    // TODO: Need to get UserContext later
 
     public AddNewAddressCommandHandler(IAddressRepository addressRepository, IUnitOfWork unitOfWork)
     {
@@ -19,10 +18,12 @@ public sealed class AddNewAddressCommandHandler : ICommandHandler<AddNewAddressC
 
     public async Task<Result<AddressDto>> Handle(AddNewAddressCommand request, CancellationToken cancellationToken)
     {
-        // TODO: Get user ID from context
-
-        var newAdress = Address.Create(
-            userId: Guid.Parse("01998678-85b2-7474-883c-d17e816f46aa"), // TODO: Replace with actual user ID from context
+        if (request.UserId == Guid.Empty)
+        {
+            return Result.Failure<AddressDto>(AddressErrors.Unauthorized());
+        }
+        var newAddress = Address.Create(
+            userId: request.UserId,
             name: request.Name,
             phone: request.Phone,
             province: request.Province,
@@ -34,13 +35,12 @@ public sealed class AddNewAddressCommandHandler : ICommandHandler<AddNewAddressC
             isReturnAddress: request.IsReturnAddress
         );
 
-        _addressRepository.Add(newAdress);
+        _addressRepository.Add(newAddress);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var addressDto = newAdress.ToAddressDto();
+        var addressDto = newAddress.ToAddressDto();
 
-
-        return addressDto;
+        return Result.Success(addressDto);
     }
 }

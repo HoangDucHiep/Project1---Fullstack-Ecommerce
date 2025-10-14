@@ -36,7 +36,7 @@ internal sealed class GetAddressByIdQueryHandler : IQueryHandler<GetAddressByIdQ
                 is_default AS {nameof(AddressDto.IsDefault)},
                 is_pick_up_address AS {nameof(AddressDto.IsPickUpAddress)},
                 is_return_address AS {nameof(AddressDto.IsReturnAddress)}
-            FROM addresses
+            FROM "ecommerce-domain".addresses
             WHERE id = @AddressId
         """;
 

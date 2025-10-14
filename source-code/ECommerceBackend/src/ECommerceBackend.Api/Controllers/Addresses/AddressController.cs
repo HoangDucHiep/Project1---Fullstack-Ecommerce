@@ -9,6 +9,7 @@ using ECommerceBackend.Application.Addresses.UpdateAddress;
 using ECommerceBackend.Application.Contracts.Addresses;
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Addresses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,11 +34,27 @@ public class AddressController : ControllerBase
         _userContext = userContext;
     }
 
-
     [HttpPost("/me/addresses")]
     public async Task<IActionResult> CreateAddress([FromBody] AddressCreateRequest request)
     {
-        var command = new AddNewAddressCommand(request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
+        if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
+        { return Unauthorized(); }
+
+        var userId = Guid.Parse(_userContext.UserId!);
+
+        var command = new AddNewAddressCommand(
+            request.Name,
+            request.Phone,
+            request.Province,
+            request.District,
+            request.Ward,
+            request.AddressLine,
+            request.IsDefault,
+            request.IsPickUpAddress,
+            request.IsReturnAddress,
+            userId
+        );
+
         Result<AddressDto> result = await _sender.Send(command);
 
         object response = result.ToResponse("Tạo địa chỉ thành công");
@@ -47,44 +64,106 @@ public class AddressController : ControllerBase
     }
 
     [HttpGet("/me/addresses/{addressId:guid}")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetAddressById([FromRoute] Guid addressId)
     {
-        Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
-        Console.WriteLine($"UserId: {_userContext.UserId}");
+        var query = new GetAddressByIdQuery(addressId);
 
-        Result<AddressDto> result = await _sender.Send(new GetAddressByIdQuery(addressId));
-        return Ok(result.ToResponse("Lấy thông tin địa chỉ thành công"));
-    }
+        Result<AddressDto> result = await _sender.Send(query);
 
-    [HttpGet("/me/addresses")]
-    public async Task<IActionResult> GetAddressesOfCurrentUser([FromQuery] GetAddressOfCurrentUserRequest request)
-    {
-        Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
-        Console.WriteLine($"UserId: {_userContext.UserId}");
-
-        Result<PaginationResult<AddressDto>> result = await _sender.Send(new GetAddressesOfCurrentUserQuery(request.Page, request.PageSize));
-        return Ok(result.ToPaginatedResponse("Lấy danh sách địa chỉ thành công"));
-    }
-
-    [HttpPut("/me/addresses/{addressId:guid}")]
-    public async Task<IActionResult> UpdateAddress([FromRoute] Guid addressId, [FromBody] AddressUpdateRequest request)
-    {
-        var command = new UpdateAddressCommand(addressId, request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
-        Result<AddressDto> result = await _sender.Send(command);
-
-        return Ok(result.ToResponse("Cập nhật địa chỉ thành công"));
-    }
-
-    [HttpDelete("/me/addresses/{addressId:guid}")]
-    public async Task<IActionResult> DeleteAddress([FromRoute] Guid addressId)
-    {
-        var command = new DeleteAddressCommand(addressId);
-        Result result = await _sender.Send(command);
         if (result.IsFailure)
         {
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
+
+        return Ok(result.ToResponse("Lấy thông tin địa chỉ thành công"));
+    }
+
+    //PBNMinh- 11/10/2025
+    [HttpGet("/me/addresses")]
+    public async Task<IActionResult> GetAddressesOfCurrentUser([FromQuery] GetAddressOfCurrentUserRequest request)
+    {
+        if (!_userContext.IsAuthenticated)
+        {
+            return StatusCode(AddressErrors.Unauthorized().Type.StatusCode, AddressErrors.Unauthorized());
+
+        }
+
+        var query = new GetAddressesOfCurrentUserQuery(
+            request.Page,
+            request.PageSize
+        );
+
+        Result<PaginationResult<AddressDto>> result = await _sender.Send(query);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+
+        return Ok(result.ToPaginatedResponse("Lấy danh sách địa chỉ thành công"));
+    }
+
+
+    //PBNMinh- 11/10/2025
+    [HttpPut("/me/addresses/{addressId:guid}")]
+    public async Task<IActionResult> UpdateAddress([FromRoute] Guid addressId, [FromBody] AddressUpdateRequest request, CancellationToken cancellationToken)
+    {
+        if (!_userContext.IsAuthenticated)
+        {
+            return Unauthorized(AddressErrors.Unauthorized());
+        }
+
+        var userId = Guid.Parse(_userContext.UserId!);
+
+        var command = new UpdateAddressCommand(
+            Id: addressId,
+            Name: request.Name,
+            Phone: request.Phone,
+            Province: request.Province,
+            District: request.District,
+            Ward: request.Ward,
+            AddressLine: request.AddressLine,
+            IsDefault: request.IsDefault,
+            IsPickUpAddress: request.IsPickUpAddress,
+            IsReturnAddress: request.IsReturnAddress
+        );
+
+        Result<AddressDto> result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            if (result.Error == AddressErrors.NotFound())
+            {
+                return NotFound(result.Error);
+            }
+
+            if (result.Error == AddressErrors.Forbidden())
+            {
+                return Forbid(result.Error.Description);
+            }
+
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+
+        return Ok(result.ToResponse("Cập nhật địa chỉ thành công"));
+    }
+
+    //PBNMinh- 10/10/2025
+    [HttpDelete("/me/addresses/{addressId:guid}")]
+    public async Task<IActionResult> DeleteAddress([FromRoute] Guid addressId)
+    {
+        if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
+        { return Unauthorized(); }
+
+        var userId = Guid.Parse(_userContext.UserId!);
+
+        var command = new DeleteAddressCommand(addressId, userId);
+        Result result = await _sender.Send(command);
+
+        if (result.IsFailure)
+        { return StatusCode(result.Error.Type.StatusCode, result.Error); }
+
         return NoContent();
     }
+
 }
