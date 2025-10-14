@@ -16,6 +16,26 @@ builder.Services.AddControllers(options =>
 });
 
 
+// Add Cors
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+
+    options.AddPolicy("AllowFrontendApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+
 // Serilog
 builder.Host.UseSerilog((context, loggerConfig) =>
     loggerConfig.ReadFrom.Configuration(context.Configuration));
@@ -66,6 +86,9 @@ app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
 app.UseSerilogRequestLogging();
+
+
+app.UseCors("AllowFrontendApp");
 
 // Use Authentication & Authorization
 app.UseAuthentication();
