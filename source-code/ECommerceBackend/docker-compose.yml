@@ -87,6 +87,16 @@ services:
     ports:
       - ${REDIS_PORT}:6379
 
+  ecommercebackend.mono.redis-insight:
+    image: redis/redisinsight:2.70
+    container_name: ecommercebackend-mono-redis-insight
+    ports:
+      - ${REDIS_INSIGHT_PORT}:5540
+    volumes:
+      - ${REDIS_INSIGHT_DATA_PATH}:/db
+    depends_on:
+      - ecommercebackend.mono.database.redis
+
   # Keycloak identity provider
   # ecommercebackend.mono.idprovider.keycloak:
   #   image: quay.io/keycloak/keycloak:26.3
