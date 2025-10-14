@@ -57,10 +57,17 @@ public class AddressController : ControllerBase
 
         Result<AddressDto> result = await _sender.Send(command);
 
+<<<<<<< HEAD
         object response = result.ToResponse("Tạo địa chỉ thành công");
         return result.IsSuccess
             ? CreatedAtAction(nameof(GetAddressById), new { addressId = result.Value.Id }, response)
             : StatusCode(result.Error.GetStatusCode(), response);
+=======
+        if (result.IsFailure)
+        { return StatusCode(result.Error.Type.StatusCode, result.Error); }
+
+        return CreatedAtAction(nameof(GetAddressById), new { addressId = result.Value.Id }, result.Value);
+>>>>>>> 0fa0de0bc540324ce95bdab6dd847026a10fba85
     }
 
     [HttpGet("/me/addresses/{addressId:guid}")]
@@ -75,7 +82,11 @@ public class AddressController : ControllerBase
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
 
+<<<<<<< HEAD
         return Ok(result.ToResponse("Lấy thông tin địa chỉ thành công"));
+=======
+        return Ok(result.Value);
+>>>>>>> 0fa0de0bc540324ce95bdab6dd847026a10fba85
     }
 
     //PBNMinh- 11/10/2025
@@ -100,7 +111,11 @@ public class AddressController : ControllerBase
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
 
+<<<<<<< HEAD
         return Ok(result.ToPaginatedResponse("Lấy danh sách địa chỉ thành công"));
+=======
+        return Ok(result.Value);
+>>>>>>> 0fa0de0bc540324ce95bdab6dd847026a10fba85
     }
 
 
@@ -145,7 +160,11 @@ public class AddressController : ControllerBase
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
 
+<<<<<<< HEAD
         return Ok(result.ToResponse("Cập nhật địa chỉ thành công"));
+=======
+        return Ok(result.Value);
+>>>>>>> 0fa0de0bc540324ce95bdab6dd847026a10fba85
     }
 
     //PBNMinh- 10/10/2025
