@@ -25,6 +25,7 @@ public sealed record AddNewAddressCommand(
     string AddressLine,
     bool IsDefault,
     bool IsPickUpAddress,
-    bool IsReturnAddress
+    bool IsReturnAddress,
+    Guid UserId
     ) : ICommand<AddressDto>;
 
