@@ -1,4 +1,5 @@
 using ECommerceBackend.Api.Extensions;
+using ECommerceBackend.Api.Filters;
 using ECommerceBackend.Api.Middlewares;
 using ECommerceBackend.Application;
 using ECommerceBackend.Infrastructure;
@@ -9,11 +10,15 @@ using Serilog;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<TraceIdFilter>(); // Auto inject TraceId
+});
 
 
 // Serilog
-builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration)); // Config from appsettings.json
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 // OpenAPI and Swagger
 builder.Services.AddOpenApi();
@@ -31,7 +36,6 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("Database")!)
     .AddRedis(builder.Configuration.GetConnectionString("Cache")!);
-//.AddUrlGroup(new Uri(builder.Configuration.GetValue<string>("KeyCloak:HealthUrl")!), HttpMethod.Get, "keycloak");
 
 
 // =========== Build and configure the app ===========

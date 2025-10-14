@@ -1,10 +1,9 @@
-﻿using ECommerceBackend.Domain.Abstracts;
+﻿using ECommerceBackend.Api.Contracts;
+using ECommerceBackend.Domain.Abstracts;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using ApplicationException = ECommerceBackend.Application.Abstracts.Exceptions.ApplicationException;
 
 namespace ECommerceBackend.Api.Middlewares;
-
 
 /// HDHiep - 09/24/2025
 internal sealed class GlobalExceptionHandler : IExceptionHandler
@@ -20,51 +19,58 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
     {
         _logger.LogError(exception, "Unhandled exception occurred");
 
-        ProblemDetails problemsDetails = exception switch
+        (int statusCode, ApiErrorResponse response) = exception switch
         {
-            ApplicationException appEx when appEx.Error is not null => CreateProblemDetails(appEx.Error),
-            ApplicationException appEx => CreateDefaultApplicationProblemDetails(appEx),
-            _ => CreateDefaultProblemDetails()
+            ApplicationException appEx when appEx.Error is ValidationError validationError =>
+                (validationError.Type.StatusCode, CreateValidationErrorResponse(validationError)),
+            ApplicationException appEx when appEx.Error is not null =>
+                (appEx.Error.Type.StatusCode, ApiErrorResponse.Error(appEx.Error.Code, appEx.Error.Description)),
+            ApplicationException appEx =>
+                (StatusCodes.Status400BadRequest, ApiErrorResponse.Error("Application.Error", $"Lỗi xử lý yêu cầu: {appEx.RequestName}")),
+            _ =>
+                (StatusCodes.Status500InternalServerError, ApiErrorResponse.Error("Server.InternalError", "Đã xảy ra lỗi hệ thống"))
         };
 
-        httpContext.Response.StatusCode = problemsDetails.Status!.Value;
+        response.TraceId = httpContext.TraceIdentifier;
+        httpContext.Response.StatusCode = statusCode;
 
-        await httpContext.Response.WriteAsJsonAsync(problemsDetails, cancellationToken).ConfigureAwait(false);
+        await httpContext.Response.WriteAsJsonAsync(response, cancellationToken).ConfigureAwait(false);
 
         return true;
     }
 
-    private static ProblemDetails CreateProblemDetails(Error error)
+    private static ApiErrorResponse CreateValidationErrorResponse(ValidationError validationError)
     {
-        return new ProblemDetails
-        {
-            Status = error.Type.StatusCode,
-            Title = error.Type.Title,
-            Type = error.Type.ProblemType,
-            Detail = error.Description,
-            Extensions = { ["errorCode"] = error.Code }
-        };
+        var errorDetails = validationError.Errors
+            .Select(e => new ErrorDetail
+            {
+                Code = e.Code,
+                Message = e.Description,
+                Field = ExtractFieldFromErrorCode(e.Code)
+            })
+            .ToList();
+
+        // Always return error details, even if empty
+        var response = ApiErrorResponse.Error(
+            validationError.Code,
+            validationError.Description,
+            errorDetails.Count > 0 ? errorDetails : null
+        );
+
+        return response;
     }
 
-    private static ProblemDetails CreateDefaultApplicationProblemDetails(ApplicationException appException)
+    private static string? ExtractFieldFromErrorCode(string errorCode)
     {
-        return new ProblemDetails
+        // Extract field name from error code like "Name.Invalid" -> "name"
+        // or "Email.Required" -> "email"
+        string[] parts = errorCode.Split('.');
+        if (parts.Length >= 1)
         {
-            Status = StatusCodes.Status400BadRequest,
-            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
-            Title = "Bad Request",
-            Detail = $"An error occurred while processing request: {appException.RequestName}"
-        };
-    }
-
-    private static ProblemDetails CreateDefaultProblemDetails()
-    {
-        return new ProblemDetails
-        {
-            Status = StatusCodes.Status500InternalServerError,
-            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-            Title = "Server failure",
-            Detail = "An unexpected error occurred while processing the request."
-        };
+            // Get the first part (field name) and convert to camelCase
+            string fieldName = parts[0];
+            return char.ToLowerInvariant(fieldName[0]) + fieldName[1..];
+        }
+        return null;
     }
 }

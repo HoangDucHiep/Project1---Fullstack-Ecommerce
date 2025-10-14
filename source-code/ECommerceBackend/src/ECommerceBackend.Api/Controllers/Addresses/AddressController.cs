@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Api.Contracts.Addresses;
+using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Addresses.AddNewAddress;
 using ECommerceBackend.Application.Addresses.DeleteAddress;
@@ -37,15 +38,12 @@ public class AddressController : ControllerBase
     public async Task<IActionResult> CreateAddress([FromBody] AddressCreateRequest request)
     {
         var command = new AddNewAddressCommand(request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
-
         Result<AddressDto> result = await _sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return StatusCode(result.Error.Type.StatusCode, result.Error);
-        }
-
-        return CreatedAtAction(nameof(GetAddressById), new { addressId = result.Value.Id }, result.Value);
+        object response = result.ToResponse("Tạo địa chỉ thành công");
+        return result.IsSuccess
+            ? CreatedAtAction(nameof(GetAddressById), new { addressId = result.Value.Id }, response)
+            : StatusCode(result.Error.GetStatusCode(), response);
     }
 
     [HttpGet("/me/addresses/{addressId:guid}")]
@@ -55,16 +53,8 @@ public class AddressController : ControllerBase
         Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
         Console.WriteLine($"UserId: {_userContext.UserId}");
 
-        var query = new GetAddressByIdQuery(addressId);
-
-        Result<AddressDto> result = await _sender.Send(query);
-
-        if (result.IsFailure)
-        {
-            return StatusCode(result.Error.Type.StatusCode, result.Error);
-        }
-
-        return Ok(result.Value);
+        Result<AddressDto> result = await _sender.Send(new GetAddressByIdQuery(addressId));
+        return Ok(result.ToResponse("Lấy thông tin địa chỉ thành công"));
     }
 
     [HttpGet("/me/addresses")]
@@ -73,15 +63,8 @@ public class AddressController : ControllerBase
         Console.WriteLine($"Is Authenticated: {_userContext.IsAuthenticated}");
         Console.WriteLine($"UserId: {_userContext.UserId}");
 
-        var query = new GetAddressesOfCurrentUserQuery(request.Page, request.PageSize);
-        Result<PaginationResult<AddressDto>> result = await _sender.Send(query);
-
-        if (result.IsFailure)
-        {
-            return StatusCode(result.Error.Type.StatusCode, result.Error);
-        }
-
-        return Ok(result.Value);
+        Result<PaginationResult<AddressDto>> result = await _sender.Send(new GetAddressesOfCurrentUserQuery(request.Page, request.PageSize));
+        return Ok(result.ToPaginatedResponse("Lấy danh sách địa chỉ thành công"));
     }
 
     [HttpPut("/me/addresses/{addressId:guid}")]
@@ -89,11 +72,8 @@ public class AddressController : ControllerBase
     {
         var command = new UpdateAddressCommand(addressId, request.Name, request.Phone, request.Province, request.District, request.Ward, request.AddressLine, request.IsDefault, request.IsPickUpAddress, request.IsReturnAddress);
         Result<AddressDto> result = await _sender.Send(command);
-        if (result.IsFailure)
-        {
-            return StatusCode(result.Error.Type.StatusCode, result.Error);
-        }
-        return Ok(result.Value);
+
+        return Ok(result.ToResponse("Cập nhật địa chỉ thành công"));
     }
 
     [HttpDelete("/me/addresses/{addressId:guid}")]

@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Api.Contracts.Authentication;
+using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Authentication;
 using ECommerceBackend.Application.Authentication.LoginUserWithOtp;
@@ -33,18 +34,11 @@ public class AuthenticationController : ControllerBase
     {
         var command = new RegisterUserCommand(request.PhoneNumber, request.Password);
         Result<AuthenticationResult> result = await _sender.Send(command);
-        if (result.IsFailure)
-        {
-            return BadRequest(result.Error);
-        }
-        return Ok(new AuthenticationResponse
-        {
-            AccessToken = result.Value.AccessToken,
-            RefreshToken = result.Value.RefreshToken,
-            AccessTokenExpiration = result.Value.AccessTokenExpiration,
-            RefreshTokenExpiration = result.Value.RefreshTokenExpiration,
-            IdentityUserId = result.Value.IdentityUserId
-        });
+
+        object response = result.ToResponse("Đăng ký thành công");
+        return result.IsSuccess
+            ? Ok(response)
+            : StatusCode(result.Error.GetStatusCode(), response);
     }
 
     [HttpPost("register/phone/otp")]
@@ -52,12 +46,8 @@ public class AuthenticationController : ControllerBase
     {
         var command = new RegisterWithOtpCommand(request.PhoneNumber, request.Password);
         Result result = await _sender.Send(command);
-        if (result.IsFailure)
-        {
-            return BadRequest(result.Error);
-        }
 
-        return Ok(new { Message = "OTP sent successfully" });
+        return Ok(result.ToResponse("Mã OTP đã được gửi thành công"));
     }
 
     [HttpPost("register/phone/otp/verify")]
@@ -113,19 +103,10 @@ public class AuthenticationController : ControllerBase
         var command = new LoginUserCommand(request.Identifier, request.Password);
         Result<AuthenticationResult> result = await _sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return Ok(new AuthenticationResponse
-        {
-            AccessToken = result.Value.AccessToken,
-            RefreshToken = result.Value.RefreshToken,
-            AccessTokenExpiration = result.Value.AccessTokenExpiration,
-            RefreshTokenExpiration = result.Value.RefreshTokenExpiration,
-            IdentityUserId = result.Value.IdentityUserId
-        });
+        object response = result.ToResponse("Đăng nhập thành công");
+        return result.IsSuccess
+            ? Ok(response)
+            : StatusCode(result.Error.GetStatusCode(), response);
     }
 
     [HttpPost("login/otp")]

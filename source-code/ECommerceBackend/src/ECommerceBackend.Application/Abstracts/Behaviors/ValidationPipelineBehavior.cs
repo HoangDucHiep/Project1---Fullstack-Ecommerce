@@ -99,5 +99,15 @@ internal sealed class ValidationPipelineBehavior<TRequest, TResponse>(
     /// <param name="validationFailures">The validation failures to convert.</param>
     /// <returns>A <see cref="ValidationError"/> representing the validation issues.</returns>
     private static ValidationError CreateValidationError(ValidationFailure[] validationFailures) =>
-        new(validationFailures.Select(f => Error.Validation(f.ErrorCode, f.ErrorMessage)).ToArray());
+        new(validationFailures.Select(f =>
+        {
+            // Use PropertyName to create more meaningful error codes
+            // If ErrorCode is empty or is a generic FluentValidation validator name (ends with "Validator"),
+            // use PropertyName.Invalid format
+            string errorCode = string.IsNullOrEmpty(f.ErrorCode) || f.ErrorCode.EndsWith("Validator", StringComparison.Ordinal)
+                ? $"{f.PropertyName}.Invalid"
+                : f.ErrorCode;
+
+            return Error.Validation(errorCode, f.ErrorMessage);
+        }).ToArray());
 }
