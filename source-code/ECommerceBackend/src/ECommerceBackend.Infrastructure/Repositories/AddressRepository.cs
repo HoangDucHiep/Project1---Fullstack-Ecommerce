@@ -19,4 +19,11 @@ public class AddressRepository : Repository<Address>, IAddressRepository
     {
         return _dbContext.Set<Address>().Update(address).State == EntityState.Modified ? 1 : 0;
     }
+
+    public IQueryable<Address> GetAddressesByUserIdQueryable(Guid userId)
+    {
+        return _dbContext.Set<Address>()
+                         .Where(a => a.UserId == userId);
+    }
+
 }
