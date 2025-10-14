@@ -12,8 +12,4 @@
     <ProjectReference Include="..\ECommerceBackend.Common.Domain\ECommerceBackend.Common.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Behaviors\" />
-  </ItemGroup>
-
 </Project>
