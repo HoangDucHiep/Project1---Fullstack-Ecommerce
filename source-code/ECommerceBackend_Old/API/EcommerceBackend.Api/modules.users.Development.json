@@ -1,0 +1,11 @@
+{
+  "Users": {
+    "KeyCloak": {
+      "AdminUrl": "http://ecommercebackend.idprovider.keycloak:8080/admin/realms/ecommerce_backend/",
+      "TokenUrl": "http://ecommercebackend.idprovider.keycloak:8080/realms/ecommerce_backend/protocol/openid-connect/token",
+      "ConfidentialClientId": "ecommerce-confidential-client",
+      "ConfidentialClientSecret": "7aPPiTsDWtiIv4qlHCbcdprbHWZNnVNI",
+      "PublicClientId": "ecommerce-public-client"
+    }
+  }
+}
