@@ -399,3 +399,6 @@ FodyWeavers.xsd
 
 .containers
 containers
+
+.env
+*.Development.*

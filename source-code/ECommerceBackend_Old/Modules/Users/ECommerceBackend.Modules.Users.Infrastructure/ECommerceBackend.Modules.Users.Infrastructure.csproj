@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\ECommerceBackend.Common.Infrastructure\ECommerceBackend.Common.Infrastructure.csproj" />
+    <ProjectReference Include="..\ECommerceBackend.Modules.Users.Application\ECommerceBackend.Modules.Users.Application.csproj" />
+    <ProjectReference Include="..\ECommerceBackend.Modules.Users.Presentation\ECommerceBackend.Modules.Users.Presentation.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Database\Migrations\" />
+  </ItemGroup>
+</Project>

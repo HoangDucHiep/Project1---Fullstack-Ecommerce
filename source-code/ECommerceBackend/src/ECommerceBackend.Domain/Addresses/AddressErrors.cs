@@ -1,0 +1,15 @@
+﻿using ECommerceBackend.Domain.Abstracts;
+
+namespace ECommerceBackend.Domain.Addresses;
+public static class AddressErrors
+{
+    public static Error NotFound() =>
+        Error.NotFound("Addresses.NotFound", $"Không tìm thấy địa chỉ với thông tin được cung cấp");
+
+    public static Error Forbidden() =>
+        Error.Forbidden("Addresses.Forbidden", $"Bạn không có quyền truy cập địa chỉ này");
+    public static Error Unauthorized() =>
+       Error.Unauthorized("Addresses.Unauthorized", "User không được xác thực");
+    public static Error ReplacementRequired() =>
+       Error.BadRequest("Addresses.ReplacementRequired", "Không thể xóa địa chỉ mặc định / lấy hàng / trả hàng khi chưa có địa chỉ thay thế");
+}
