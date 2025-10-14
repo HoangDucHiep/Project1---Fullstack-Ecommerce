@@ -1,0 +1,289 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\modules\\users\\ecommercebackend.modules.users.application\\users\\getusers\\getuserqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|solutionrelative:modules\\users\\ecommercebackend.modules.users.application\\users\\getusers\\getuserqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\modules\\users\\ecommercebackend.modules.users.application\\users\\getusers\\userresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|solutionrelative:modules\\users\\ecommercebackend.modules.users.application\\users\\getusers\\userresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\modules\\users\\ecommercebackend.modules.users.application\\users\\getusers\\getuserquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|solutionrelative:modules\\users\\ecommercebackend.modules.users.application\\users\\getusers\\getuserquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\modules\\users\\ecommercebackend.modules.users.application\\identity\\iidentityproviderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E965CC76-70D1-4120-B398-1108E915456C}|Modules\\Users\\ECommerceBackend.Modules.Users.Application\\ECommerceBackend.Modules.Users.Application.csproj|solutionrelative:modules\\users\\ecommercebackend.modules.users.application\\identity\\iidentityproviderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{42F88B1E-8526-4A44-A49A-9D74B3D576A1}|Modules\\Users\\ECommerceBackend.Modules.Users.Domain\\ECommerceBackend.Modules.Users.Domain.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\modules\\users\\ecommercebackend.modules.users.domain\\users\\usererrors.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{42F88B1E-8526-4A44-A49A-9D74B3D576A1}|Modules\\Users\\ECommerceBackend.Modules.Users.Domain\\ECommerceBackend.Modules.Users.Domain.csproj|solutionrelative:modules\\users\\ecommercebackend.modules.users.domain\\users\\usererrors.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7BCDD19B-B7B9-46C1-9AD9-524DDF9D6BBB}|Common\\ECommerceBackend.Common.Domain\\ECommerceBackend.Common.Domain.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\common\\ecommercebackend.common.domain\\errortype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7BCDD19B-B7B9-46C1-9AD9-524DDF9D6BBB}|Common\\ECommerceBackend.Common.Domain\\ECommerceBackend.Common.Domain.csproj|solutionrelative:common\\ecommercebackend.common.domain\\errortype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\api\\ecommercebackend.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|solutionrelative:api\\ecommercebackend.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\api\\ecommercebackend.api\\ecommercebackend.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|solutionrelative:api\\ecommercebackend.api\\ecommercebackend.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\api\\ecommercebackend.api\\extensions\\migrationextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|solutionrelative:api\\ecommercebackend.api\\extensions\\migrationextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\api\\ecommercebackend.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|solutionrelative:api\\ecommercebackend.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\api\\ecommercebackend.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|solutionrelative:api\\ecommercebackend.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{17064C06-F238-4020-BE3E-E9EFB1B9FEA7}|Common\\ECommerceBackend.Common.Presentation\\ECommerceBackend.Common.Presentation.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\common\\ecommercebackend.common.presentation\\results\\apiresults.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{17064C06-F238-4020-BE3E-E9EFB1B9FEA7}|Common\\ECommerceBackend.Common.Presentation\\ECommerceBackend.Common.Presentation.csproj|solutionrelative:common\\ecommercebackend.common.presentation\\results\\apiresults.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{17064C06-F238-4020-BE3E-E9EFB1B9FEA7}|Common\\ECommerceBackend.Common.Presentation\\ECommerceBackend.Common.Presentation.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\common\\ecommercebackend.common.presentation\\endpoints\\endpointextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{17064C06-F238-4020-BE3E-E9EFB1B9FEA7}|Common\\ECommerceBackend.Common.Presentation\\ECommerceBackend.Common.Presentation.csproj|solutionrelative:common\\ecommercebackend.common.presentation\\endpoints\\endpointextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\api\\ecommercebackend.api\\middleware\\globalexceptionhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|solutionrelative:api\\ecommercebackend.api\\middleware\\globalexceptionhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\api\\ecommercebackend.api\\extensions\\configurationextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE6142C0-F370-4F2D-9671-EF31DF7644EB}|API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj|solutionrelative:api\\ecommercebackend.api\\extensions\\configurationextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{17064C06-F238-4020-BE3E-E9EFB1B9FEA7}|Common\\ECommerceBackend.Common.Presentation\\ECommerceBackend.Common.Presentation.csproj|d:\\newlearningera\\ecommerce\\source-code\\ecommercebackend_old\\common\\ecommercebackend.common.presentation\\endpoints\\iendpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{17064C06-F238-4020-BE3E-E9EFB1B9FEA7}|Common\\ECommerceBackend.Common.Presentation\\ECommerceBackend.Common.Presentation.csproj|solutionrelative:common\\ecommercebackend.common.presentation\\endpoints\\iendpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "GetUserQueryHandler.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQueryHandler.cs",
+              "RelativeDocumentMoniker": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQueryHandler.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQueryHandler.cs",
+              "RelativeToolTip": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQueryHandler.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-26T13:31:53.228Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UserResponse.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\UserResponse.cs",
+              "RelativeDocumentMoniker": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\UserResponse.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\UserResponse.cs",
+              "RelativeToolTip": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\UserResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-26T13:30:18.654Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "GetUserQuery.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQuery.cs",
+              "RelativeDocumentMoniker": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQuery.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQuery.cs",
+              "RelativeToolTip": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Users\\GetUsers\\GetUserQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-26T13:29:24.206Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "IIdentityProviderService.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Identity\\IIdentityProviderService.cs",
+              "RelativeDocumentMoniker": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Identity\\IIdentityProviderService.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Identity\\IIdentityProviderService.cs",
+              "RelativeToolTip": "Modules\\Users\\ECommerceBackend.Modules.Users.Application\\Identity\\IIdentityProviderService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-26T13:28:49.442Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ErrorType.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Domain\\ErrorType.cs",
+              "RelativeDocumentMoniker": "Common\\ECommerceBackend.Common.Domain\\ErrorType.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Domain\\ErrorType.cs",
+              "RelativeToolTip": "Common\\ECommerceBackend.Common.Domain\\ErrorType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T08:57:10.929Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UserErrors.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Domain\\Users\\UserErrors.cs",
+              "RelativeDocumentMoniker": "Modules\\Users\\ECommerceBackend.Modules.Users.Domain\\Users\\UserErrors.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Modules\\Users\\ECommerceBackend.Modules.Users.Domain\\Users\\UserErrors.cs",
+              "RelativeToolTip": "Modules\\Users\\ECommerceBackend.Modules.Users.Domain\\Users\\UserErrors.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T08:40:09.494Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "API\\EcommerceBackend.Api\\appsettings.Development.json",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\appsettings.Development.json",
+              "RelativeToolTip": "API\\EcommerceBackend.Api\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-24T06:57:03.314Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\appsettings.json",
+              "RelativeDocumentMoniker": "API\\EcommerceBackend.Api\\appsettings.json",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\appsettings.json",
+              "RelativeToolTip": "API\\EcommerceBackend.Api\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-24T06:56:16.131Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Program.cs",
+              "RelativeDocumentMoniker": "API\\EcommerceBackend.Api\\Program.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Program.cs",
+              "RelativeToolTip": "API\\EcommerceBackend.Api\\Program.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAAAEgAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T04:56:05.006Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "EcommerceBackend.Api.csproj",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj",
+              "RelativeDocumentMoniker": "API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj",
+              "RelativeToolTip": "API\\EcommerceBackend.Api\\EcommerceBackend.Api.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-09-24T06:59:42.696Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "MigrationExtensions.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Extensions\\MigrationExtensions.cs",
+              "RelativeDocumentMoniker": "API\\EcommerceBackend.Api\\Extensions\\MigrationExtensions.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Extensions\\MigrationExtensions.cs",
+              "RelativeToolTip": "API\\EcommerceBackend.Api\\Extensions\\MigrationExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T06:41:30.843Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "ConfigurationExtensions.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Extensions\\ConfigurationExtensions.cs",
+              "RelativeDocumentMoniker": "API\\EcommerceBackend.Api\\Extensions\\ConfigurationExtensions.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Extensions\\ConfigurationExtensions.cs",
+              "RelativeToolTip": "API\\EcommerceBackend.Api\\Extensions\\ConfigurationExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T06:41:24.758Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "GlobalExceptionHandler.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Middleware\\GlobalExceptionHandler.cs",
+              "RelativeDocumentMoniker": "API\\EcommerceBackend.Api\\Middleware\\GlobalExceptionHandler.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\API\\EcommerceBackend.Api\\Middleware\\GlobalExceptionHandler.cs",
+              "RelativeToolTip": "API\\EcommerceBackend.Api\\Middleware\\GlobalExceptionHandler.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T06:40:36.168Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ApiResults.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Presentation\\Results\\ApiResults.cs",
+              "RelativeDocumentMoniker": "Common\\ECommerceBackend.Common.Presentation\\Results\\ApiResults.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Presentation\\Results\\ApiResults.cs",
+              "RelativeToolTip": "Common\\ECommerceBackend.Common.Presentation\\Results\\ApiResults.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T04:49:44.083Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "IEndpoint.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Presentation\\Endpoints\\IEndpoint.cs",
+              "RelativeDocumentMoniker": "Common\\ECommerceBackend.Common.Presentation\\Endpoints\\IEndpoint.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Presentation\\Endpoints\\IEndpoint.cs",
+              "RelativeToolTip": "Common\\ECommerceBackend.Common.Presentation\\Endpoints\\IEndpoint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T04:49:36.275Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "EndpointExtensions.cs",
+              "DocumentMoniker": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Presentation\\Endpoints\\EndpointExtensions.cs",
+              "RelativeDocumentMoniker": "Common\\ECommerceBackend.Common.Presentation\\Endpoints\\EndpointExtensions.cs",
+              "ToolTip": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Presentation\\Endpoints\\EndpointExtensions.cs",
+              "RelativeToolTip": "Common\\ECommerceBackend.Common.Presentation\\Endpoints\\EndpointExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-24T04:49:34.974Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

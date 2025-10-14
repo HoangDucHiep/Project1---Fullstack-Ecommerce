@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "ph0XROZLlVc=",
+  "success": true,
+  "projectFilePath": "D:\\NewLearningEra\\Ecommerce\\source-code\\ECommerceBackend_Old\\Common\\ECommerceBackend.Common.Presentation\\ECommerceBackend.Common.Presentation.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\HoangHiep\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
+    "C:\\Users\\HoangHiep\\.nuget\\packages\\sonaranalyzer.csharp\\10.15.0.120848\\sonaranalyzer.csharp.10.15.0.120848.nupkg.sha512"
+  ],
+  "logs": []
+}

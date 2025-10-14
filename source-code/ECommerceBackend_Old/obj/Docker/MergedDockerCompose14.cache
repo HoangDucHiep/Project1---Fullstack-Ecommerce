@@ -1,0 +1,120 @@
+name: dockercompose16389995099968866046
+services:
+  ecommercebackend.api:
+    build:
+      context: D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend
+      dockerfile: API/EcommerceBackend.Api/Dockerfile
+    container_name: ecommercebackend-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTPS_PORTS: "8081"
+    image: ecommercebackendapi
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "5000"
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        published: "5001"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\Users\HoangHiep\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\HoangHiep\AppData\Roaming/Microsoft/UserSecrets
+        target: /root/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\HoangHiep\AppData\Roaming/ASP.NET/Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\HoangHiep\AppData\Roaming/ASP.NET/Https
+        target: /root/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+  ecommercebackend.database.postgres:
+    container_name: ecommercebackend-database-postgres-17
+    environment:
+      POSTGRES_DB: ecommerceDb
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+    image: postgres:17
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\.containers\db\postgres
+        target: /var/lib/postgresql/data
+        bind:
+          create_host_path: true
+  ecommercebackend.logging.seq:
+    container_name: ecommercebackend-logging-seq-2025
+    environment:
+      ACCEPT_EULA: "y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
+    image: datalust/seq:2025
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5341
+        published: "5341"
+        protocol: tcp
+      - mode: ingress
+        target: 80
+        published: "8081"
+        protocol: tcp
+  ecommercebackend.pgadmin:
+    container_name: ecommercebackend-pgadmin
+    depends_on:
+      ecommercebackend.database.postgres:
+        condition: service_started
+        required: true
+    environment:
+      PGADMIN_CONFIG_LOGIN_BANNER: '"EcommerceBackend Database Admin"'
+      PGADMIN_CONFIG_LOGIN_LOCKOUT_TIME: "30"
+      PGADMIN_CONFIG_MAX_LOGIN_ATTEMPTS: "10"
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    image: elestio/pgadmin:REL-9_6
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 80
+        published: "18080"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\containers\pgadmin
+        target: /var/lib/pgadmin
+        bind:
+          create_host_path: true
+networks:
+  default:
+    name: dockercompose16389995099968866046_default

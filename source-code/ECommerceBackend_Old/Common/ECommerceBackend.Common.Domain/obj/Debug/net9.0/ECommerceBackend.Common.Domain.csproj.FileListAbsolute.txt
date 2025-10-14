@@ -1,0 +1,13 @@
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\bin\Debug\net9.0\ECommerceBackend.Common.Domain.deps.json
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\bin\Debug\net9.0\ECommerceBackend.Common.Domain.dll
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\bin\Debug\net9.0\ECommerceBackend.Common.Domain.pdb
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.csproj.AssemblyReference.cache
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.AssemblyInfoInputs.cache
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.AssemblyInfo.cs
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.csproj.CoreCompileInputs.cache
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.sourcelink.json
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.dll
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\refint\ECommerceBackend.Common.Domain.dll
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ECommerceBackend.Common.Domain.pdb
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Domain\obj\Debug\net9.0\ref\ECommerceBackend.Common.Domain.dll

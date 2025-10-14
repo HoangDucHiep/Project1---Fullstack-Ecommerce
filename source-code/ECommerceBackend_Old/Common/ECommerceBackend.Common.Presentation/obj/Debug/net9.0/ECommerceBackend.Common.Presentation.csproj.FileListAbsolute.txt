@@ -1,0 +1,16 @@
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\bin\Debug\net9.0\ECommerceBackend.Common.Presentation.deps.json
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\bin\Debug\net9.0\ECommerceBackend.Common.Presentation.dll
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\bin\Debug\net9.0\ECommerceBackend.Common.Presentation.pdb
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\bin\Debug\net9.0\ECommerceBackend.Common.Domain.dll
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\bin\Debug\net9.0\ECommerceBackend.Common.Domain.pdb
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.csproj.AssemblyReference.cache
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.GeneratedMSBuildEditorConfig.editorconfig
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.AssemblyInfoInputs.cache
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.AssemblyInfo.cs
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.csproj.CoreCompileInputs.cache
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.sourcelink.json
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerc.D95D081A.Up2Date
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.dll
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\refint\ECommerceBackend.Common.Presentation.dll
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ECommerceBackend.Common.Presentation.pdb
+D:\NewLearningEra\Ecommerce\source-code\ECommerceBackend\Common\ECommerceBackend.Common.Presentation\obj\Debug\net9.0\ref\ECommerceBackend.Common.Presentation.dll
