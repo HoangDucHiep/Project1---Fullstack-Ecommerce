@@ -1,5 +1,4 @@
 ﻿using ECommerceBackend.Api.Contracts.Addresses;
-using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Addresses.AddNewAddress;
 using ECommerceBackend.Application.Addresses.DeleteAddress;
@@ -34,6 +33,7 @@ public class AddressController : ControllerBase
         _userContext = userContext;
     }
 
+    //PBNMinh- 10/10/2025
     [HttpPost("/me/addresses")]
     public async Task<IActionResult> CreateAddress([FromBody] AddressCreateRequest request)
     {
@@ -57,13 +57,15 @@ public class AddressController : ControllerBase
 
         Result<AddressDto> result = await _sender.Send(command);
 
-        object response = result.ToResponse("Tạo địa chỉ thành công");
-        return result.IsSuccess
-            ? CreatedAtAction(nameof(GetAddressById), new { addressId = result.Value.Id }, response)
-            : StatusCode(result.Error.GetStatusCode(), response);
+        if (result.IsFailure)
+        { return StatusCode(result.Error.Type.StatusCode, result.Error); }
+
+        return CreatedAtAction(nameof(GetAddressById), new { addressId = result.Value.Id }, result.Value);
     }
 
+
     [HttpGet("/me/addresses/{addressId:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAddressById([FromRoute] Guid addressId)
     {
         var query = new GetAddressByIdQuery(addressId);
@@ -75,7 +77,7 @@ public class AddressController : ControllerBase
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
 
-        return Ok(result.ToResponse("Lấy thông tin địa chỉ thành công"));
+        return Ok(result.Value);
     }
 
     //PBNMinh- 11/10/2025
@@ -100,7 +102,7 @@ public class AddressController : ControllerBase
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
 
-        return Ok(result.ToPaginatedResponse("Lấy danh sách địa chỉ thành công"));
+        return Ok(result.Value);
     }
 
 
@@ -145,7 +147,7 @@ public class AddressController : ControllerBase
             return StatusCode(result.Error.Type.StatusCode, result.Error);
         }
 
-        return Ok(result.ToResponse("Cập nhật địa chỉ thành công"));
+        return Ok(result.Value);
     }
 
     //PBNMinh- 10/10/2025
