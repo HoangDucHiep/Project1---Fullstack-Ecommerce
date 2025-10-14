@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\ECommerceBackend.Common.Infrastructure\ECommerceBackend.Common.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Common\ECommerceBackend.Common.Presentation\ECommerceBackend.Common.Presentation.csproj" />
+    <ProjectReference Include="..\ECommerceBackend.Modules.Users.Application\ECommerceBackend.Modules.Users.Application.csproj" />
+  </ItemGroup>
+
+</Project>

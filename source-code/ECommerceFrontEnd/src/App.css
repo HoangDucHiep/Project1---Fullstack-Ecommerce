@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+/* Nếu menu là vertical thì submenu popup luôn ngang hàng */
+.ant-menu-vertical .ant-menu-submenu-popup {
+  margin-top: 0 !important;
+}
+

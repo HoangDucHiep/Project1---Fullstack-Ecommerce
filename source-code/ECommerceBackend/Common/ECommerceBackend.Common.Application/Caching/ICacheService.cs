@@ -29,3 +29,4 @@ public interface ICacheService
     /// <param name="cancellationToken">Cancellation token.</param>
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
 }
+
