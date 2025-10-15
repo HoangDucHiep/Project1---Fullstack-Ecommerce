@@ -52,6 +52,14 @@ public static class CategoryErrors
         Error.BadRequest("Category.InvalidParent",
             $"Category '{categoryId}' cannot be moved under '{parentId}' - would create circular reference or invalid hierarchy.");
 
+        public static Error InvalidParent(Guid parentId, string? categoryName = null)
+            => new Error(
+                "Category.InvalidParent",
+                $"Danh mục cha với Id = {parentId} {(categoryName is not null ? $"khi tạo '{categoryName}'" : "")} không tồn tại.",
+                ErrorType.BadRequest);
+
+
+
     /// <summary>
     /// Creates an error indicating that a category cannot be set as its own parent.
     /// </summary>

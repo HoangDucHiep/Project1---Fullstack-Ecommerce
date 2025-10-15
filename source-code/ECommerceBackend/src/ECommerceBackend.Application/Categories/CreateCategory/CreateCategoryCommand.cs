@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Application.Abstracts.Messaging;
+using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Domain.Categories;
 
 namespace ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
@@ -7,8 +8,8 @@ namespace ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
 public sealed record CreateCategoryCommand(
     string Name,
     string IconUrl,
-    Guid? ParentId,
-    int Lft,
-    int Rgt,
-    int Depth) : ICommand<Guid>;
+    Guid? ParentId
+) : ICommand<Guid>;
+
+
 
