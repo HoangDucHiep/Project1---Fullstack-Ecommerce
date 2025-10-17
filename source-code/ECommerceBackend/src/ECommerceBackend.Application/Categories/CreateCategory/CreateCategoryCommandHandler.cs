@@ -1,65 +1,100 @@
-﻿using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
+using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Abstracts.Messaging;
-using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Categories;
 
 namespace ECommerceBackend.Application.Categories.CategoryRegister;
 
-/// PBNMinh- 08/09/2025
-public class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryCommand, Guid>
+public sealed class CreateCategoryCommandHandler
+    : ICommandHandler<CreateCategoryCommand, Guid>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private const int MaxCategoryNameLength = 100;
-    public CreateCategoryCommandHandler(ICategoryRepository categoryRepository, IUnitOfWork unitOfWork)
+    private readonly IUserContext _userContext;
+
+    public CreateCategoryCommandHandler(
+        ICategoryRepository categoryRepository,
+        IUnitOfWork unitOfWork,
+        IUserContext userContext)
     {
         _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
     }
-    public async Task<Result<Guid>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(request.Name))
-        {
-            return Result.Failure<Guid>(CategoryErrors.EmptyName());
-        }
 
-        if (request.Name.Length > MaxCategoryNameLength)
-        {
-            return Result.Failure<Guid>(CategoryErrors.NameTooLong(100));
-        }
+    public async Task<Result<Guid>> Handle(
+        CreateCategoryCommand command,
+        CancellationToken cancellationToken)
+    {
+        // if (!_userContext.IsAuthenticated)
+        // {
+        //     return Result.Failure<Guid>(CategoryErrors.AccessDenied("create category"));
+        // }
 
         List<Category> categories = await _categoryRepository.GetAllAsync(cancellationToken);
-        bool exists = categories.Any(c =>
-            c.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase) &&
-            c.ParentId == request.ParentId);
 
-        if (exists)
+        bool isDuplicate = categories.Any(c =>
+            c.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase) &&
+            c.ParentId == command.ParentId);
+
+        if (isDuplicate)
         {
-            return Result.Failure<Guid>(CategoryErrors.DuplicateName(request.Name, request.ParentId));
+            return Result.Failure<Guid>(
+                CategoryErrors.DuplicateName(command.Name, command.ParentId)
+            );
         }
 
-        if (request.ParentId.HasValue && !categories.Any(c => c.Id == request.ParentId.Value))
+        // ====== CASE 1️⃣: ROOT NODE ======
+        if (!command.ParentId.HasValue)
         {
-            return Result.Failure<Guid>(CategoryErrors.ParentNotFound(request.ParentId.Value));
+            int maxRight = categories.Any() ? categories.Max(c => c.Rgt) : 0;
 
+            var root = Category.Create(
+                name: command.Name,
+                iconUrl: command.IconUrl,
+                parentId: null,
+                lft: maxRight + 1,
+                rgt: maxRight + 2,
+                depth: 0
+            );
+
+            _categoryRepository.Add(root);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result.Success(root.Id);
         }
 
-
-        var categoryDto = new CategoryDto
+        // ====== CASE 2️⃣: CHILD NODE ======
+        Category? parent = await _categoryRepository.GetByIdAsync(command.ParentId.Value, cancellationToken);
+        if (parent is null)
         {
-            Name = request.Name,
-            IconUrl = request.IconUrl,
-            ParentId = request.ParentId,
-            Lft = request.Lft,
-            Rgt = request.Rgt,
-            Depth = request.Depth
-        };
-        Category category = categoryDto.ToCategoryEntity();
+            return Result.Failure<Guid>(
+                CategoryErrors.InvalidParent(Guid.Empty, command.ParentId.Value)
+            );
+        }
+
+        int insertPosition = parent.Rgt;
+        int newDepth = parent.Depth + 1;
+
+        await _categoryRepository.ShiftBoundariesAsync(insertPosition, 2, cancellationToken);
+
+        var category = Category.Create(
+            name: command.Name,
+            iconUrl: command.IconUrl,
+            parentId: parent.Id,
+            lft: insertPosition,
+            rgt: insertPosition + 1,
+            depth: newDepth
+        );
 
         _categoryRepository.Add(category);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(category.Id);
+        return Result.Success(category.Id);
     }
 }
