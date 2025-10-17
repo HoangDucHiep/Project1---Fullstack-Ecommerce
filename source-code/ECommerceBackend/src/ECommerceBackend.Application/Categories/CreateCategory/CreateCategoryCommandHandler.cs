@@ -37,10 +37,8 @@ public sealed class CreateCategoryCommandHandler
         //     return Result.Failure<Guid>(CategoryErrors.AccessDenied("create category"));
         // }
 
-        // 1️⃣ Lấy danh sách category hiện có
         List<Category> categories = await _categoryRepository.GetAllAsync(cancellationToken);
 
-        // 2️⃣ Kiểm tra trùng tên trong cùng cấp
         bool isDuplicate = categories.Any(c =>
             c.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase) &&
             c.ParentId == command.ParentId);
@@ -80,14 +78,11 @@ public sealed class CreateCategoryCommandHandler
             );
         }
 
-        // Vị trí chèn = Right của cha
         int insertPosition = parent.Rgt;
         int newDepth = parent.Depth + 1;
 
-        // B1️⃣. Dịch tất cả node có Left/Right >= insertPosition để tạo khoảng trống
         await _categoryRepository.ShiftBoundariesAsync(insertPosition, 2, cancellationToken);
 
-        // B2️⃣. Tạo node mới nằm ngay trong khoảng trống vừa tạo
         var category = Category.Create(
             name: command.Name,
             iconUrl: command.IconUrl,
@@ -97,7 +92,6 @@ public sealed class CreateCategoryCommandHandler
             depth: newDepth
         );
 
-        // B3️⃣. Thêm node mới vào DB
         _categoryRepository.Add(category);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -26,10 +26,9 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
 
         await _dbContext.Database.ExecuteSqlRawAsync(sql, new object[] { shiftBy, parentId }, cancellationToken);
     }
-
+    //PBNMinh
     public async Task ShiftBoundariesAsync(int from, int shiftBy, CancellationToken cancellationToken)
     {
-        // Chú ý: bảng và cột phải được QUOTED chính xác để PostgreSQL không tự lowercase
         const string sqlRgt = @"
         UPDATE ""ecommerce-domain"".""categories""
         SET ""rgt"" = ""rgt"" + @p0
