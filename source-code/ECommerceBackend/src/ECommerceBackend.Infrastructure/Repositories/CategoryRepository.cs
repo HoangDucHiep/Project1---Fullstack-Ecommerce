@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Domain.Categories;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBackend.Infrastructure.Repositories;
 
@@ -13,4 +14,37 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
     public CategoryRepository(ApplicationDbContext dbContext) : base(dbContext)
     {
     }
+
+    public async Task IncrementAncestorRightValuesAsync(Guid parentId, int shiftBy, CancellationToken cancellationToken)
+    {
+        const string sql = @"
+        UPDATE ""ecommerce-domain"".""categories""
+        SET ""rgt"" = ""rgt"" + @p0
+        WHERE ""lft"" < (SELECT ""lft"" FROM ""ecommerce-domain"".""categories"" WHERE ""id"" = @p1)
+          AND ""rgt"" > (SELECT ""rgt"" FROM ""ecommerce-domain"".""categories"" WHERE ""id"" = @p1);
+    ";
+
+        await _dbContext.Database.ExecuteSqlRawAsync(sql, new object[] { shiftBy, parentId }, cancellationToken);
+    }
+    //PBNMinh
+    public async Task ShiftBoundariesAsync(int from, int shiftBy, CancellationToken cancellationToken)
+    {
+        const string sqlRgt = @"
+        UPDATE ""ecommerce-domain"".""categories""
+        SET ""rgt"" = ""rgt"" + @p0
+        WHERE ""rgt"" >= @p1;
+    ";
+
+        const string sqlLft = @"
+        UPDATE ""ecommerce-domain"".""categories""
+        SET ""lft"" = ""lft"" + @p0
+        WHERE ""lft"" > @p1;
+    ";
+
+        await _dbContext.Database.ExecuteSqlRawAsync(sqlRgt, new object[] { shiftBy, from }, cancellationToken);
+        await _dbContext.Database.ExecuteSqlRawAsync(sqlLft, new object[] { shiftBy, from }, cancellationToken);
+    }
+
+
+
 }

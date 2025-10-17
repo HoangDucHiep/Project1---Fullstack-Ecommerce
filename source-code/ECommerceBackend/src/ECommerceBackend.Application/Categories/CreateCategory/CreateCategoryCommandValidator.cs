@@ -23,17 +23,7 @@ public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCo
             .NotEmpty().WithMessage("Đường dẫn Icon là bắt buộc.")
             .MaximumLength(250).WithMessage("Đường dẫn Icon không được vượt quá 250 ký tự.");
 
-        //RuleFor(x => x.ParentId)
-        //    .NotEmpty().WithMessage("Danh mục cha là bắt buộc.");
 
-        RuleFor(x => x.Lft)
-            .GreaterThanOrEqualTo(0).WithMessage("Giá trị Lft phải lớn hơn hoặc bằng 0.");
-
-        RuleFor(x => x.Rgt)
-            .GreaterThanOrEqualTo(0).WithMessage("Giá trị Rgt phải lớn hơn hoặc bằng 0.");
-
-        RuleFor(x => x.Depth)
-            .GreaterThanOrEqualTo(0).WithMessage("Độ sâu (Depth) phải lớn hơn hoặc bằng 0.");
     }
 }
 

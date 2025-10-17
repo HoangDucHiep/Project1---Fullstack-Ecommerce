@@ -22,21 +22,17 @@ public class CategoryController : ControllerBase
         _sender = sender;
     }
 
-
-    [HttpPost("Create")]
-    public async Task<IActionResult> Create(
-        CreateCategoryRequest request,
+    /// PBNMinh
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateCategoryAsync(
+        [FromBody] CreateCategoryRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new CreateCategoryCommand(
+        CreateCategoryCommand command = new(
             request.Name,
             request.IconUrl,
-            request.ParentId,
-            request.Lft,
-            request.Rgt,
-            request.Depth
-
-            );
+            request.ParentId
+        );
 
         Result<Guid> result = await _sender.Send(command, cancellationToken);
 
@@ -47,6 +43,7 @@ public class CategoryController : ControllerBase
 
         return Ok(result.ToResponse("Thêm mới danh mục thành công"));
     }
+
 
     /// PBNMinh
     [HttpGet("Search")]
