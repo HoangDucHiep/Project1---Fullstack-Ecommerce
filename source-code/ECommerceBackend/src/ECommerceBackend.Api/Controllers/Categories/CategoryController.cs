@@ -28,7 +28,6 @@ public class CategoryController : ControllerBase
         [FromBody] CreateCategoryRequest request,
         CancellationToken cancellationToken)
     {
-        // Gửi command đến Handler
         CreateCategoryCommand command = new(
             request.Name,
             request.IconUrl,
