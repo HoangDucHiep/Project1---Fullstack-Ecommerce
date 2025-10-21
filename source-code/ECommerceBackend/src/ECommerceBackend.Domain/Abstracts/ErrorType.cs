@@ -139,6 +139,13 @@ public sealed record ErrorType
         "Gone",
         "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.9");
 
+    public static readonly ErrorType InvalidCredentials = new(
+        nameof(InvalidCredentials),
+        401,
+        "Invalid Credentials",
+        "https://datatracker.ietf.org/doc/html/rfc7235#section-3.1");
+
+
     public static ErrorType CustomType(int statusCode, string title, string problemType) =>
         new("Custom", statusCode, title, problemType);
 
