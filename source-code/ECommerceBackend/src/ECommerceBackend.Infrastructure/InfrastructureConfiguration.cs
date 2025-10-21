@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Abstracts.Caching;
 using ECommerceBackend.Application.Abstracts.Clock;
@@ -139,7 +139,7 @@ public static class InfrastructureConfiguration
         services.AddScoped<IProductOptionValueRepository, ProductOptionValueRepository>();
         services.AddScoped<IProductMediaRepository, ProductMediaRepository>();
         services.AddScoped<IProductOptionTypeRepository, ProductOptionTypeRepository>();
-        services.AddScoped<IProductOptionValueRepository, ProductOptionValueRepository>();
+        services.AddScoped<IProductVariantOptionValueRepository, ProductVariantOptionValueRepository>();
 
         services.TryAddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
