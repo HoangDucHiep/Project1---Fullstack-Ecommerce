@@ -24,6 +24,7 @@ using ECommerceBackend.Infrastructure.Otp;
 using ECommerceBackend.Infrastructure.RateLimiter;
 using ECommerceBackend.Infrastructure.Repositories;
 using ECommerceBackend.Infrastructure.Sms;
+using ECommerceBackend.Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +64,8 @@ public static class InfrastructureConfiguration
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<ISmsService, SmsService>();
         services.AddScoped<IRateLimiterService, RateLimiterService>();
+        // Register Transaction Services
+        services.AddScoped<ITransactionService, TransactionService>();
 
 
 
