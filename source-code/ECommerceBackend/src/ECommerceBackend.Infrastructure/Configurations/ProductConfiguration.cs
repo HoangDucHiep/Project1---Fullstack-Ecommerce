@@ -14,7 +14,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {
-        builder.ToTable("Products");
+        builder.ToTable("products");
         builder.HasKey(p => p.Id);
         builder.Property(p => p.ShopId)
             .IsRequired();
@@ -30,14 +30,14 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasMaxLength(200);
         builder.Property(p => p.Status)
-            .IsRequired();
-        builder.Property(p => p.Medias)
             .IsRequired()
-            .HasMaxLength(2000);
+            .HasConversion<string>()
+            .HasMaxLength(20);
         builder.Property(p => p.CreatedAtUtc)
             .IsRequired();
         builder.Property(p => p.UpdatedAtUtc)
             .IsRequired();
+        
         // Indexes
         builder.HasIndex(p => p.Slug).IsUnique();
         builder.HasIndex(p => p.ShopId);

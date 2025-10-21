@@ -10,6 +10,7 @@ using ECommerceBackend.Application.Abstracts.Sms;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Addresses;
 using ECommerceBackend.Domain.Categories;
+using ECommerceBackend.Domain.Products;
 using ECommerceBackend.Domain.Shops;
 using ECommerceBackend.Domain.Users;
 using ECommerceBackend.Infrastructure.Authentication;
@@ -133,6 +134,12 @@ public static class InfrastructureConfiguration
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IShopRepository, ShopRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+        services.AddScoped<IProductOptionValueRepository, ProductOptionValueRepository>();
+        services.AddScoped<IProductMediaRepository, ProductMediaRepository>();
+        services.AddScoped<IProductOptionTypeRepository, ProductOptionTypeRepository>();
+        services.AddScoped<IProductOptionValueRepository, ProductOptionValueRepository>();
 
         services.TryAddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
