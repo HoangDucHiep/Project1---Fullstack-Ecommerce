@@ -15,6 +15,11 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<TraceIdFilter>(); // Auto inject TraceId
+})
+.AddJsonOptions(options =>
+{
+    // Configure JSON serialization to use string for enums
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 
 

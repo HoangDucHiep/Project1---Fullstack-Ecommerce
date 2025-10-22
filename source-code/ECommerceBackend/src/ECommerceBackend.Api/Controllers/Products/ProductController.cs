@@ -1,5 +1,7 @@
 using ECommerceBackend.Api.Extensions;
+using ECommerceBackend.Application.Contracts.Products;
 using ECommerceBackend.Application.Products.Commands.CreateProduct;
+using ECommerceBackend.Application.Products.Queries.GetProduct;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +55,28 @@ public class ProductController : ControllerBase
         }
 
         return Ok(result.ToResponse("Tạo sản phẩm thành công"));
+    }
+
+    /// <summary>
+    /// Get product details by ID (Public view for customers)
+    /// </summary>
+    /// <param name="productId">Product ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Product details for customer view</returns>
+    [HttpGet("{productId:guid}/public")]
+    public async Task<IActionResult> GetProductPublicAsync(
+        [FromRoute] Guid productId,
+        CancellationToken cancellationToken = default)
+    {
+        GetProductQuery query = new(productId);
+        Result<ProductDetailDto> result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.ToResponse("Lấy thông tin sản phẩm thất bại"));
+        }
+
+        return Ok(result.ToResponse("Lấy thông tin sản phẩm thành công"));
     }
 }
 
