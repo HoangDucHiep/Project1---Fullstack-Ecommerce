@@ -9,4 +9,5 @@ public interface IRefreshTokenRepository
     void Delete(RefreshToken entity);
     Task<List<RefreshToken>> GetAllByUserIdAsync(string identityUserId, CancellationToken cancellationToken = default);
     Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task RevokeAllTokensForUserAsync(string identityUserId, CancellationToken cancellationToken = default);
 }
