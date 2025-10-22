@@ -1,7 +1,9 @@
 using ECommerceBackend.Api.Extensions;
+using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Application.Contracts.Products;
 using ECommerceBackend.Application.Products.Commands.CreateProduct;
 using ECommerceBackend.Application.Products.Queries.GetProduct;
+using ECommerceBackend.Application.Products.Queries.GetProducts;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +26,53 @@ public class ProductController : ControllerBase
     {
         _sender = sender;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Get products list with filtering, sorting and pagination (Public view for customers)
+    /// </summary>
+    /// <param name="categoryId">Filter by category ID</param>
+    /// <param name="minPrice">Minimum price filter</param>
+    /// <param name="maxPrice">Maximum price filter</param>
+    /// <param name="hasDiscount">Filter products with discount</param>
+    /// <param name="shopId">Filter by shop ID</param>
+    /// <param name="sortBy">Sort order</param>
+    /// <param name="page">Page number (default: 1)</param>
+    /// <param name="pageSize">Page size (default: 20)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Paginated list of products</returns>
+    [HttpGet]
+    public async Task<IActionResult> GetProductsAsync(
+        [FromQuery] Guid? categoryId = null,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
+        [FromQuery] bool? hasDiscount = null,
+        [FromQuery] Guid? shopId = null,
+        [FromQuery] ProductSortBy sortBy = ProductSortBy.Relevance,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var filter = new ProductFilterDto(
+            CategoryId: categoryId,
+            MinPrice: minPrice,
+            MaxPrice: maxPrice,
+            HasDiscount: hasDiscount,
+            ShopId: shopId,
+            SortBy: sortBy,
+            Page: page,
+            PageSize: pageSize
+        );
+
+        GetProductsQuery query = new(filter);
+        Result<PaginationResult<ProductListItemDto>> result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.ToResponse("Lấy danh sách sản phẩm thất bại"));
+        }
+
+        return Ok(result.ToResponse("Lấy danh sách sản phẩm thành công"));
     }
 
     /// <summary>
