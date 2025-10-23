@@ -5,14 +5,17 @@ using ECommerceBackend.Application.Authentication;
 using ECommerceBackend.Application.Authentication.LoginUserWithOtp;
 using ECommerceBackend.Application.Authentication.Register;
 using ECommerceBackend.Application.Authentication.RegisterUserWithOtp;
+using ECommerceBackend.Application.Contracts.Users;
+using ECommerceBackend.Application.Users.GetCurrentUser;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceBackend.Api.Controllers.Authentication;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/auth")]
 public class AuthenticationController : ControllerBase
 {
     private readonly ISender _sender;
@@ -156,6 +159,29 @@ public class AuthenticationController : ControllerBase
         }
 
         return Ok(new { Message = "Login OTP resent successfully", ResendLeft = result.Value });
+    }
+
+    #endregion
+
+    #region User Information Endpoints
+
+    /// <summary>
+    /// Get current authenticated user information
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var query = new GetCurrentUserQuery();
+        Result<UserDto> result = await _sender.Send(query);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.GetStatusCode(), result.ToResponse("Không thể lấy thông tin người dùng"));
+        }
+
+        return Ok(result.ToResponse("Lấy thông tin người dùng thành công"));
     }
 
     #endregion

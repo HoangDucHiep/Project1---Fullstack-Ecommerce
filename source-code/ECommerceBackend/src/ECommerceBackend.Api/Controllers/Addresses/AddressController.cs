@@ -20,7 +20,7 @@ namespace ECommerceBackend.Api.Controllers.Addresses;
 /// Controller for managing user addresses.
 /// </summary>
 [ApiController]
-[Route("api/v1")]
+[Route("api/v1/")]
 [Authorize]
 public class AddressController : ControllerBase
 {
@@ -34,7 +34,7 @@ public class AddressController : ControllerBase
     }
 
     //PBNMinh- 10/10/2025
-    [HttpPost("/me/addresses")]
+    [HttpPost("me/addresses")]
     public async Task<IActionResult> CreateAddress([FromBody] AddressCreateRequest request)
     {
         if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
@@ -64,7 +64,7 @@ public class AddressController : ControllerBase
     }
 
 
-    [HttpGet("/me/addresses/{addressId:guid}")]
+    [HttpGet("me/addresses/{addressId:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetAddressById([FromRoute] Guid addressId)
     {
@@ -81,7 +81,7 @@ public class AddressController : ControllerBase
     }
 
     //PBNMinh- 11/10/2025
-    [HttpGet("/me/addresses")]
+    [HttpGet("me/addresses")]
     public async Task<IActionResult> GetAddressesOfCurrentUser([FromQuery] GetAddressOfCurrentUserRequest request)
     {
         if (!_userContext.IsAuthenticated)
@@ -107,7 +107,7 @@ public class AddressController : ControllerBase
 
 
     //PBNMinh- 11/10/2025
-    [HttpPut("/me/addresses/{addressId:guid}")]
+    [HttpPut("me/addresses/{addressId:guid}")]
     public async Task<IActionResult> UpdateAddress([FromRoute] Guid addressId, [FromBody] AddressUpdateRequest request, CancellationToken cancellationToken)
     {
         if (!_userContext.IsAuthenticated)
@@ -151,7 +151,7 @@ public class AddressController : ControllerBase
     }
 
     //PBNMinh- 10/10/2025
-    [HttpDelete("/me/addresses/{addressId:guid}")]
+    [HttpDelete("me/addresses/{addressId:guid}")]
     public async Task<IActionResult> DeleteAddress([FromRoute] Guid addressId)
     {
         if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.UserId))
