@@ -255,14 +255,90 @@ public class AuthenticationService : IAuthenticationService
 
 
 
-    public Task<Result> LogoutAsync(string userId)
+    public async Task<Result> LogoutAsync(string userId)
     {
-        throw new NotImplementedException();
+        // Revoke all refresh tokens for the user
+        await _refreshTokenRepository.RevokeAllTokensForUserAsync(userId);
+        await _identityUnitOfWork.SaveChangesAsync();
+        
+        return Result.Success();
     }
 
-    public Task<Result<AuthenticationResult>> RefreshTokenAsync(string refreshToken)
+    public async Task<Result<AuthenticationResult>> RefreshTokenAsync(string refreshToken)
     {
-        throw new NotImplementedException();
+        // 1. Find the refresh token in the database
+        RefreshToken? storedRefreshToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+        
+        if (storedRefreshToken == null)
+        {
+            return Result.Failure<AuthenticationResult>(AuthenticationErrors.InvalidRefreshToken);
+        }
+
+        // 2. Check if the refresh token is expired
+        if (storedRefreshToken.ExpiresAtUtc <= _dateTimeProvider.UtcNow)
+        {
+            return Result.Failure<AuthenticationResult>(AuthenticationErrors.RefreshTokenExpired);
+        }
+
+        // 3. Check if the refresh token is revoked
+        if (storedRefreshToken.IsRevoked)
+        {
+            // Additional security: If someone tries to use a revoked token, 
+            // it might indicate a security breach, so revoke all tokens for this user
+            await _refreshTokenRepository.RevokeAllTokensForUserAsync(storedRefreshToken.IdentityUserId);
+            await _identityUnitOfWork.SaveChangesAsync();
+            
+            return Result.Failure<AuthenticationResult>(AuthenticationErrors.RefreshTokenRevoked);
+        }
+
+        // 4. Check if the refresh token is already used (Token Reuse Detection)
+        if (storedRefreshToken.IsUsed)
+        {
+            // Security violation: Token reuse detected
+            // Revoke all refresh tokens for this user as a security measure
+            await _refreshTokenRepository.RevokeAllTokensForUserAsync(storedRefreshToken.IdentityUserId);
+            await _identityUnitOfWork.SaveChangesAsync();
+            
+            return Result.Failure<AuthenticationResult>(AuthenticationErrors.TokenReuseDetected);
+        }
+
+        // 5. Get the user associated with the refresh token
+        ApplicationIdentityUser? identityUser = await _userManager.FindByIdAsync(storedRefreshToken.IdentityUserId);
+        
+        if (identityUser == null)
+        {
+            return Result.Failure<AuthenticationResult>(AuthenticationErrors.UserNotFound);
+        }
+
+        // 6. Mark the old refresh token as used
+        storedRefreshToken.IsUsed = true;
+        storedRefreshToken.ReplacedByToken = _jwtService.GenerateRefreshToken();
+
+        // 7. Generate new tokens
+        string newAccessToken = _jwtService.GenerateAccessToken(
+            identityUser.Id,
+            email: identityUser.Email,
+            phoneNumber: identityUser.PhoneNumber);
+
+        string newRefreshToken = _jwtService.GenerateRefreshToken();
+
+        // 8. Create and save new refresh token
+        var newRefreshTokenEntity = RefreshToken.Create(
+            token: newRefreshToken,
+            jwtId: ExtractJwtIdFromToken(newAccessToken),
+            expiresAtUtc: _dateTimeProvider.UtcNow.AddDays(_jwtService.GetRefreshTokenExpirationInDays()),
+            identityUserId: identityUser.Id
+        );
+
+        await _refreshTokenRepository.AddAsync(newRefreshTokenEntity);
+        await _identityUnitOfWork.SaveChangesAsync();
+
+        return Result.Success(new AuthenticationResult(
+            AccessToken: newAccessToken,
+            RefreshToken: newRefreshToken,
+            AccessTokenExpiration: _dateTimeProvider.UtcNow.AddMinutes(_jwtService.GetAccessTokenExpirationInMinutes()).UtcDateTime,
+            RefreshTokenExpiration: newRefreshTokenEntity.ExpiresAtUtc.UtcDateTime,
+            IdentityUserId: identityUser.Id.ToString()));
     }
 
     public Task<Result<AuthenticationResult>> RegisterEmployeeAsync(string email, string password)

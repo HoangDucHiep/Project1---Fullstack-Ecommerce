@@ -1,6 +1,87 @@
-@ECommerceBackend.Api_HostAddress = http://localhost:5289
+@ECommerceBackend.Api_HostAddress = http://localhost:5000
 
-GET {{ECommerceBackend.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Register User
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/register/phone
+Content-Type: application/json
 
-###
+{
+  "phoneNumber": "0123456789",
+  "password": "Test123!"
+}
+
+### Login User
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/login
+Content-Type: application/json
+
+{
+  "identifier": "0123456789",
+  "password": "Test123!"
+}
+
+### Refresh Token
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "your_refresh_token_here"
+}
+
+### Logout User
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/logout
+Content-Type: application/json
+
+{
+  "userId": "your_user_id_here"
+}
+
+### Register User with OTP
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/register/phone/otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "0123456789",
+  "password": "Test123!"
+}
+
+### Verify Registration OTP
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/register/phone/otp/verify
+Content-Type: application/json
+
+{
+  "phoneNumber": "0123456789",
+  "otp": "123456"
+}
+
+### Login with OTP
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/login/otp
+Content-Type: application/json
+
+{
+  "identifier": "0123456789",
+  "password": "Test123!"
+}
+
+### Verify Login OTP
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/login/otp/verify
+Content-Type: application/json
+
+{
+  "identifier": "0123456789",
+  "otp": "123456"
+}
+
+### Resend Registration OTP
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/register/phone/otp/resend
+Content-Type: application/json
+
+{
+  "phoneNumber": "0123456789"
+}
+
+### Resend Login OTP
+POST {{ECommerceBackend.Api_HostAddress}}/api/authentication/login/otp/resend
+Content-Type: application/json
+
+{
+  "identifier": "0123456789"
+}

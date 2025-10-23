@@ -42,4 +42,16 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     {
         return _dbContext.Set<RefreshToken>().FirstOrDefaultAsync(rt => rt.Token == token, cancellationToken);
     }
+
+    public async Task RevokeAllTokensForUserAsync(string identityUserId, CancellationToken cancellationToken = default)
+    {
+        List<RefreshToken> userTokens = await _dbContext.Set<RefreshToken>()
+            .Where(rt => rt.IdentityUserId == identityUserId && !rt.IsRevoked)
+            .ToListAsync(cancellationToken);
+
+        foreach (RefreshToken token in userTokens)
+        {
+            token.IsRevoked = true;
+        }
+    }
 }
