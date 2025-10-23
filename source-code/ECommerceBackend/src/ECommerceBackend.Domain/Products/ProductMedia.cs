@@ -11,6 +11,7 @@ public class ProductMedia : Entity
     public string MediaUrl { get; private set; }
     public MediaType MediaType { get; private set; }
     public int SortOrder { get; private set; }
+    public bool IsCover { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
@@ -30,7 +31,7 @@ public class ProductMedia : Entity
     /// <param name="mediaType">The type of media (Image, Video, Document, or Other).</param>
     /// <param name="sortOrder">The display order of this media relative to other media for the same product.</param>
     /// <returns>A new ProductMedia instance configured for a product.</returns>
-    public static ProductMedia CreateProductMedia(Guid productId, string mediaUrl, MediaType mediaType, int sortOrder)
+    public static ProductMedia CreateProductMedia(Guid productId, string mediaUrl, MediaType mediaType, int sortOrder, bool isCover = false)
     {
         return new ProductMedia
         {
@@ -39,6 +40,7 @@ public class ProductMedia : Entity
             MediaUrl = mediaUrl,
             MediaType = mediaType,
             SortOrder = sortOrder,
+            IsCover = isCover,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
     }
@@ -52,7 +54,7 @@ public class ProductMedia : Entity
     /// <param name="mediaType">The type of media (Image, Video, Document, or Other).</param>
     /// <param name="sortOrder">The display order of this media relative to other media for the same product.</param>
     /// <returns></returns>
-    public static ProductMedia CreateProductVariantMedia(Guid productId, Guid productVariantId, string mediaUrl, MediaType mediaType, int sortOrder)
+    public static ProductMedia CreateProductVariantMedia(Guid productId, Guid productVariantId, string mediaUrl, MediaType mediaType, int sortOrder, bool isCover = false)
     {
         return new ProductMedia
         {
@@ -61,6 +63,7 @@ public class ProductMedia : Entity
             MediaUrl = mediaUrl,
             MediaType = mediaType,
             SortOrder = sortOrder,
+            IsCover = isCover,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
     }

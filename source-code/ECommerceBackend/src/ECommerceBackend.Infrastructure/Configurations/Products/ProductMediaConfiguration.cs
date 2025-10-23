@@ -29,6 +29,10 @@ internal sealed class ProductMediaConfiguration : IEntityTypeConfiguration<Produ
         builder.Property(pm => pm.SortOrder)
             .IsRequired();
 
+        builder.Property(pm => pm.IsCover)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(pm => pm.CreatedAtUtc)
             .IsRequired();
 
@@ -36,6 +40,8 @@ internal sealed class ProductMediaConfiguration : IEntityTypeConfiguration<Produ
         builder.HasIndex(pm => pm.ProductId);
         builder.HasIndex(pm => pm.ProductVariantId);
         builder.HasIndex(pm => new { pm.ProductId, pm.SortOrder });
+        builder.HasIndex(pm => new { pm.ProductId, pm.IsCover });
+        builder.HasIndex(pm => new { pm.ProductVariantId, pm.IsCover });
 
         // Relationships
         builder.HasOne<Product>()
