@@ -5,6 +5,7 @@
 /// User context interface to access current user's information
 /// </summary>
 /// <remarks>
+/// - IdentityUserId: Current user's identity ID from JWT claims
 /// - UserId: Current user's unique identifier
 /// - Email: Current user's email address
 /// - PhoneNumber: Current user's phone number
@@ -12,6 +13,7 @@
 /// </remarks>
 public interface IUserContext
 {
+    string? IdentityUserId { get; }
     string? UserId { get; }
     string? Email { get; }
     string? PhoneNumber { get; }

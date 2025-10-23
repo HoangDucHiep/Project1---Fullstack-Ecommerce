@@ -29,7 +29,7 @@ public abstract class Repository<T>
         return await _dbContext.Set<T>().ToListAsync(cancellationToken);
     }
 
-    public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Set<T>().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }

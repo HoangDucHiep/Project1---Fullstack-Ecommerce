@@ -15,18 +15,36 @@ public class UserRepository : Repository<User>, IUserRepository
     {
     }
 
+    // Override to include roles when getting user by ID
+    public override async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Set<User>()
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
+
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Set<User>().FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+        return await _dbContext.Set<User>()
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
     public async Task<User?> GetByIdentityIdAsync(string identityUserId, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Set<User>().FirstOrDefaultAsync(u => u.IdentityId == identityUserId, cancellationToken);
+        return await _dbContext.Set<User>()
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.IdentityId == identityUserId, cancellationToken);
     }
 
     public async Task<User?> GetByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Set<User>().FirstOrDefaultAsync(u => u.Phone == phoneNumber, cancellationToken);
+        return await _dbContext.Set<User>()
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Phone == phoneNumber, cancellationToken);
     }
 }
