@@ -398,3 +398,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 .containers
+containers
+
+.env
+*.Development.*
