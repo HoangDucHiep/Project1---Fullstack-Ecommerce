@@ -3,6 +3,8 @@ using ECommerceBackend.Api.Filters;
 using ECommerceBackend.Api.Middlewares;
 using ECommerceBackend.Application;
 using ECommerceBackend.Infrastructure;
+using ECommerceBackend.Infrastructure.BackgroundJobs;
+using Hangfire;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
@@ -13,6 +15,11 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<TraceIdFilter>(); // Auto inject TraceId
+})
+.AddJsonOptions(options =>
+{
+    // Configure JSON serialization to use string for enums
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 
 
@@ -40,9 +47,20 @@ builder.Services.AddCors(options =>
 builder.Host.UseSerilog((context, loggerConfig) =>
     loggerConfig.ReadFrom.Configuration(context.Configuration));
 
-// OpenAPI and Swagger
-builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+// Swagger configuration
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "ECommerce Backend API",
+        Version = "v1",
+        Description = "API for ECommerce Backend with Product Management"
+    });
+    
+    // Support for multipart/form-data (file uploads)
+    options.OperationFilter<SwaggerFileOperationFilter>();
+});
 
 // Add global exception handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -68,18 +86,23 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 
 // Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API v1");
+    options.RoutePrefix = "swagger"; // Swagger UI tại /swagger
+    options.DocumentTitle = "ECommerce Backend API";
+});
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-    });
     app.ApplyMigrations();
 }
 
 app.MapGet("/", () => "Hello from Ecommerce backend API!!");
+
+// Enable static files for uploaded media - MUST be before UseRouting
+app.UseStaticFiles();
 
 app.UseExceptionHandler();
 
@@ -93,6 +116,19 @@ app.UseCors("AllowFrontendApp");
 // Use Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Configure Hangfire Dashboard
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    // TODO: Add authorization for production
+    // DashboardTitle = "ECommerce Background Jobs"
+});
+
+// Schedule recurring jobs
+RecurringJob.AddOrUpdate<CleanupOrphanFilesJob>(
+    "cleanup-orphan-files",
+    job => job.ExecuteAsync(CancellationToken.None),
+    Cron.Daily(2)); // Run at 2:00 AM daily
 
 app.MapControllers();
 
