@@ -402,3 +402,4 @@ containers
 
 .env
 *.Development.*
+wwwroot

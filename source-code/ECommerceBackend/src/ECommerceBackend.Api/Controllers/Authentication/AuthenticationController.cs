@@ -159,4 +159,51 @@ public class AuthenticationController : ControllerBase
     }
 
     #endregion
+
+    #region Token Management Endpoints
+
+    /// <summary>
+    /// Refresh access token using a valid refresh token
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        var command = new RefreshTokenCommand(request.RefreshToken);
+        Result<AuthenticationResult> result = await _sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.GetStatusCode(), result.ToResponse("Refresh token failed"));
+        }
+
+        return Ok(new AuthenticationResponse
+        {
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken,
+            AccessTokenExpiration = result.Value.AccessTokenExpiration,
+            RefreshTokenExpiration = result.Value.RefreshTokenExpiration,
+            IdentityUserId = result.Value.IdentityUserId
+        });
+    }
+
+    /// <summary>
+    /// Logout user and revoke all refresh tokens
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+    {
+        var command = new LogoutCommand(request.UserId);
+        Result result = await _sender.Send(command);
+
+        object response = result.ToResponse("Logout successful");
+        return result.IsSuccess
+            ? Ok(response)
+            : StatusCode(result.Error.GetStatusCode(), response);
+    }
+
+    #endregion
 }
