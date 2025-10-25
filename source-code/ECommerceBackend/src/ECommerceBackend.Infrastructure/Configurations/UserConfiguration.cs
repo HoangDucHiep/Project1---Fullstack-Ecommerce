@@ -20,30 +20,59 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("users");
         builder.HasKey(u => u.Id);
+
         builder.Property(u => u.IdentityId)
             .IsRequired()
             .HasMaxLength(100);
+
         builder.Property(u => u.Email)
             .IsRequired(false)
             .HasMaxLength(255);
+
         builder.Property(u => u.Phone)
             .IsRequired(false)
             .HasMaxLength(20);
+
         builder.Property(u => u.UserName)
             .IsRequired()
             .HasMaxLength(100);
+
         builder.Property(u => u.Status)
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(20);
+
         builder.Property(u => u.CreatedAtUtc)
             .IsRequired();
+
         builder.Property(u => u.UpdatedAtUtc)
             .IsRequired();
 
-        builder.HasIndex(u => u.IdentityId).IsUnique();
+        // additional profile fields
+        builder.Property(u => u.Avatar_Url)
+            .IsRequired(false)
+            .HasMaxLength(500);
+
+        builder.Property(u => u.Bio)
+            .IsRequired(false)
+            .HasMaxLength(1000);
+
+        builder.Property(u => u.IdCardFullName)
+            .IsRequired(false)
+            .HasMaxLength(200);
+
+        builder.Property(u => u.IdCardNumber)
+            .IsRequired(false)
+            .HasMaxLength(50);
+
+        builder.Property(u => u.IdCardFullAddress)
+            .IsRequired(false)
+            .HasMaxLength(500);
+
 
         // Unique indexes that ignore NULL values
+        builder.HasIndex(u => u.IdentityId).IsUnique();
+
         builder.HasIndex(u => u.Email)
             .IsUnique()
             .HasFilter($"\"{nameof(User.Email).ToLowerInvariant()}\" IS NOT NULL");
@@ -51,5 +80,13 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Phone)
             .IsUnique()
             .HasFilter($"\"{nameof(User.Phone).ToLowerInvariant()}\" IS NOT NULL");
+
+        builder.HasIndex(u => u.UserName)
+            .IsUnique();
+
+        builder.HasIndex(u => u.Status);
+
+        builder.Navigation(u => u.UserRoles)
+            .AutoInclude();
     }
 }

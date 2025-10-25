@@ -29,6 +29,7 @@ internal sealed class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
 
         builder.Property(ur => ur.RoleId)
             .IsRequired();
+
         builder
             .Property(ur => ur.AssignedAtUtc)
             .IsRequired();
