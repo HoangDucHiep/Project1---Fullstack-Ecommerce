@@ -6,4 +6,4 @@ namespace ECommerceBackend.Application.Users.GetCurrentUser;
 /// <summary>
 /// Query to get current authenticated user information
 /// </summary>
-public sealed record GetCurrentUserQuery : IQuery<UserDto>;
+public sealed record GetCurrentUserQuery : IQuery<MeUserDto>;

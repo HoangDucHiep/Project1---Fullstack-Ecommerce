@@ -19,10 +19,12 @@ namespace ECommerceBackend.Api.Controllers.Authentication;
 public class AuthenticationController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IUserContext _userContext;
 
-    public AuthenticationController(ISender sender)
+    public AuthenticationController(ISender sender, IUserContext userContext)
     {
         _sender = sender;
+        _userContext = userContext;
     }
 
     #region Registration Endpoints
@@ -174,7 +176,7 @@ public class AuthenticationController : ControllerBase
     public async Task<IActionResult> GetCurrentUser()
     {
         var query = new GetCurrentUserQuery();
-        Result<UserDto> result = await _sender.Send(query);
+        Result<MeUserDto> result = await _sender.Send(query);
 
         if (result.IsFailure)
         {
@@ -220,9 +222,16 @@ public class AuthenticationController : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+    [Authorize]
+    public async Task<IActionResult> Logout()
     {
-        var command = new LogoutCommand(request.UserId);
+        // Get identity user ID from the authenticated user context
+        if (!_userContext.IsAuthenticated || string.IsNullOrWhiteSpace(_userContext.IdentityUserId))
+        {
+            return BadRequest("Invalid user context");
+        }
+
+        var command = new LogoutCommand(_userContext.IdentityUserId);
         Result result = await _sender.Send(command);
 
         object response = result.ToResponse("Logout successful");
