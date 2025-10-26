@@ -1,4 +1,4 @@
-﻿namespace ECommerceBackend.Domain.Commons;
+﻿namespace ECommerceBackend.Domain.Media;
 
 /// HDHiep - 10/21/2025
 /// <summary>

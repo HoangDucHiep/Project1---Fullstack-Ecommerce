@@ -39,6 +39,11 @@ public abstract class Repository<T>
         _dbContext.Add(entity);
     }
 
+    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.AddAsync(entity, cancellationToken);
+    }
+
     public virtual void Delete(T entity)
     {
         _dbContext.Remove(entity);
