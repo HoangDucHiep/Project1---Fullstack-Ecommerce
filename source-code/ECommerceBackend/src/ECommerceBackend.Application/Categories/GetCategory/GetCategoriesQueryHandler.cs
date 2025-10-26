@@ -26,8 +26,6 @@ internal sealed class GetCategoriesHandler : IQueryHandler<GetCategoriesQuery, L
                 icon_url as IconUrl,
                 status as Status,
                 parent_id as ParentId,
-                lft as Lft,
-                rgt as Rgt,
                 depth as Depth,
                 created_at_utc as CreatedAtUtc,
                 updated_at_utc as UpdatedAtUtc

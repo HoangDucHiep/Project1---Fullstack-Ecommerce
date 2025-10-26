@@ -37,8 +37,6 @@ public class Category : Entity
             IconUrl = iconUrl,
             Status = CategoryStatus.ACTIVE,
             ParentId = parentId,
-            Lft = 0,
-            Rgt = 0,
             Depth = depth,
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow
@@ -68,8 +66,6 @@ public class Category : Entity
     public void MoveCategory(Guid newParentId,  int newDepth)
     {
         ParentId = newParentId;
-        Lft = 0;
-        Rgt = 0;
         Depth = newDepth;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
         // Raise domain event if needed

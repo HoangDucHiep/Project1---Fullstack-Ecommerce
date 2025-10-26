@@ -50,12 +50,12 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> Search([FromQuery(Name = "NameOfCategory")] string queryText, CancellationToken cancellationToken)
     {
         var query = new SearchCategoryQuery(queryText);
-        Result<List<CategoryDto>> result = await _sender.Send(query, cancellationToken);
+        Result<List<CategoryTreeDto>> result = await _sender.Send(query, cancellationToken);
 
         return Ok(result.ToResponse("Tìm kiếm danh mục thành công"));
     }
 
-    [HttpGet]
+    [HttpGet("Get")]
     public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
     {
         var query = new GetCategoriesQuery();
