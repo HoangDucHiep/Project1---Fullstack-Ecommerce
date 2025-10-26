@@ -14,8 +14,6 @@ public sealed record class CategoryDto
     public string IconUrl { get; set; }
     public string Status { get; set; }
     public Guid? ParentId { get; set; }
-    public int Lft { get; set; }
-    public int Rgt { get; set; }
     public int Depth { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
