@@ -4,7 +4,7 @@ using ECommerceBackend.Domain.Categories;
 
 namespace ECommerceBackend.Application.Categories;
 
-public sealed class CategoriesDTO
+public sealed class GetCategoriesTreeDTO
 {
     public Guid Id { get; set; }
     public string Name { get; set; } // Đổi từ private set -> public set
@@ -16,5 +16,5 @@ public sealed class CategoriesDTO
     public DateTimeOffset CreatedAtUtc { get; set; } // Đổi từ private set -> public set
     public DateTimeOffset UpdatedAtUtc { get; set; } // Đổi từ private set -> public set
 
-    public List<CategoriesDTO> Children { get; set; } = new List<CategoriesDTO>();
+    public List<GetCategoriesTreeDTO> Children { get; set; } = new List<GetCategoriesTreeDTO>();
 }
