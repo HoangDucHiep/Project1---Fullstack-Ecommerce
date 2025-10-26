@@ -4,23 +4,19 @@ using ECommerceBackend.Application.Abstracts.Caching;
 using ECommerceBackend.Application.Abstracts.Clock;
 using ECommerceBackend.Application.Abstracts.Data;
 using ECommerceBackend.Application.Abstracts.Encryption;
-using ECommerceBackend.Application.Abstracts.FileStorage;
 using ECommerceBackend.Application.Abstracts.Otp;
 using ECommerceBackend.Application.Abstracts.RateLimiter;
 using ECommerceBackend.Application.Abstracts.Sms;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Addresses;
 using ECommerceBackend.Domain.Categories;
-using ECommerceBackend.Domain.Products;
 using ECommerceBackend.Domain.Shops;
 using ECommerceBackend.Domain.Users;
 using ECommerceBackend.Infrastructure.Authentication;
 using ECommerceBackend.Infrastructure.Caching;
 using ECommerceBackend.Infrastructure.Clock;
 using ECommerceBackend.Infrastructure.Data;
-using ECommerceBackend.Infrastructure.BackgroundJobs;
 using ECommerceBackend.Infrastructure.Encryption;
-using ECommerceBackend.Infrastructure.FileStorage;
 using ECommerceBackend.Infrastructure.Identity;
 using ECommerceBackend.Infrastructure.IdentityAuthen;
 using ECommerceBackend.Infrastructure.Otp;
@@ -28,8 +24,6 @@ using ECommerceBackend.Infrastructure.RateLimiter;
 using ECommerceBackend.Infrastructure.Repositories;
 using ECommerceBackend.Infrastructure.Sms;
 using ECommerceBackend.Infrastructure.Transactions;
-using Hangfire;
-using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -64,22 +58,6 @@ public static class InfrastructureConfiguration
         AddPersistence(services, configuration);
         AddAuthentication(services, configuration);
 
-        // Configure File Storage
-        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
-
-        // Configure Hangfire for background jobs
-        string databaseConnectionString = configuration.GetConnectionString("Database")!;
-        services.AddHangfire(config => config
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(databaseConnectionString)));
-
-        services.AddHangfireServer();
-
-        // Register background jobs
-        services.AddScoped<CleanupOrphanFilesJob>();
 
         services.AddScoped<IEncryptionService, EncryptionService>();
         services.AddScoped<IOtpService, OtpService>();
@@ -158,12 +136,6 @@ public static class InfrastructureConfiguration
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IShopRepository, ShopRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();
-        services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
-        services.AddScoped<IProductOptionValueRepository, ProductOptionValueRepository>();
-        services.AddScoped<IProductMediaRepository, ProductMediaRepository>();
-        services.AddScoped<IProductOptionTypeRepository, ProductOptionTypeRepository>();
-        services.AddScoped<IProductVariantOptionValueRepository, ProductVariantOptionValueRepository>();
 
         services.TryAddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 

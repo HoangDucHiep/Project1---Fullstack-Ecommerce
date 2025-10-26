@@ -3,8 +3,6 @@ using ECommerceBackend.Api.Filters;
 using ECommerceBackend.Api.Middlewares;
 using ECommerceBackend.Application;
 using ECommerceBackend.Infrastructure;
-using ECommerceBackend.Infrastructure.BackgroundJobs;
-using Hangfire;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
@@ -57,7 +55,7 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "API for ECommerce Backend with Product Management"
     });
-    
+
     // Support for multipart/form-data (file uploads)
     options.OperationFilter<SwaggerFileOperationFilter>();
 });
@@ -101,7 +99,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", () => "Hello from Ecommerce backend API!!");
 
-// Enable static files for uploaded media - MUST be before UseRouting
+// Enable static files for uploaded media
 app.UseStaticFiles();
 
 app.UseExceptionHandler();
@@ -117,18 +115,6 @@ app.UseCors("AllowFrontendApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Configure Hangfire Dashboard
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
-    // TODO: Add authorization for production
-    // DashboardTitle = "ECommerce Background Jobs"
-});
-
-// Schedule recurring jobs
-RecurringJob.AddOrUpdate<CleanupOrphanFilesJob>(
-    "cleanup-orphan-files",
-    job => job.ExecuteAsync(CancellationToken.None),
-    Cron.Daily(2)); // Run at 2:00 AM daily
 
 app.MapControllers();
 
