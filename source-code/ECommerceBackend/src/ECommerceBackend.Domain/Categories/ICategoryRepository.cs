@@ -6,7 +6,6 @@ public interface ICategoryRepository
     void Add(Category category);
 
     Task IncrementAncestorRightValuesAsync(Guid parentId, int shiftBy, CancellationToken cancellationToken);
-    Task ShiftBoundariesAsync(int from, int shiftBy, CancellationToken cancellationToken);
 
 
 }
