@@ -55,11 +55,11 @@ public class CategoryController : ControllerBase
         return Ok(result.ToResponse("Tìm kiếm danh mục thành công"));
     }
 
-    [HttpGet("Get")]
+    [HttpGet("GetAll")]
     public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
     {
         var query = new GetCategoriesQuery();
-        Result<List<CategoriesDTO>> result = await _sender.Send(query, cancellationToken);
+        Result<List<GetCategoriesTreeDTO>> result = await _sender.Send(query, cancellationToken);
 
         if (result.IsFailure)
         {
