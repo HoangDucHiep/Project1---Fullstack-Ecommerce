@@ -63,12 +63,18 @@ public class Category : Entity
         // Raise domain event if needed
     }
 
-    public void MoveCategory(Guid newParentId,  int newDepth)
+
+    public void Rename(string name)
+    {
+        Name = name;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void MoveTo(Guid? newParentId, int newDepth)
     {
         ParentId = newParentId;
         Depth = newDepth;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
-        // Raise domain event if needed
     }
 
 }

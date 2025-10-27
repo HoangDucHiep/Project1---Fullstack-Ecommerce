@@ -4,6 +4,7 @@ using ECommerceBackend.Application.Categories;
 using ECommerceBackend.Application.Categories.GetCategories;
 using ECommerceBackend.Application.Categories.GetCategotyByID;
 using ECommerceBackend.Application.Categories.SearchCategory;
+using ECommerceBackend.Application.Categories.UpdateCategory;
 using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Categories;
@@ -71,7 +72,7 @@ public class CategoryController : ControllerBase
         return Ok(result.ToResponse("Lấy danh sách danh mục thành công"));
     }
 
-
+    /// PBNMinh
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCategoryById(
     [FromRoute] string id,
@@ -96,6 +97,28 @@ public class CategoryController : ControllerBase
         return Ok(result.Value);
     }
 
+
+    /// PBNMinh
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateCategoryAsync(Guid id, [FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
+    {
+        UpdateCategoryCommand command = new(
+            id,
+            request.Name,
+            request.IconUrl,
+            request.Status,
+            request.NewParentId
+        );
+
+        Result<CategoryDto> result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+
+        return Ok(result.Value);
+    }
 
 
 }
