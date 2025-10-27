@@ -2,9 +2,11 @@
 using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Categories;
 using ECommerceBackend.Application.Categories.GetCategories;
+using ECommerceBackend.Application.Categories.GetCategotyByID;
 using ECommerceBackend.Application.Categories.SearchCategory;
 using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Categories;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -68,6 +70,32 @@ public class CategoryController : ControllerBase
 
         return Ok(result.ToResponse("Lấy danh sách danh mục thành công"));
     }
+
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCategoryById(
+    [FromRoute] string id,
+    [FromQuery] bool includeChildren = false,
+    CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(id, out Guid categoryId))
+        {
+            //return NotFound(new { message = $"Category with ID '{id}' was not found." });
+             return StatusCode( CategoryErrors.NotFound(id).Type.StatusCode, CategoryErrors.NotFound(id)
+    );
+        }
+
+        var query = new GetCategoryByIdQuery(categoryId, includeChildren);
+        Result<object> result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
 
 
 }

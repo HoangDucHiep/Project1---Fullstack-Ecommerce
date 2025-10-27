@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ECommerceBackend.Application.Contracts.Categories;
 
-namespace ECommerceBackend.Application.Categories.SearchCategory;
+namespace ECommerceBackend.Application.Contracts.Categories;
 public sealed record  CategoryTreeDto
 {
     public Guid Id { get; set; }
