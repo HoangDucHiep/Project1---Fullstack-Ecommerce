@@ -3,6 +3,8 @@ using ECommerceBackend.Api.Filters;
 using ECommerceBackend.Api.Middlewares;
 using ECommerceBackend.Application;
 using ECommerceBackend.Infrastructure;
+using ECommerceBackend.Infrastructure.BackgroundJobs;
+using Hangfire;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
@@ -73,6 +75,7 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("Database")!)
     .AddRedis(builder.Configuration.GetConnectionString("Cache")!);
 
+// FFMpeg setup (if needed globally)
 
 // =========== Build and configure the app ===========
 WebApplication app = builder.Build();
@@ -115,6 +118,12 @@ app.UseCors("AllowFrontendApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Schedule background jobs
+app.Services.GetRequiredService<IRecurringJobManager>()
+    .AddOrUpdate<CleanupTempMediaJob>(
+        "cleanup-temp-media",
+        job => job.ExecuteAsync(),
+        Cron.Daily); // Run every minute
 
 app.MapControllers();
 

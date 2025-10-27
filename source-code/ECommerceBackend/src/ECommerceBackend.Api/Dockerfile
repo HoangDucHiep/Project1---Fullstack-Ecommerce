@@ -2,6 +2,12 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+
+# Install FFmpeg
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -32,4 +38,8 @@ RUN dotnet publish "./ECommerceBackend.Api.csproj" -c $BUILD_CONFIGURATION -o /a
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Create uploads directory
+RUN mkdir -p /app/wwwroot/uploads
+
 ENTRYPOINT ["dotnet", "ECommerceBackend.Api.dll"]

@@ -23,9 +23,22 @@ services:
 
       # Encryption configuration
       - Encryption__Key=${ENCRYPTION_KEY}
+      
+      # File Storage configuration
+      - FileStorage__LocalStoragePath=${FILE_STORAGE_LOCAL_PATH}
+      - FileStorage__BaseUrl=${FILE_STORAGE_BASE_URL}
+      - FileStorage__MaxImageSizeMB=${FILE_STORAGE_MAX_IMAGE_SIZE_MB}
+      - FileStorage__MaxVideoSizeMB=${FILE_STORAGE_MAX_VIDEO_SIZE_MB}
+      - FileStorage__AllowedImageExtensions=${FILE_STORAGE_ALLOWED_IMAGE_EXTENSIONS}
+      - FileStorage__AllowedVideoExtensions=${FILE_STORAGE_ALLOWED_VIDEO_EXTENSIONS}
+      
+      # FFMpeg configuration
+      - FFMpeg__RootDirectory=${FFMPEG_ROOT_DIRECTORY}
     ports:
        - ${API_HTTP_PORT}:${API_CONTAINER_HTTP_PORT}
        - ${API_HTTPS_PORT}:${API_CONTAINER_HTTPS_PORT}
+    volumes:
+       - ./uploads:/app/wwwroot/uploads
     depends_on:
       - ecommercebackend.mono.database.postgres
       - ecommercebackend.mono.logging.seq

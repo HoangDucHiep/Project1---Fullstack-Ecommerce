@@ -3,6 +3,7 @@ using ECommerceBackend.Application.FileStorage;
 using ECommerceBackend.Domain.Abstracts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace ECommerceBackend.Infrastructure.FileStorage;
 
@@ -16,10 +17,10 @@ public class LocalFileStorageService : IFileStorageService
     private readonly IWebHostEnvironment _environment;
     private readonly FileStorageOptions _options;
 
-    public LocalFileStorageService(IWebHostEnvironment environment, FileStorageOptions options)
+    public LocalFileStorageService(IWebHostEnvironment environment, IOptions<FileStorageOptions> options)
     {
         _environment = environment;
-        _options = options;
+        _options = options.Value;
     }
 
     public async Task<string> SaveFileAsync(IFormFile file, string? folder = null, CancellationToken cancellationToken = default)

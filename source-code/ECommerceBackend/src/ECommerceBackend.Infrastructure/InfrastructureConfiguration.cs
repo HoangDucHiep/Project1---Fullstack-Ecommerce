@@ -7,23 +7,30 @@ using ECommerceBackend.Application.Abstracts.Encryption;
 using ECommerceBackend.Application.Abstracts.Otp;
 using ECommerceBackend.Application.Abstracts.RateLimiter;
 using ECommerceBackend.Application.Abstracts.Sms;
+using ECommerceBackend.Application.FileStorage;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Addresses;
 using ECommerceBackend.Domain.Categories;
+using ECommerceBackend.Domain.Medias;
 using ECommerceBackend.Domain.Shops;
 using ECommerceBackend.Domain.Users;
 using ECommerceBackend.Infrastructure.Authentication;
+using ECommerceBackend.Infrastructure.BackgroundJobs;
 using ECommerceBackend.Infrastructure.Caching;
 using ECommerceBackend.Infrastructure.Clock;
 using ECommerceBackend.Infrastructure.Data;
 using ECommerceBackend.Infrastructure.Encryption;
+using ECommerceBackend.Infrastructure.FileStorage;
 using ECommerceBackend.Infrastructure.Identity;
 using ECommerceBackend.Infrastructure.IdentityAuthen;
+using ECommerceBackend.Infrastructure.Medias;
 using ECommerceBackend.Infrastructure.Otp;
 using ECommerceBackend.Infrastructure.RateLimiter;
 using ECommerceBackend.Infrastructure.Repositories;
 using ECommerceBackend.Infrastructure.Sms;
 using ECommerceBackend.Infrastructure.Transactions;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +40,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using StackExchange.Redis;
+using IMediaMetadataService = ECommerceBackend.Application.Medias.IMediaMetadataService;
 
 namespace ECommerceBackend.Infrastructure;
 
@@ -65,6 +73,27 @@ public static class InfrastructureConfiguration
         services.AddScoped<IRateLimiterService, RateLimiterService>();
         // Register Transaction Services
         services.AddScoped<ITransactionService, TransactionService>();
+
+
+        // File Storage Service
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+        // Register Media Services
+        services.AddScoped<IMediaRepository, MediaRepository>();
+        services.AddScoped<IMediaMetadataService, MediaMetadataService>();
+
+        // Background Jobs
+        services.AddScoped<CleanupTempMediaJob>();
+
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(configuration.GetConnectionString("Database"))
+        ));
+
+        services.AddHangfireServer();
 
 
 

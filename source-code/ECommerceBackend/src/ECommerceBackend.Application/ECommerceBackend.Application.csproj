@@ -5,12 +5,14 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" />
+    <PackageReference Include="FFMpegCore" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.AspNetCore.Http" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Serilog" />
+    <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="Slugify.Core" />
   </ItemGroup>
 

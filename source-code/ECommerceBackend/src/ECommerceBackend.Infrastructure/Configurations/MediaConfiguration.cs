@@ -1,4 +1,4 @@
-﻿using ECommerceBackend.Domain.Media;
+﻿using ECommerceBackend.Domain.Medias;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
