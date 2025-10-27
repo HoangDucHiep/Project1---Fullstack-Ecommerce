@@ -12,6 +12,7 @@ using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Addresses;
 using ECommerceBackend.Domain.Categories;
 using ECommerceBackend.Domain.Medias;
+using ECommerceBackend.Domain.Products;
 using ECommerceBackend.Domain.Shops;
 using ECommerceBackend.Domain.Users;
 using ECommerceBackend.Infrastructure.Authentication;
@@ -27,6 +28,7 @@ using ECommerceBackend.Infrastructure.Medias;
 using ECommerceBackend.Infrastructure.Otp;
 using ECommerceBackend.Infrastructure.RateLimiter;
 using ECommerceBackend.Infrastructure.Repositories;
+using ECommerceBackend.Infrastructure.Repositories.Products;
 using ECommerceBackend.Infrastructure.Sms;
 using ECommerceBackend.Infrastructure.Transactions;
 using Hangfire;
@@ -165,6 +167,14 @@ public static class InfrastructureConfiguration
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IShopRepository, ShopRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();
+
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+        services.AddScoped<IProductOptionValueRepository, ProductOptionValueRepository>();
+        services.AddScoped<IProductMediaRepository, ProductMediaRepository>();
+        services.AddScoped<IProductOptionTypeRepository, ProductOptionTypeRepository>();
+        services.AddScoped<IProductVariantOptionValueRepository, ProductVariantOptionValueRepository>();
+
 
         services.TryAddScoped<IUnitOfWork>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
