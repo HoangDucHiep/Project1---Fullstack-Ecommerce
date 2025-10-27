@@ -22,6 +22,9 @@ public static class CategoryErrors
     public static Error NotFound(Guid categoryId) =>
         Error.NotFound("Category.NotFound", $"Category with ID '{categoryId}' was not found.");
 
+    public static Error NotFound(string categoryIdText) =>
+        Error.NotFound("Category.NotFound", $"Category with ID '{categoryIdText}' was not found.");
+
     /// <summary>
     /// Creates an error indicating that a parent category with the specified ID was not found.
     /// </summary>
