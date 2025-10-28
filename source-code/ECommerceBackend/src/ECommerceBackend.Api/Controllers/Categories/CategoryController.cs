@@ -1,6 +1,7 @@
 ﻿using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
 using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Categories;
+using ECommerceBackend.Application.Categories.DeleteCategory;
 using ECommerceBackend.Application.Categories.GetCategories;
 using ECommerceBackend.Application.Categories.GetCategotyByID;
 using ECommerceBackend.Application.Categories.SearchCategory;
@@ -9,6 +10,7 @@ using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Categories;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceBackend.Api.Controllers.Categories;
@@ -120,5 +122,41 @@ public class CategoryController : ControllerBase
         return Ok(result.Value);
     }
 
+
+    //PBNMinh
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteCategoryAsync(
+    Guid id,
+    [FromQuery] Guid? replacementCategoryId,
+    [FromQuery] bool cascade = false,
+    CancellationToken cancellationToken = default)
+    {
+        DeleteCategoryCommand command = new(id, replacementCategoryId, cascade);
+        Result result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            Error err = result.Error;
+
+            if (err.Type == ErrorType.NotFound)
+            {
+                return NotFound(err);
+            }
+
+            if (err.Type == ErrorType.Validation || err.Type == ErrorType.BadRequest)
+            {
+                return BadRequest(err);
+            }
+
+            if (err.Type == ErrorType.Forbidden)
+            {
+                return Forbid();
+            }
+
+            return StatusCode(500, err);
+        }
+
+        return NoContent();
+    }
 
 }

@@ -10,6 +10,9 @@ public interface ICategoryRepository
     Task<bool> ExistsByNameAsync(string name, Guid? parentId, Guid excludeId, CancellationToken cancellationToken);
     Task<bool> IsDescendantAsync(Guid ancestorId, Guid descendantId, CancellationToken cancellationToken);
 
+    Task<List<Category>> GetChildrenAsync(Guid parentId, CancellationToken cancellationToken = default);
+    void Delete(Category category);
+
 
 
 }

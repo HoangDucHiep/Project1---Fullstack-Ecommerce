@@ -51,4 +51,21 @@ public sealed class Product : Entity
         // product.Raise(new ProductCreatedEvent(product.Id));
         return product;
     }
+
+    public void ChangeCategory(Guid newCategoryId)
+    {
+        if (newCategoryId == Guid.Empty)
+        {
+            throw new ArgumentException("New category ID cannot be empty.", nameof(newCategoryId));
+        }
+
+        if (newCategoryId == CategoryId)
+        {
+            return;
+        }
+
+        CategoryId = newCategoryId;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
 }
