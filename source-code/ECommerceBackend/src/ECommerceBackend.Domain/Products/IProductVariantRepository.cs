@@ -3,7 +3,7 @@ public interface IProductVariantRepository
 {
     Task<List<ProductVariant>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<ProductVariant?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<ProductVariant?> GetBySkuAsync(string sku, CancellationToken cancellationToken = default);
+    Task<ProductVariant?> GetBySkuAsync(string sku, Guid shopId, CancellationToken cancellationToken = default);
     Task<List<ProductVariant>> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default);
     Task<List<ProductVariant>> GetByStatusAsync(VariantStatus status, CancellationToken cancellationToken = default);
     Task<List<ProductVariant>> GetByPriceRangeAsync(decimal minPrice, decimal maxPrice, CancellationToken cancellationToken = default);

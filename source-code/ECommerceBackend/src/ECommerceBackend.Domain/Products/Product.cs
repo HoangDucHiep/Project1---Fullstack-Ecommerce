@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Categories;
 
 namespace ECommerceBackend.Domain.Products;
 
@@ -30,6 +31,10 @@ public sealed class Product : Entity
     public ProductStatus Status { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
+
+    // Navigation properties
+    public Category Category { get; private set; } = null!;
+    public ICollection<ProductMedia> ProductMedias { get; private set; } = [];
 
     public Product()
     {

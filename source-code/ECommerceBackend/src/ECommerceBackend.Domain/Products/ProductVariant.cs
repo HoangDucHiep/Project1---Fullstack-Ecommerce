@@ -35,6 +35,10 @@ public class ProductVariant : Entity
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
+
+    // Navigation property
+    public Product Product { get; private set; } = null!;
+
     public ProductVariant()
     {
         // Required by EF Core

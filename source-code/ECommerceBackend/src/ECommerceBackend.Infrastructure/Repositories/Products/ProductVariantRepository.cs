@@ -14,10 +14,12 @@ public class ProductVariantRepository : Repository<ProductVariant>, IProductVari
     {
     }
 
-    public async Task<ProductVariant?> GetBySkuAsync(string sku, CancellationToken cancellationToken = default)
+    public async Task<ProductVariant?> GetBySkuAsync(string sku, Guid shopId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Set<ProductVariant>()
-            .FirstOrDefaultAsync(pv => pv.Sku == sku, cancellationToken);
+            .Include(pv => pv.Product)
+            .Where(pv => pv.Sku == sku && pv.Product.ShopId == shopId)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<List<ProductVariant>> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default)

@@ -3,6 +3,7 @@ using System;
 using ECommerceBackend.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerceBackend.Infrastructure.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251028015929_FixVariant")]
+    partial class FixVariant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,10 +274,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .HasColumnType("uuid")
                         .HasColumnName("category_id");
 
-                    b.Property<Guid>("CategoryId1")
-                        .HasColumnType("uuid")
-                        .HasColumnName("category_id1");
-
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
@@ -315,9 +314,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
 
                     b.HasIndex("CategoryId")
                         .HasDatabaseName("ix_products_category_id");
-
-                    b.HasIndex("CategoryId1")
-                        .HasDatabaseName("ix_products_category_id1");
 
                     b.HasIndex("Description")
                         .HasDatabaseName("ix_products_description");
@@ -360,10 +356,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .HasColumnType("uuid")
                         .HasColumnName("product_id");
 
-                    b.Property<Guid?>("ProductId1")
-                        .HasColumnType("uuid")
-                        .HasColumnName("product_id1");
-
                     b.Property<Guid?>("ProductVariantId")
                         .HasColumnType("uuid")
                         .HasColumnName("product_variant_id");
@@ -382,9 +374,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
 
                     b.HasIndex("ProductId")
                         .HasDatabaseName("ix_product_medias_product_id");
-
-                    b.HasIndex("ProductId1")
-                        .HasDatabaseName("ix_product_medias_product_id1");
 
                     b.HasIndex("ProductVariantId")
                         .HasDatabaseName("ix_product_medias_product_variant_id");
@@ -973,21 +962,12 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .IsRequired()
                         .HasConstraintName("fk_products_categories_category_id");
 
-                    b.HasOne("ECommerceBackend.Domain.Categories.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_products_categories_category_id1");
-
                     b.HasOne("ECommerceBackend.Domain.Shops.Shop", null)
                         .WithMany()
                         .HasForeignKey("ShopId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_products_shop_shop_id");
-
-                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Products.ProductMedia", b =>
@@ -1005,11 +985,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_product_medias_products_product_id");
-
-                    b.HasOne("ECommerceBackend.Domain.Products.Product", null)
-                        .WithMany("ProductMedias")
-                        .HasForeignKey("ProductId1")
-                        .HasConstraintName("fk_product_medias_products_product_id1");
 
                     b.HasOne("ECommerceBackend.Domain.Products.ProductVariant", "ProductVariant")
                         .WithMany()
@@ -1192,11 +1167,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_role_user_user_users_id");
-                });
-
-            modelBuilder.Entity("ECommerceBackend.Domain.Products.Product", b =>
-                {
-                    b.Navigation("ProductMedias");
                 });
 
             modelBuilder.Entity("ECommerceBackend.Domain.Users.Permission", b =>
