@@ -102,4 +102,18 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
         return false;
     }
 
+
+    public async Task<List<Category>> GetChildrenAsync(Guid parentId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Set<Category>()
+            .Where(c => c.ParentId == parentId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public override void Delete(Category category)
+    {
+        _dbContext.Set<Category>().Remove(category);
+    }
+
+
 }
