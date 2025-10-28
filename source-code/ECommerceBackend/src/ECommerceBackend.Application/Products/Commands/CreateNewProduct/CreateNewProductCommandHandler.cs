@@ -2,6 +2,7 @@
 using ECommerceBackend.Application.Abstracts.Messaging;
 using ECommerceBackend.Application.Contracts.Media;
 using ECommerceBackend.Application.Contracts.Products;
+using ECommerceBackend.Application.Products.Services;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Abstracts.Utils;
 using ECommerceBackend.Domain.Categories;
@@ -27,6 +28,7 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
     private readonly IShopRepository _shopRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ProductDetailAssembler _assembler;
 
     public CreateNewProductCommandHandler(
         IProductRepository productRepository,
@@ -38,7 +40,8 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
         IMediaRepository mediaRepository,
         IShopRepository shopRepository,
         ICategoryRepository categoryRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ProductDetailAssembler assembler)
     {
         _productRepository = productRepository;
         _productVariantRepository = productVariantRepository;
@@ -50,6 +53,7 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
         _shopRepository = shopRepository;
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
+        _assembler = assembler;
     }
 
     public async Task<Result<ProductDetailDto>> Handle(CreateNewProductCommand request, CancellationToken cancellationToken)
@@ -126,7 +130,47 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             // 8. Build response DTO
-            ProductDetailDto productDetailDto = await BuildProductDetailDto(product, productMedias, productOptions, productVariants, request, cancellationToken);
+            List<ProductMediaDto> mediaDtos = await _assembler.BuildMediaDtos(productMedias, cancellationToken);
+
+            ProductDetailDto productDetailDto;
+            if (productOptions.Any())
+            {
+                // Complex product with variants
+                List<ProductOptionDto> optionDtos = await _assembler.BuildOptionDtos(productOptions, cancellationToken);
+                List<ProductVariantDetailDto> variantDtos = await _assembler.BuildVariantDtos(productVariants, cancellationToken);
+
+                productDetailDto = _assembler.BuildProductDetail(
+                    product,
+                    mediaDtos,
+                    productOptions,
+                    productVariants,
+                    optionDtos,
+                    variantDtos,
+                    simpleOverrides: null
+                );
+            }
+            else
+            {
+                // Simple product - use data from request
+                var overrides = new ProductDetailAssembler.SimpleOverrides(
+                    Price: (decimal?)request.DefaultPrice,
+                    Stock: request.DefaultStock,
+                    Weight: (decimal?)request.DefaultWeight,
+                    Height: (decimal?)request.DefaultHeight,
+                    Width: (decimal?)request.DefaultWidth,
+                    Length: (decimal?)request.DefaultLength
+                );
+
+                productDetailDto = _assembler.BuildProductDetail(
+                    product,
+                    mediaDtos,
+                    productOptions,
+                    productVariants,
+                    optionDtos: null,
+                    variantDtos: null,
+                    simpleOverrides: overrides
+                );
+            }
 
             return productDetailDto;
         }, cancellationToken);
@@ -297,187 +341,5 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
         }
 
         return mediaList;
-    }
-
-    private async Task<ProductDetailDto> BuildProductDetailDto(
-        Product product,
-        List<ProductMedia> productMedias,
-        List<ProductOptionType> productOptions,
-        List<ProductVariant> productVariants,
-        CreateNewProductCommand request, // Add request to get simple product data
-        CancellationToken cancellationToken)
-    {
-        // Build media DTOs
-        List<ProductMediaDto> mediaDtos = await BuildMediaDtos(productMedias, cancellationToken);
-
-        // Determine if product has variants
-        bool hasVariants = productOptions.Any();
-
-        if (hasVariants)
-        {
-            // Complex product with variants
-            List<ProductOptionDto> optionDtos = await BuildOptionDtos(productOptions, cancellationToken);
-            List<ProductVariantDetailDto> variantDtos = await BuildVariantDtos(productVariants, cancellationToken);
-
-            // Calculate price range and total stock
-            decimal minPrice = productVariants.Min(v => v.Price);
-            decimal maxPrice = productVariants.Max(v => v.Price);
-            int totalStock = productVariants.Sum(v => v.Stock);
-
-            return ProductDetailDto.CreateClean(
-                product.Id,
-                product.ShopId,
-                product.CategoryId,
-                product.Name,
-                product.Description,
-                product.Slug,
-                product.Sku, // Product SKU
-                product.Status,
-                product.CreatedAtUtc,
-                product.UpdatedAtUtc,
-                mediaDtos,
-                hasVariants: true,
-                variantCount: productVariants.Count,
-                options: optionDtos,
-                variants: variantDtos,
-                minPrice: minPrice,
-                maxPrice: maxPrice,
-                totalStock: totalStock
-            );
-        }
-        else
-        {
-            // Simple product - use data from request, don't show ghost variant
-            return ProductDetailDto.CreateClean(
-                product.Id,
-                product.ShopId,
-                product.CategoryId,
-                product.Name,
-                product.Description,
-                product.Slug,
-                product.Sku, // Product SKU
-                product.Status,
-                product.CreatedAtUtc,
-                product.UpdatedAtUtc,
-                mediaDtos,
-                hasVariants: false,
-                variantCount: 0, // Don't count ghost variant
-                price: request.DefaultPrice,
-                stock: request.DefaultStock,
-                weight: (decimal?)request.DefaultWeight,
-                height: (decimal?)request.DefaultHeight,
-                width: (decimal?)request.DefaultWidth,
-                length: (decimal?)request.DefaultLength
-            );
-        }
-    }
-
-    // Helper methods
-    private async Task<List<ProductMediaDto>> BuildMediaDtos(List<ProductMedia> productMedias, CancellationToken cancellationToken)
-    {
-        var mediaDtos = new List<ProductMediaDto>();
-
-        foreach (ProductMedia productMedia in productMedias)
-        {
-            Media? media = await _mediaRepository.GetByIdAsync(productMedia.MediaId, cancellationToken);
-            if (media != null)
-            {
-                var mediaDto = MediaDto.FromEntity(media);
-                var productMediaDto = new ProductMediaDto(
-                    productMedia.Id,
-                    productMedia.ProductId,
-                    productMedia.ProductVariantId,
-                    productMedia.MediaId,
-                    productMedia.IsCover,
-                    productMedia.SortOrder,
-                    productMedia.CreatedAtUtc,
-                    mediaDto
-                );
-                mediaDtos.Add(productMediaDto);
-            }
-        }
-
-        return mediaDtos;
-    }
-
-    private async Task<List<ProductOptionDto>> BuildOptionDtos(List<ProductOptionType> productOptions, CancellationToken cancellationToken)
-    {
-        var optionDtos = new List<ProductOptionDto>();
-
-        foreach (ProductOptionType option in productOptions)
-        {
-            List<ProductOptionValue> optionValues = await _productOptionValueRepository.GetByProductOptionTypeIdAsync(option.Id, cancellationToken);
-            var values = optionValues.Select(ov => ov.Value).ToList();
-            optionDtos.Add(new ProductOptionDto(option.Name, values));
-        }
-
-        return optionDtos;
-    }
-
-    private async Task<List<ProductVariantDetailDto>> BuildVariantDtos(List<ProductVariant> productVariants, CancellationToken cancellationToken)
-    {
-        var variantDtos = new List<ProductVariantDetailDto>();
-
-        foreach (ProductVariant variant in productVariants)
-        {
-            List<ProductVariantOptionValue> variantOptionValues = await _productVariantOptionValueRepository.GetByVariantIdAsync(variant.Id, cancellationToken);
-            var optionValues = new List<string>();
-
-            foreach (ProductVariantOptionValue vov in variantOptionValues)
-            {
-                ProductOptionValue? optionValue = await _productOptionValueRepository.GetByIdAsync(vov.OptionValueId, cancellationToken);
-                if (optionValue != null)
-                {
-                    optionValues.Add(optionValue.Value);
-                }
-            }
-
-            List<ProductMedia> variantMedias = await _productMediaRepository.GetByProductVariantIdAsync(variant.Id, cancellationToken);
-            List<ProductMediaDto> variantMediaDtos = await BuildVariantMediaDtos(variantMedias, cancellationToken);
-
-            var variantDto = new ProductVariantDetailDto(
-                variant.Id,
-                optionValues,
-                variant.Price,
-                variant.Stock,
-                variant.Sku,
-                (decimal)variant.Weight,
-                (decimal)variant.Height,
-                (decimal)variant.Width,
-                (decimal)variant.Length,
-                variantMediaDtos,
-                variant.CreatedAtUtc
-            );
-            variantDtos.Add(variantDto);
-        }
-
-        return variantDtos;
-    }
-
-    private async Task<List<ProductMediaDto>> BuildVariantMediaDtos(List<ProductMedia> variantMedias, CancellationToken cancellationToken)
-    {
-        var variantMediaDtos = new List<ProductMediaDto>();
-
-        foreach (ProductMedia variantMedia in variantMedias)
-        {
-            Media? media = await _mediaRepository.GetByIdAsync(variantMedia.MediaId, cancellationToken);
-            if (media != null)
-            {
-                var mediaDto = MediaDto.FromEntity(media);
-                var productMediaDto = new ProductMediaDto(
-                    variantMedia.Id,
-                    variantMedia.ProductId,
-                    variantMedia.ProductVariantId,
-                    variantMedia.MediaId,
-                    variantMedia.IsCover,
-                    variantMedia.SortOrder,
-                    variantMedia.CreatedAtUtc,
-                    mediaDto
-                );
-                variantMediaDtos.Add(productMediaDto);
-            }
-        }
-
-        return variantMediaDtos;
     }
 }

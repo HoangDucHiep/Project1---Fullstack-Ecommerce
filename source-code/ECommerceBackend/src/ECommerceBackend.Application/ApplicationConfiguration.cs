@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Application.Abstracts.Behaviors;
+using ECommerceBackend.Application.Products.Services;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,6 +36,9 @@ public static class ApplicationConfiguration
 
         // add validation.
         services.AddValidatorsFromAssembly(typeof(ApplicationConfiguration).Assembly, includeInternalTypes: true);
+
+        // Register shared services
+        services.AddScoped<ProductDetailAssembler>();
 
         return services;
     }

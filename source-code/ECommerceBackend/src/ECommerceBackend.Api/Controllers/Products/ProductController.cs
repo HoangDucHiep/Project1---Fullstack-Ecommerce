@@ -1,6 +1,7 @@
 ﻿using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Contracts.Products;
 using ECommerceBackend.Application.Products.Commands.CreateNewProduct;
+using ECommerceBackend.Application.Products.Queries.GetProductDetails;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +71,22 @@ public class ProductController : ControllerBase
 
         return result.IsSuccess
             ? Created($"/api/v1/products/{result.Value.Id}", response)
+            : StatusCode(result.Error.GetStatusCode(), response);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetProductByIdAsync(
+    Guid id,
+    CancellationToken cancellationToken = default)
+    {
+        var query = new GetProductDetailsQuery(id);
+
+        Result<ProductDetailDto> result = await _sender.Send(query, cancellationToken);
+
+        object response = result.ToResponse("Lấy chi tiết sản phẩm thành công");
+
+        return result.IsSuccess
+            ? Ok(response)
             : StatusCode(result.Error.GetStatusCode(), response);
     }
 }
