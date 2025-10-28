@@ -1,4 +1,6 @@
 using System.Text;
+using Amazon;
+using Amazon.S3;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Abstracts.Caching;
 using ECommerceBackend.Application.Abstracts.Clock;
@@ -39,6 +41,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using StackExchange.Redis;
@@ -79,7 +82,38 @@ public static class InfrastructureConfiguration
 
         // File Storage Service
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+        // Register S3 Client
+        services.AddScoped<IAmazonS3>(provider =>
+        {
+            S3Settings options = provider.GetRequiredService<IOptions<FileStorageOptions>>().Value.S3;
+
+            var config = new AmazonS3Config
+            {
+                RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region),
+                ForcePathStyle = options.UseLocalStack
+            };
+
+            // LocalStack configuration
+            if (options.UseLocalStack && !string.IsNullOrEmpty(options.ServiceUrl))
+            {
+                config.ServiceURL = options.ServiceUrl;
+            }
+
+            return new AmazonS3Client(options.AccessKey, options.SecretKey, config);
+        });
+
+        // Register both storage services
+        services.AddScoped<LocalFileStorageService>();
+        services.AddScoped<S3FileStorageService>();
+
+        // Register factory and primary service
+        services.AddScoped<FileStorageFactory>();
+        services.AddScoped<IFileStorageService>(provider =>
+        {
+            FileStorageFactory factory = provider.GetRequiredService<FileStorageFactory>();
+            return factory.CreateFileStorageService();
+        });
 
         // Register Media Services
         services.AddScoped<IMediaRepository, MediaRepository>();

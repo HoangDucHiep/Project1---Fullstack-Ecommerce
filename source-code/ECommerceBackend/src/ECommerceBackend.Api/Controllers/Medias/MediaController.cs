@@ -2,6 +2,7 @@
 using ECommerceBackend.Application.Contracts.Media;
 using ECommerceBackend.Application.Medias.Commands.UploadMedia;
 using ECommerceBackend.Application.Medias.Queries.GetMedia;
+using ECommerceBackend.Application.Medias.Queries.GetMediaByFileName;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -121,6 +122,58 @@ public class MediaController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var query = new GetMediaQuery(mediaId);
+        Result<MediaDto> result = await _sender.Send(query, cancellationToken);
+
+        object response = result.ToResponse("Lấy thông tin media thành công");
+
+        return result.IsSuccess
+            ? Ok(response)
+            : StatusCode(result.Error.GetStatusCode(), response);
+    }
+
+    /// <summary>
+    /// Get media file by filename with optional folder path
+    /// </summary>
+    /// <param name="fileName">File name (can include folder path like "images/photo.jpg")</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Media file content with appropriate content type</returns>
+    [HttpGet("file/{*fileName}")]
+    public async Task<IActionResult> GetMediaFileAsync(
+        string fileName,
+        CancellationToken cancellationToken = default)
+    {
+        // Decode URL-encoded filename
+        fileName = Uri.UnescapeDataString(fileName);
+
+        var query = new GetMediaByFileNameQuery(fileName);
+        Result<MediaDto> result = await _sender.Send(query, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return NotFound($"Media file '{fileName}' not found");
+        }
+
+        MediaDto mediaDto = result.Value;
+
+        // Redirect to the actual file URL (S3 or local storage)
+        return Redirect(mediaDto.FileUrl);
+    }
+
+    /// <summary>
+    /// Get media information by filename
+    /// </summary>
+    /// <param name="fileName">File name</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Media information</returns>
+    [HttpGet("info/{*fileName}")]
+    public async Task<IActionResult> GetMediaInfoByFileNameAsync(
+        string fileName,
+        CancellationToken cancellationToken = default)
+    {
+        // Decode URL-encoded filename
+        fileName = Uri.UnescapeDataString(fileName);
+
+        var query = new GetMediaByFileNameQuery(fileName);
         Result<MediaDto> result = await _sender.Send(query, cancellationToken);
 
         object response = result.ToResponse("Lấy thông tin media thành công");

@@ -9,6 +9,12 @@ public class MediaRepository : Repository<Media>, IMediaRepository
     {
     }
 
+    public async Task<Media?> GetByFileNameAsync(string fileName, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Set<Media>()
+            .FirstOrDefaultAsync(m => m.FileName == fileName, cancellationToken);
+    }
+
     public async Task<List<Media>> GetByIdsAsync(List<Guid> ids, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Set<Media>().Where(m => ids.Contains(m.Id))

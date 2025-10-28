@@ -25,12 +25,22 @@ services:
       - Encryption__Key=${ENCRYPTION_KEY}
       
       # File Storage configuration
+      - FileStorage__StorageType=${FILE_STORAGE_STORAGE_TYPE}
       - FileStorage__LocalStoragePath=${FILE_STORAGE_LOCAL_PATH}
       - FileStorage__BaseUrl=${FILE_STORAGE_BASE_URL}
       - FileStorage__MaxImageSizeMB=${FILE_STORAGE_MAX_IMAGE_SIZE_MB}
       - FileStorage__MaxVideoSizeMB=${FILE_STORAGE_MAX_VIDEO_SIZE_MB}
       - FileStorage__AllowedImageExtensions=${FILE_STORAGE_ALLOWED_IMAGE_EXTENSIONS}
       - FileStorage__AllowedVideoExtensions=${FILE_STORAGE_ALLOWED_VIDEO_EXTENSIONS}
+      
+      # S3 Configuration
+      - FileStorage__S3__BucketName=${FILE_STORAGE_S3_BUCKET_NAME}
+      - FileStorage__S3__Region=${FILE_STORAGE_S3_REGION}
+      - FileStorage__S3__AccessKey=${FILE_STORAGE_S3_ACCESS_KEY}
+      - FileStorage__S3__SecretKey=${FILE_STORAGE_S3_SECRET_KEY}
+      - FileStorage__S3__ServiceUrl=${FILE_STORAGE_S3_SERVICE_URL}
+      - FileStorage__S3__UseLocalStack=${FILE_STORAGE_S3_USE_LOCALSTACK}
+      - FileStorage__S3__PresignedUrlExpiryHours=${FILE_STORAGE_S3_PRESIGNED_URL_EXPIRY_HOURS}
       
       # FFMpeg configuration
       - FFMpeg__RootDirectory=${FFMPEG_ROOT_DIRECTORY}
@@ -52,11 +62,17 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+      TZ: UTC
     volumes:
       - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
     ports:
       - ${POSTGRES_PORT}:5432
+    command: >
+      postgres
+      -c timezone=UTC
+      -c log_timezone=UTC
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
