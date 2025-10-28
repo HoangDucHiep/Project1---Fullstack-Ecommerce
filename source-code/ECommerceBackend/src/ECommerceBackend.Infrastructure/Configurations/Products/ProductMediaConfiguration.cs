@@ -41,7 +41,7 @@ public class ProductMediaConfiguration : IEntityTypeConfiguration<ProductMedia>
 
         // Relationships
         builder.HasOne(pm => pm.Product)
-            .WithMany()
+            .WithMany(p => p.ProductMedias)
             .HasForeignKey(pm => pm.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
 

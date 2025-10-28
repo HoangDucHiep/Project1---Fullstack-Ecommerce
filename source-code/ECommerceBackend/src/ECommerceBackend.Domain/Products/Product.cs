@@ -34,6 +34,7 @@ public sealed class Product : Entity
     // Navigation properties
     public Category Category { get; private set; } = null!;
     public ICollection<ProductMedia> ProductMedias { get; private set; } = [];
+    public ICollection<ProductVariant> ProductVariants { get; private set; } = [];
 
     public Product()
     {

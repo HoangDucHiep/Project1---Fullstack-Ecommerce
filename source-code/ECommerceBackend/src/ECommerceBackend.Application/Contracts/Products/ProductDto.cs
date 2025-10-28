@@ -2,36 +2,45 @@
 
 namespace ECommerceBackend.Application.Contracts.Products;
 
-
 /// <summary>
 /// DTO for product information
 /// </summary>
-public record ProductDto(
-    Guid Id,
-    Guid ShopId,
-    Guid CategoryId,
-    string Name,
-    string Description,
-    string Slug,
-    ProductStatus Status,
-    DateTimeOffset CreatedAtUtc,
-    DateTimeOffset UpdatedAtUtc,
-    List<ProductMediaDto>? Medias = null
-)
+public class ProductDto
 {
+    public Guid Id { get; set; }
+    public Guid ShopId { get; set; }
+    public Guid CategoryId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Slug { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;  // String để map từ SQL
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset UpdatedAtUtc { get; set; }
+    public List<ProductMediaDto>? Medias { get; set; }
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
+    public long? TotalStock { get; set; }  // Long để match SQL SUM()
+    public bool HasVariants { get; set; }
+
+    /// <summary>
+    /// Convert Status string back to ProductStatus enum
+    /// </summary>
+    public ProductStatus GetProductStatus() => Enum.Parse<ProductStatus>(Status);
+
     /// <summary>
     /// Factory method to create ProductDto from Product entity
     /// </summary>
-    public static ProductDto FromEntity(Product product, List<ProductMediaDto>? medias = null) => new(
-        product.Id,
-        product.ShopId,
-        product.CategoryId,
-        product.Name,
-        product.Description,
-        product.Slug,
-        product.Status,
-        product.CreatedAtUtc,
-        product.UpdatedAtUtc,
-        medias
-    );
-};
+    public static ProductDto FromEntity(Product product, List<ProductMediaDto>? medias = null) => new()
+    {
+        Id = product.Id,
+        ShopId = product.ShopId,
+        CategoryId = product.CategoryId,
+        Name = product.Name,
+        Description = product.Description,
+        Slug = product.Slug,
+        Status = product.Status.ToString(),
+        CreatedAtUtc = product.CreatedAtUtc,
+        UpdatedAtUtc = product.UpdatedAtUtc,
+        Medias = medias
+    };
+}

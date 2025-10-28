@@ -33,15 +33,15 @@ internal sealed class RolePermissionConfiguration : IEntityTypeConfiguration<Rol
 
 
         // Relationships
-        builder.HasOne<Role>()
-               .WithMany()
-               .HasForeignKey(rp => rp.RoleId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(rp => rp.Role)
+            .WithMany(r => r.RolePermissions)
+            .HasForeignKey(rp => rp.RoleId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne<Permission>()
-                .WithMany()
-                .HasForeignKey(rp => rp.PermissionId)
-                .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(rp => rp.Permission)
+            .WithMany(p => p.RolePermissions)
+            .HasForeignKey(rp => rp.PermissionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes
         builder.HasIndex(rp => rp.RoleId);

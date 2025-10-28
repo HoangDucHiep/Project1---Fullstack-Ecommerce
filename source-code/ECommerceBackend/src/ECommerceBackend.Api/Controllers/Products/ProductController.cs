@@ -1,7 +1,9 @@
 ﻿using ECommerceBackend.Api.Extensions;
+using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Application.Contracts.Products;
 using ECommerceBackend.Application.Products.Commands.CreateNewProduct;
 using ECommerceBackend.Application.Products.Queries.GetProductDetails;
+using ECommerceBackend.Application.Products.Queries.SearchProducts;
 using ECommerceBackend.Domain.Abstracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -84,6 +86,45 @@ public class ProductController : ControllerBase
         Result<ProductDetailDto> result = await _sender.Send(query, cancellationToken);
 
         object response = result.ToResponse("Lấy chi tiết sản phẩm thành công");
+
+        return result.IsSuccess
+            ? Ok(response)
+            : StatusCode(result.Error.GetStatusCode(), response);
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> SearchProductsAsync(
+    [FromQuery] string? q = null,
+    [FromQuery] Guid? categoryId = null,
+    [FromQuery] Guid? shopId = null,
+    [FromQuery] decimal? minPrice = null,
+    [FromQuery] decimal? maxPrice = null,
+    [FromQuery] bool? hasPromotion = null,
+    [FromQuery] string? pickupProvince = null,
+    [FromQuery] string? pickupDistrict = null,
+    [FromQuery] ProductSortBy sortBy = ProductSortBy.Relevance,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 20,
+    CancellationToken cancellationToken = default)
+    {
+        var query = new SearchProductsQuery(
+            Q: q,
+            CategoryId: categoryId,
+            ShopId: shopId,
+            MinPrice: minPrice,
+            MaxPrice: maxPrice,
+            HasPromotion: hasPromotion,
+            PickupProvince: pickupProvince,
+            PickupDistrict: pickupDistrict,
+            SortBy: sortBy,
+            Page: page,
+            PageSize: pageSize
+        );
+
+        Result<PaginationResult<ProductDto>> result = await _sender.Send(query, cancellationToken);
+
+        object response = result.ToPaginatedResponse<ProductDto>("Tìm kiếm sản phẩm thành công");
 
         return result.IsSuccess
             ? Ok(response)

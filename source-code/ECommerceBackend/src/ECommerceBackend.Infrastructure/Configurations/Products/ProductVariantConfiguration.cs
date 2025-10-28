@@ -64,8 +64,8 @@ internal sealed class ProductVariantConfiguration : IEntityTypeConfiguration<Pro
         // Unique SKU index by shop, done with raw SQL in migrations
 
         // Relationships
-        builder.HasOne(p => p.Product)
-            .WithMany()
+        builder.HasOne(pv => pv.Product)
+            .WithMany(p => p.ProductVariants)
             .HasForeignKey(pv => pv.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
     }

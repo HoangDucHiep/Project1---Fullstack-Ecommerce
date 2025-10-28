@@ -1,4 +1,5 @@
 ﻿using ECommerceBackend.Api.Contracts.Addresses;
+using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Abstracts.Authentication;
 using ECommerceBackend.Application.Addresses.AddNewAddress;
 using ECommerceBackend.Application.Addresses.DeleteAddress;
@@ -97,12 +98,9 @@ public class AddressController : ControllerBase
 
         Result<PaginationResult<AddressDto>> result = await _sender.Send(query);
 
-        if (result.IsFailure)
-        {
-            return StatusCode(result.Error.Type.StatusCode, result.Error);
-        }
-
-        return Ok(result.Value);
+        return result.IsFailure
+            ? StatusCode(result.Error.Type.StatusCode, result.Error)
+            : Ok(result.ToPaginatedResponse<AddressDto>());
     }
 
 

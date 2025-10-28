@@ -35,6 +35,7 @@ public sealed class User : Entity
     // Convenience property to get roles
     public IEnumerable<Role> Roles => _userRoles.Select(ur => ur.Role);
 
+
     public static User Create(string userName, string identityId, string? email = null, string? phone = null, string? avatar_Url = null, string? bio = null, string? idCardFullName = null, string? idCardNumber = null, string? idCardFullAddress = null)
     {
         // Need to implement roles, events later

@@ -1,0 +1,54 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace ECommerceBackend.Infrastructure.Migrations.Application;
+
+/// <inheritdoc />
+public partial class FixProductVariantRelationship : Migration
+{
+    /// <inheritdoc />
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropForeignKey(
+            name: "fk_product_variants_products_product_id1",
+            schema: "ecommerce-domain",
+            table: "product_variants");
+
+        migrationBuilder.DropIndex(
+            name: "ix_product_variants_product_id1",
+            schema: "ecommerce-domain",
+            table: "product_variants");
+
+        migrationBuilder.DropColumn(
+            name: "product_id1",
+            schema: "ecommerce-domain",
+            table: "product_variants");
+    }
+
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AddColumn<Guid>(
+            name: "product_id1",
+            schema: "ecommerce-domain",
+            table: "product_variants",
+            type: "uuid",
+            nullable: true);
+
+        migrationBuilder.CreateIndex(
+            name: "ix_product_variants_product_id1",
+            schema: "ecommerce-domain",
+            table: "product_variants",
+            column: "product_id1");
+
+        migrationBuilder.AddForeignKey(
+            name: "fk_product_variants_products_product_id1",
+            schema: "ecommerce-domain",
+            table: "product_variants",
+            column: "product_id1",
+            principalSchema: "ecommerce-domain",
+            principalTable: "products",
+            principalColumn: "id");
+    }
+}
