@@ -3,6 +3,7 @@ using System;
 using ECommerceBackend.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerceBackend.Infrastructure.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251028091804_FixProductCategoryRelationship")]
+    partial class FixProductCategoryRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -290,11 +293,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .HasColumnType("uuid")
                         .HasColumnName("shop_id");
 
-                    b.Property<string>("Sku")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("sku");
-
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -499,6 +497,10 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .HasColumnType("uuid")
                         .HasColumnName("product_id");
 
+                    b.Property<Guid>("ProductId1")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id1");
+
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -532,6 +534,9 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
 
                     b.HasIndex("ProductId")
                         .HasDatabaseName("ix_product_variants_product_id");
+
+                    b.HasIndex("ProductId1")
+                        .HasDatabaseName("ix_product_variants_product_id1");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_product_variants_status");
@@ -1030,12 +1035,19 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
 
             modelBuilder.Entity("ECommerceBackend.Domain.Products.ProductVariant", b =>
                 {
-                    b.HasOne("ECommerceBackend.Domain.Products.Product", "Product")
+                    b.HasOne("ECommerceBackend.Domain.Products.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_product_variants_products_product_id");
+
+                    b.HasOne("ECommerceBackend.Domain.Products.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_variants_products_product_id1");
 
                     b.Navigation("Product");
                 });

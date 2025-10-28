@@ -3,7 +3,6 @@ using ECommerceBackend.Domain.Categories;
 
 namespace ECommerceBackend.Domain.Products;
 
-
 /// <summary>
 /// Represents the status of a product.
 /// </summary>
@@ -16,7 +15,6 @@ public enum ProductStatus
     OutOfStock
 }
 
-
 /// HDHiep - 10/21/2025
 /// <summary>
 /// Represents a product in the e-commerce system.
@@ -28,6 +26,7 @@ public sealed class Product : Entity
     public string Name { get; private set; }
     public string Description { get; private set; }
     public string Slug { get; private set; }
+    public string Sku { get; private set; } // Product SKU
     public ProductStatus Status { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
@@ -41,7 +40,7 @@ public sealed class Product : Entity
         // Required by EF Core
     }
 
-    public static Product Create(Guid shopId, Guid categoryId, string name, string description, string slug, ProductStatus status)
+    public static Product Create(Guid shopId, Guid categoryId, string name, string description, string slug, string sku, ProductStatus status)
     {
         var product = new Product
         {
@@ -50,6 +49,7 @@ public sealed class Product : Entity
             Name = name,
             Description = description,
             Slug = slug,
+            Sku = sku,
             Status = status,
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow

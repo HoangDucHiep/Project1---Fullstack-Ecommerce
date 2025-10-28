@@ -1,5 +1,4 @@
-﻿using ECommerceBackend.Domain.Categories;
-using ECommerceBackend.Domain.Products;
+﻿using ECommerceBackend.Domain.Products;
 using ECommerceBackend.Domain.Shops;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -47,9 +46,9 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => p.Description);
 
         // Relationships
-        builder.HasOne<Category>()
+        builder.HasOne(p => p.Category)
             .WithMany()
-            .HasForeignKey(p => p.CategoryId)
+            .HasForeignKey(p => p.CategoryId) // Explicitly use the existing CategoryId property
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne<Shop>()
