@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Layout, Menu, Dropdown, Input, Badge, Button } from "antd";
 import type { MenuProps } from "antd/es/menu";
 import {
@@ -19,7 +19,6 @@ const CategoryManagerComponent: React.FC = () => {
     const navMenu: MenuProps["items"] = [
         { key: "home", label: "Trang chủ" },
         { key: "brand", label: "Thương hiệu" },
-        { key: "seller", label: "Người bán" },
         {
             key: "offers",
             label: (

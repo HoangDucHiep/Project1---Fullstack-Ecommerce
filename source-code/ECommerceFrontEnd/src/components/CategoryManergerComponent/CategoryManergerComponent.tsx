@@ -1,105 +1,163 @@
-
 import React from "react";
 import { Menu } from "antd";
+import {
+    MobileOutlined,
+    ShoppingOutlined,
+    GiftOutlined,
+    LaptopOutlined,
+    CoffeeOutlined,
+    SkinOutlined,
+    ClockCircleOutlined,
+    HeartOutlined,
+    SoundOutlined,
+    RocketOutlined,
+    UsbOutlined,
+    CameraOutlined,
+} from "@ant-design/icons";
 
 const { SubMenu } = Menu;
 
 const CategoryMenu: React.FC = () => {
     return (
-        <Menu mode="vertical" style={{ width: 250 }}>
-            <SubMenu
-                key="giay-dep-nam"
-                title="Giày Dép Nam"
+        <div
+            style={{
+                width: 260,
+                borderRadius: 12,
+                overflow: "hidden",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                backgroundColor: "#fff",
+            }}
+        >
+            <Menu
+                mode="vertical"
+                style={{
+                    width: "100%",
+                    borderInlineEnd: "none",
+                }}
             >
-                <Menu.Item key="thesim">Thẻ sim</Menu.Item>
-                <Menu.Item key="maytinh-bang">Máy tính bảng</Menu.Item>
-                <Menu.Item key="dienthoai">Điện thoại</Menu.Item>
-                <SubMenu key="thietbi-deo" title="Thiết bị đeo thông minh" popupOffset={[0, 0]} />
-
                 <SubMenu
-                    key="phukien"
-                    title={<span style={{ color: "red" }}>Phụ kiện</span>}
-                    popupOffset={[0, 0]}
+                    key="dien-thoai"
+                    icon={<MobileOutlined />}
+                    title="Điện thoại & Phụ kiện"
+                    popupOffset={[10, 0]}
+                    popupClassName="custom-submenu"
                 >
-                    <Menu.Item key="bodam">Bộ đàm</Menu.Item>
-                    <Menu.Item key="khacphukien">Khác</Menu.Item>
+                    <Menu.Item key="the-sim" icon={<UsbOutlined />}>
+                        Thẻ sim
+                    </Menu.Item>
+                    <Menu.Item key="may-tinh-bang" icon={<LaptopOutlined />}>
+                        Máy tính bảng
+                    </Menu.Item>
+                    <Menu.Item key="dien-thoai" icon={<MobileOutlined />}>
+                        Điện thoại
+                    </Menu.Item>
 
                     <SubMenu
-                        key="phukien-selfie"
-                        title={<span style={{ color: "red" }}>Phụ kiện selfie</span>}
-                        popupOffset={[0, 0]}
+                        key="phu-kien"
+                        title="Phụ kiện"
+                        icon={<ShoppingOutlined />}
+                        popupOffset={[10, 0]}
                     >
-                        <Menu.Item key="ongkinh">Ống kính điện thoại</Menu.Item>
-                        <Menu.Item key="denflash">Đèn flash điện thoại & Đèn selfie</Menu.Item>
-                        <Menu.Item key="quatusb">Quạt USB & Quạt điện thoại</Menu.Item>
-                        <Menu.Item key="butcam-ung">Bút cảm ứng</Menu.Item>
-                        <Menu.Item key="kepdt">Kẹp điện thoại</Menu.Item>
-                        <Menu.Item key="daydeo">Dây đeo điện thoại & Móc khóa</Menu.Item>
-                        <Menu.Item key="thenho">Thẻ nhớ</Menu.Item>
-                        <Menu.Item key="thietbi-trinh-chieu">Thiết bị trình chiếu</Menu.Item>
-                        <Menu.Item key="tuidung-dt">Túi đựng điện thoại</Menu.Item>
+                        <Menu.Item key="bo-dam" icon={<SoundOutlined />}>
+                            Bộ đàm
+                        </Menu.Item>
+                        <Menu.Item key="khac-phukien" icon={<GiftOutlined />}>
+                            Khác
+                        </Menu.Item>
 
-                        <SubMenu key="phukien-selfie-more" title="Phụ kiện khác" popupOffset={[0, 0]}>
-                            <Menu.Item key="gayselfie">Gậy selfie</Menu.Item>
-                            <Menu.Item key="giado">Giá đỡ</Menu.Item>
-                            <Menu.Item key="dieukhien">Điều khiển chụp hình</Menu.Item>
-                            <Menu.Item key="khacselfie">Khác</Menu.Item>
-                        </SubMenu>
-                    </SubMenu>
-                </SubMenu>
-            </SubMenu>
-            <SubMenu
-                key="dien-thoai"
-                title={<span style={{ color: "red" }}>Điện Thoại & Phụ Kiện</span>}
-                popupOffset={[0, 0]} // 👈 fix ngang hàng
-            >
-                <Menu.Item key="the-sim">Thẻ sim</Menu.Item>
-                <Menu.Item key="may-tinh-bang">Máy tính bảng</Menu.Item>
-                <Menu.Item key="dien-thoai">Điện thoại</Menu.Item>
-                <SubMenu key="thiet-bi-deo" title="Thiết bị đeo thông minh" popupOffset={[0, 0]} />
-
-                <SubMenu
-                    key="phu-kien"
-                    title={<span style={{ color: "red" }}>Phụ kiện</span>}
-                    popupOffset={[0, 0]}
-                >
-                    <Menu.Item key="bo-dam">Bộ đàm</Menu.Item>
-                    <Menu.Item key="khac-phukien">Khác</Menu.Item>
-
-                    <SubMenu
-                        key="phu-kien-selfie"
-                        title={<span style={{ color: "red" }}>Phụ kiện selfie</span>}
-                        popupOffset={[0, 0]}
-                    >
-                        <Menu.Item key="ong-kinh">Ống kính điện thoại</Menu.Item>
-                        <Menu.Item key="den-flash">Đèn flash điện thoại & Đèn selfie</Menu.Item>
-                        <Menu.Item key="quat-usb">Quạt USB & Quạt điện thoại</Menu.Item>
-                        <Menu.Item key="but-cam-ung">Bút cảm ứng</Menu.Item>
-                        <Menu.Item key="kep-dt">Kẹp điện thoại</Menu.Item>
-                        <Menu.Item key="day-deo">Dây đeo điện thoại & Móc khóa</Menu.Item>
-                        <Menu.Item key="the-nho">Thẻ nhớ</Menu.Item>
-                        <Menu.Item key="thiet-bi-trinh-chieu">Thiết bị trình chiếu</Menu.Item>
-                        <Menu.Item key="tui-dung-dt">Túi đựng điện thoại</Menu.Item>
-
-                        <SubMenu key="phu-kien-selfie-more" title="Phụ kiện khác" popupOffset={[0, 0]}>
+                        <SubMenu
+                            key="phu-kien-selfie"
+                            title="Phụ kiện Selfie"
+                            icon={<CameraOutlined />}
+                            popupOffset={[10, 0]}
+                        >
                             <Menu.Item key="gay-selfie">Gậy selfie</Menu.Item>
                             <Menu.Item key="gia-do">Giá đỡ</Menu.Item>
-                            <Menu.Item key="dieu-khien">Điều khiển chụp hình</Menu.Item>
-                            <Menu.Item key="khac-selfie">Khác</Menu.Item>
+                            <Menu.Item key="den-flash">Đèn flash</Menu.Item>
+                            <Menu.Item key="but-cam-ung">Bút cảm ứng</Menu.Item>
+                            <Menu.Item key="day-deo">Dây đeo & móc khóa</Menu.Item>
                         </SubMenu>
                     </SubMenu>
                 </SubMenu>
-            </SubMenu>
 
-            <SubMenu key="du-lich" title="Du lịch & Hành lý" />
-            <SubMenu key="tui-vi-nu" title="Túi Ví Nữ" />
-            <SubMenu key="giay-dep-nu" title="Giày Dép Nữ" />
-            <SubMenu key="tui-vi-nam" title="Túi Ví Nam" />
-            <SubMenu key="dong-ho" title="Đồng Hồ" />
-            <SubMenu key="thiet-bi-am-thanh" title="Thiết Bị Âm Thanh" />
-            <SubMenu key="thuc-pham" title="Thực phẩm và đồ uống" />
-            <SubMenu key="cham-soc-thu-cung" title="Chăm Sóc Thú Cưng" />
-        </Menu>
+                <SubMenu
+                    key="thoi-trang-nam"
+                    icon={<SkinOutlined />}
+                    title="Thời trang nam"
+                    popupOffset={[10, 0]}
+                >
+                    <Menu.Item key="giay-dep-nam">Giày dép nam</Menu.Item>
+                    <Menu.Item key="ao-nam">Áo nam</Menu.Item>
+                    <Menu.Item key="quan-nam">Quần nam</Menu.Item>
+                </SubMenu>
+
+                <SubMenu
+                    key="thoi-trang-nu"
+                    icon={<HeartOutlined />}
+                    title="Thời trang nữ"
+                    popupOffset={[10, 0]}
+                >
+                    <Menu.Item key="tui-vi-nu">Túi & ví nữ</Menu.Item>
+                    <Menu.Item key="giay-dep-nu">Giày dép nữ</Menu.Item>
+                </SubMenu>
+
+                <SubMenu
+                    key="dong-ho"
+                    icon={<ClockCircleOutlined />}
+                    title="Đồng hồ"
+                    popupOffset={[10, 0]}
+                >
+                    <Menu.Item key="dong-ho-nam">Đồng hồ nam</Menu.Item>
+                    <Menu.Item key="dong-ho-nu">Đồng hồ nữ</Menu.Item>
+                </SubMenu>
+
+                <SubMenu
+                    key="du-lich"
+                    icon={<RocketOutlined />}
+                    title="Du lịch & Hành lý"
+                    popupOffset={[10, 0]}
+                />
+
+                <SubMenu
+                    key="do-uong"
+                    icon={<CoffeeOutlined />}
+                    title="Thực phẩm & Đồ uống"
+                    popupOffset={[10, 0]}
+                />
+            </Menu>
+
+            <style>
+                {`
+                    /* ✅ CSS tùy chỉnh submenu bung ngang */
+                    .ant-menu-submenu-popup {
+                        margin-left: 4px;
+                    }
+
+                    .ant-menu-submenu-popup .ant-menu {
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        padding: 4px 0;
+                    }
+
+                    .ant-menu-item:hover {
+                        background-color: #f5f5f5 !important;
+                    }
+
+                    .ant-menu-submenu-title:hover {
+                        background-color: #f0f0f0 !important;
+                        color: #1677ff !important;
+                    }
+
+                    .ant-menu-submenu-arrow {
+                        color: #aaa;
+                    }
+
+                    .ant-menu-submenu-selected > .ant-menu-submenu-title {
+                        color: #1677ff;
+                    }
+                `}
+            </style>
+        </div>
     );
 };
 

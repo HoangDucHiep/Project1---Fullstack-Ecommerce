@@ -19,17 +19,12 @@ import {
     FacebookFilled,
     UserOutlined,
 } from "@ant-design/icons";
-import Footer from "../../layouts/Footer";
-import Header from "../../layouts/Header";
 import { MessageComponent } from "../../components/MessageComponent";
 import MessageProvider from "../../components/MessageProvider";
 import { ApiClient } from "../../api/ApiClient.ts";
 
 const { Title, Text, Link } = Typography;
-
-const apiClient = new ApiClient({
-    BASE: "https://localhost:5001",
-});
+const apiClient = new ApiClient({ BASE: "https://localhost:5001" });
 const authService = apiClient.authentication;
 
 const SignUpPage: React.FC = () => {
@@ -39,19 +34,17 @@ const SignUpPage: React.FC = () => {
     const [registeredPhone, setRegisteredPhone] = useState("");
     const [form] = Form.useForm();
 
-    /** Xử lý khi submit form đăng ký */
+    /** ✅ Giữ nguyên logic đăng ký */
     const onFinish = async (values: any) => {
         setLoading(true);
         const payload = {
             phoneNumber: values.phone?.trim(),
             password: values.password?.trim(),
         };
-
         try {
-            const response = await authService.postApiAuthenticationRegisterPhoneOtp({
+            const response = await authService.postApiV1AuthRegisterPhoneOtp({
                 requestBody: payload,
             });
-
             if (response?.success !== false) {
                 MessageComponent.success("Mã OTP đã được gửi đến số điện thoại của bạn!");
                 setRegisteredPhone(payload.phoneNumber);
@@ -62,7 +55,6 @@ const SignUpPage: React.FC = () => {
         } catch (error: any) {
             const status = error.response?.status;
             console.error("Registration error:", error);
-
             if (status === 409 || status === 400) {
                 MessageComponent.error("Tài khoản đã tồn tại!");
             } else if (status === 500) {
@@ -77,37 +69,28 @@ const SignUpPage: React.FC = () => {
         }
     };
 
-    /** Xác thực OTP */
+    /** ✅ Giữ nguyên logic xác thực OTP */
     const handleVerifyOtp = async () => {
         if (!otpCode) {
             MessageComponent.error("Vui lòng nhập mã OTP!");
             return;
         }
-
         setLoading(true);
         try {
-            const verifyPayload = {
-                phoneNumber: registeredPhone,
-                otp: otpCode.trim(),
-            };
-
-            const response = await authService.postApiAuthenticationRegisterPhoneOtpVerify({
+            const verifyPayload = { phoneNumber: registeredPhone, otp: otpCode.trim() };
+            const response = await authService.postApiV1AuthRegisterPhoneOtpVerify({
                 requestBody: verifyPayload,
             });
-
             if (response?.success !== false) {
                 MessageComponent.success("Đăng ký thành công!");
                 setOtpVisible(false);
-                setTimeout(() => {
-                    window.location.href = "/login";
-                }, 4000);
+                setTimeout(() => (window.location.href = "/login"), 4000);
             } else {
                 MessageComponent.error(response?.message || "Mã OTP không hợp lệ!");
             }
         } catch (error: any) {
             const status = error.response?.status;
             console.error("OTP verify error:", error);
-
             if (status === 400) {
                 MessageComponent.error("Mã OTP không hợp lệ hoặc đã hết hạn!");
             } else if (status === 500) {
@@ -122,10 +105,9 @@ const SignUpPage: React.FC = () => {
         }
     };
 
-    /** Gửi lại OTP */
     const handleResendOtp = async () => {
         try {
-            await authService.postApiAuthenticationRegisterPhoneOtpResend({
+            await authService.postApiV1AuthRegisterPhoneOtpResend({
                 requestBody: { phoneNumber: registeredPhone },
             });
             MessageComponent.success("Đã gửi lại mã OTP!");
@@ -140,34 +122,44 @@ const SignUpPage: React.FC = () => {
                 display: "flex",
                 flexDirection: "column",
                 minHeight: "100vh",
-                background: "#f5f7fa",
+                /** 🎨 Thay đổi màu nền — gradient sang trọng */
+                background: "linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%)",
             }}
         >
             <MessageProvider />
 
-            {/* ✅ Phần nội dung trung tâm */}
-            <Row
-                justify="center"
-                align="middle"
-                style={{
-                    flex: "1 0 auto",
-                    padding: "40px 0",
-                }}
-            >
+            {/* 🎨 Card trung tâm với hiệu ứng đổ bóng, bo góc lớn */}
+            <Row justify="center" align="middle" style={{ flex: "1 0 auto", padding: "40px 0" }}>
                 <Col xs={22} sm={20} md={14} lg={10} xl={8}>
-                    <Card style={{ borderRadius: 12, padding: "24px 36px" }}>
+                    <Card
+                        style={{
+                            borderRadius: 20,
+                            padding: "36px 40px",
+                            boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+                            background: "white",
+                        }}
+                    >
+                        {/* 🎨 Header gọn gàng và hiện đại */}
                         <div style={{ textAlign: "center", marginBottom: 24 }}>
                             <UserOutlined
-                                style={{ fontSize: 48, color: "#1a73e8", marginBottom: 8 }}
+                                style={{
+                                    fontSize: 54,
+                                    color: "#1976d2",
+                                    marginBottom: 12,
+                                    background: "#e3f2fd",
+                                    padding: 16,
+                                    borderRadius: "50%",
+                                }}
                             />
-                            <Title level={3} style={{ margin: 0 }}>
+                            <Title level={3} style={{ margin: 0, color: "#0d47a1" }}>
                                 Đăng ký tài khoản
                             </Title>
                         </div>
 
                         <Form layout="vertical" onFinish={onFinish} form={form}>
+                            {/* 🎨 Ô nhập số điện thoại */}
                             <Form.Item
-                                label="Số điện thoại"
+                                label={<strong>Số điện thoại</strong>}
                                 name="phone"
                                 rules={[
                                     { required: true, message: "Vui lòng nhập số điện thoại!" },
@@ -177,11 +169,15 @@ const SignUpPage: React.FC = () => {
                                     },
                                 ]}
                             >
-                                <Input placeholder="Nhập số điện thoại của bạn" />
+                                <Input
+                                    placeholder="Nhập số điện thoại của bạn"
+                                    style={{ borderRadius: 8, padding: "10px 12px" }}
+                                />
                             </Form.Item>
 
+                            {/* 🎨 Ô nhập mật khẩu */}
                             <Form.Item
-                                label="Mật khẩu"
+                                label={<strong>Mật khẩu</strong>}
                                 name="password"
                                 rules={[
                                     { required: true, message: "Vui lòng nhập mật khẩu!" },
@@ -193,11 +189,13 @@ const SignUpPage: React.FC = () => {
                                     iconRender={(visible) =>
                                         visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
                                     }
+                                    style={{ borderRadius: 8, padding: "10px 12px" }}
                                 />
                             </Form.Item>
 
+                            {/* 🎨 Ô nhập lại mật khẩu */}
                             <Form.Item
-                                label="Xác nhận mật khẩu"
+                                label={<strong>Xác nhận mật khẩu</strong>}
                                 name="confirmPassword"
                                 dependencies={["password"]}
                                 rules={[
@@ -219,6 +217,7 @@ const SignUpPage: React.FC = () => {
                                     iconRender={(visible) =>
                                         visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
                                     }
+                                    style={{ borderRadius: 8, padding: "10px 12px" }}
                                 />
                             </Form.Item>
 
@@ -244,43 +243,67 @@ const SignUpPage: React.FC = () => {
                                 </Checkbox>
                             </Form.Item>
 
+                            {/* 🎨 Nút đăng ký có hiệu ứng hover */}
                             <Button
                                 type="primary"
                                 htmlType="submit"
                                 block
                                 loading={loading}
+                                style={{
+                                    background: "#1976d2",
+                                    borderRadius: 8,
+                                    padding: "10px 0",
+                                    fontWeight: 600,
+                                    transition: "0.3s",
+                                }}
                             >
                                 {loading ? "Đang xử lý..." : "Đăng ký"}
                             </Button>
                         </Form>
 
-                        <Divider style={{ margin: "32px 0 16px" }} />
+                        <Divider style={{ margin: "32px 0 16px" }}>Hoặc</Divider>
 
-                        <div style={{ textAlign: "center" }}>
-                            <Text>Hoặc tiếp tục với</Text>
-                            <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
-                                <Button icon={<GoogleOutlined />} block>
-                                    Google
-                                </Button>
-                                <Button icon={<FacebookFilled />} block>
-                                    Facebook
-                                </Button>
-                            </Space>
-                        </div>
+                        {/* 🎨 Nút Google & Facebook giống thật */}
+                        <Space direction="vertical" style={{ width: "100%" }}>
+                            <Button
+                                icon={<GoogleOutlined style={{ color: "#db4437" }} />}
+                                block
+                                style={{
+                                    borderRadius: 8,
+                                    fontWeight: 500,
+                                    height: 44,
+                                    borderColor: "#dadce0",
+                                    background: "white",
+                                }}
+                            >
+                                Đăng ký với Google
+                            </Button>
+                            <Button
+                                icon={<FacebookFilled style={{ color: "#1877f2" }} />}
+                                block
+                                style={{
+                                    borderRadius: 8,
+                                    fontWeight: 500,
+                                    height: 44,
+                                    background: "#e8f0fe",
+                                    border: "1px solid #c5d6f8",
+                                }}
+                            >
+                                Đăng ký với Facebook
+                            </Button>
+                        </Space>
 
-                        <div style={{ textAlign: "center", marginTop: 20 }}>
+                        <div style={{ textAlign: "center", marginTop: 24 }}>
                             <Text>Đã có tài khoản? </Text>
-                            <Link href="#">Đăng nhập ngay</Link>
+                            <Link href="/login">Đăng nhập ngay</Link>
                         </div>
                     </Card>
                 </Col>
             </Row>
 
-
-
-            {/* ✅ Modal nhập OTP */}
+            {/* ✅ Modal nhập OTP giữ nguyên logic, thêm chút UI mềm mại */}
             <Modal
-                title="Nhập mã OTP"
+                title={<span style={{ fontWeight: 600 }}>Nhập mã OTP</span>}
                 open={otpVisible}
                 onOk={handleVerifyOtp}
                 onCancel={() => setOtpVisible(false)}
@@ -299,6 +322,7 @@ const SignUpPage: React.FC = () => {
                         type="primary"
                         loading={loading}
                         onClick={handleVerifyOtp}
+                        style={{ background: "#1976d2" }}
                     >
                         Xác nhận OTP
                     </Button>,
@@ -309,6 +333,13 @@ const SignUpPage: React.FC = () => {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
                     maxLength={6}
+                    style={{
+                        borderRadius: 8,
+                        padding: "10px 12px",
+                        fontSize: 16,
+                        textAlign: "center",
+                        letterSpacing: 4,
+                    }}
                 />
             </Modal>
         </div>

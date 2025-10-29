@@ -47,23 +47,8 @@ const FilterSidebar: React.FC = () => {
                 <Slider range defaultValue={[0, 4000]} max={4000} />
             </div>
 
-            {/* Categories */}
-            <div style={{ marginBottom: 16 }}>
-                <p style={{ fontWeight: 500, marginBottom: 8 }}>Categories</p>
-                <Collapse
-                    ghost
-                    expandIcon={({ isActive }) =>
-                        isActive ? <DownOutlined /> : <RightOutlined />
-                    }
-                >
-                    <Panel header="Electronics & Gadgets" key="1" />
-                    <Panel header="Groceries & Dailies" key="2" />
-                    <Panel header="Musical Instruments" key="3" />
-                    <Panel header="Gifts & Crafts" key="4" />
-                    <Panel header="Automotive" key="5" />
-                    <Panel header="Digital Products" key="6" />
-                </Collapse>
-            </div>
+          
+           
 
             {/* Brands */}
             <div style={{ marginBottom: 16 }}>

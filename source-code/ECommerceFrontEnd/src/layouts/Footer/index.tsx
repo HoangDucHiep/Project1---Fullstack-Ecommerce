@@ -6,7 +6,7 @@ import {
     UserOutlined,
     EnvironmentOutlined,
 } from "@ant-design/icons";
-import img from "../../assets/logohcm.png";
+import img from "../../assets/img/logo.png";
 
 const { Footer } = Layout;
 const { Title, Text, Link } = Typography;
@@ -26,13 +26,13 @@ const AppFooter: React.FC = () => {
                 justify="center"
                 style={{ maxWidth: 1400, margin: "0 auto" }}
             >
-                {/* Cột 1: Logo + App Download */}
+                {/* Cột 1: Logo + Tải ứng dụng */}
                 <Col xs={24} sm={12} md={6} lg={4}>
                     <div style={{ marginBottom: 16 }}>
                         <img src={img} alt="Logo" style={{ height: 40 }} />
                     </div>
                     <Title level={5} style={{ color: "#fff" }}>
-                        DOWNLOAD OUR APP
+                        TẢI ỨNG DỤNG CỦA CHÚNG TÔI
                     </Title>
                     <Space direction="vertical" size="middle">
                         <img
@@ -48,20 +48,20 @@ const AppFooter: React.FC = () => {
                     </Space>
                 </Col>
 
-                {/* Cột 2: Quick Links */}
+                {/* Cột 2: Liên kết nhanh */}
                 <Col xs={12} sm={12} md={6} lg={4}>
                     <Title level={5} style={{ color: "#fff" }}>
-                        QUICK LINKS
+                        LIÊN KẾT NHANH
                     </Title>
                     <Space direction="vertical" size={6}>
                         {[
-                            "Profile Info",
-                            "Flash Deal",
-                            "Featured Products",
-                            "Best Selling Product",
-                            "Latest Products",
-                            "Top Rated Product",
-                            "Track Order",
+                            "Thông tin cá nhân",
+                            "Ưu đãi chớp nhoáng",
+                            "Sản phẩm nổi bật",
+                            "Sản phẩm bán chạy",
+                            "Sản phẩm mới nhất",
+                            "Sản phẩm được đánh giá cao",
+                            "Theo dõi đơn hàng",
                         ].map((item) => (
                             <Link key={item} href="#" style={{ color: "#fff" }}>
                                 {item}
@@ -70,19 +70,19 @@ const AppFooter: React.FC = () => {
                     </Space>
                 </Col>
 
-                {/* Cột 3: Other */}
+                {/* Cột 3: Khác */}
                 <Col xs={12} sm={12} md={6} lg={4}>
                     <Title level={5} style={{ color: "#fff" }}>
-                        OTHER
+                        KHÁC
                     </Title>
                     <Space direction="vertical" size={6}>
                         {[
-                            "About Us",
-                            "Terms And Conditions",
-                            "Privacy Policy",
-                            "Refund Policy",
-                            "Return Policy",
-                            "Cancellation Policy",
+                            "Về chúng tôi",
+                            "Điều khoản và điều kiện",
+                            "Chính sách bảo mật",
+                            "Chính sách hoàn tiền",
+                            "Chính sách đổi trả",
+                            "Chính sách hủy đơn",
                         ].map((item) => (
                             <Link key={item} href="#" style={{ color: "#fff" }}>
                                 {item}
@@ -91,27 +91,26 @@ const AppFooter: React.FC = () => {
                     </Space>
                 </Col>
 
-
-                {/* Cột 5: Start a Conversation + Address */}
+                {/* Cột 4: Liên hệ & Địa chỉ */}
                 <Col xs={24} sm={12} md={6} lg={8}>
                     <Title level={5} style={{ color: "#fff" }}>
-                        Start A Conversation
+                        BẮT ĐẦU TRAO ĐỔI
                     </Title>
                     <p style={{ marginBottom: 6 }}>
                         <PhoneOutlined /> +00xxxxxxxxxxxx
                     </p>
                     <p style={{ marginBottom: 6 }}>
-                        <MailOutlined /> copy@6amtech.com
+                        <MailOutlined /> lienhe@hcmutstore.com
                     </p>
                     <p style={{ marginBottom: 12 }}>
-                        <UserOutlined /> Support ticket
+                        <UserOutlined /> Gửi yêu cầu hỗ trợ
                     </p>
 
                     <Title level={5} style={{ color: "#fff", marginTop: 16 }}>
-                        Address
+                        ĐỊA CHỈ
                     </Title>
                     <p style={{ marginBottom: 0 }}>
-                        <EnvironmentOutlined /> Kingston, New York 12401 United States
+                        <EnvironmentOutlined /> Quận 10, TP. Hồ Chí Minh, Việt Nam
                     </p>
                 </Col>
             </Row>
@@ -126,7 +125,7 @@ const AppFooter: React.FC = () => {
                 }}
             >
                 <Text style={{ color: "#ccc", fontSize: 13 }}>
-                    © 2025 HCMUT Store. All rights reserved.
+                    © 2025 HCMUT Store. Bản quyền thuộc về tất cả các bên.
                 </Text>
             </div>
         </Footer>

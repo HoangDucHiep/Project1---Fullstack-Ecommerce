@@ -72,7 +72,9 @@ const LoginPage: React.FC = () => {
                                     <Form.Item
                                         label="Email hoặc Số điện thoại"
                                         name="email"
-                                        rules={[{ required: true, message: "Vui lòng nhập email hoặc số điện thoại!" }]}
+                                        rules={[
+                                            { required: true, message: "Vui lòng nhập email hoặc số điện thoại!" },
+                                        ]}
                                     >
                                         <Input placeholder="Nhập email hoặc số điện thoại" />
                                     </Form.Item>
@@ -120,12 +122,62 @@ const LoginPage: React.FC = () => {
                                     }}
                                 >
                                     <Text type="secondary">Hoặc đăng nhập bằng</Text>
-                                    <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
-                                        <Button icon={<GoogleOutlined />} block>
-                                            Google
+                                    <Space
+                                        direction="vertical"
+                                        style={{ width: "100%", marginTop: 16 }}
+                                    >
+                                        {/* 🔴 Google Button */}
+                                        <Button
+                                            icon={<GoogleOutlined style={{ color: "#DB4437" }} />}
+                                            block
+                                            style={{
+                                                background: "#fff",
+                                                border: "1px solid #ddd",
+                                                fontWeight: 500,
+                                                height: 40,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                            }}
+                                            onMouseEnter={(e) =>
+                                                (e.currentTarget.style.background = "#f8f8f8")
+                                            }
+                                            onMouseLeave={(e) =>
+                                                (e.currentTarget.style.background = "#fff")
+                                            }
+                                        >
+                                            <span style={{ color: "#444" }}>Đăng nhập với Google</span>
                                         </Button>
-                                        <Button icon={<FacebookFilled />} block>
-                                            Facebook
+
+                                        {/* 🔵 Facebook Button */}
+                                        <Button
+                                            icon={
+                                                <FacebookFilled
+                                                    style={{
+                                                        color: "#fff",
+                                                        background: "transparent",
+                                                    }}
+                                                />
+                                            }
+                                            block
+                                            style={{
+                                                background: "#1877F2",
+                                                border: "none",
+                                                color: "#fff",
+                                                fontWeight: 500,
+                                                height: 40,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                            }}
+                                            onMouseEnter={(e) =>
+                                                (e.currentTarget.style.background = "#166FE5")
+                                            }
+                                            onMouseLeave={(e) =>
+                                                (e.currentTarget.style.background = "#1877F2")
+                                            }
+                                        >
+                                            Đăng nhập với Facebook
                                         </Button>
                                     </Space>
                                 </div>
