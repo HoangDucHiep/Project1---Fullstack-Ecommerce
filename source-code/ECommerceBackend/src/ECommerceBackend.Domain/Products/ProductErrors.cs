@@ -12,6 +12,10 @@ public static class ProductErrors
         "Product.NotFound",
         $"Product with ID '{productId}' was not found");
 
+    public static Error ShopIdRequiredForSellerView() => Error.Validation(
+        "Product.ShopIdRequiredForSellerView",
+        "ShopId is required when accessing products as a seller");
+
     public static Error NotFound(string slug) => Error.NotFound(
         "Product.NotFound",
         $"Product with Slug '{slug}' was not found");

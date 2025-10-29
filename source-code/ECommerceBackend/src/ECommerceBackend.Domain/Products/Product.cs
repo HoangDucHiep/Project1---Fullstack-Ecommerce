@@ -8,11 +8,11 @@ namespace ECommerceBackend.Domain.Products;
 /// </summary>
 public enum ProductStatus
 {
-    Active,
-    Inactive,
-    Deleted,
-    Locked,
-    OutOfStock
+    Active, // publicly available
+    Inactive,   // hidden from customers
+    Deleted,  // soft-deleted
+    Locked,   // locked by admin
+    OutOfStock  // out of stock
 }
 
 /// HDHiep - 10/21/2025

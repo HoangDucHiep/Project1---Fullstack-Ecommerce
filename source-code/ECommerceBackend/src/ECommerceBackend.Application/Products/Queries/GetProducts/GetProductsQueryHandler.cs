@@ -5,35 +5,54 @@ using ECommerceBackend.Application.Abstracts.Messaging;
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Application.Contracts.Products;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Products;
 
-namespace ECommerceBackend.Application.Products.Queries.GetProductsByShop;
-internal sealed class GetProductsByShopQueryHandler : IQueryHandler<GetProductsByShopQuery, PaginationResult<ProductDto>>
+namespace ECommerceBackend.Application.Products.Queries.GetProducts;
+
+internal sealed class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, PaginationResult<ProductDto>>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
 
-    public GetProductsByShopQueryHandler(IDbConnectionFactory dbConnectionFactory)
+    public GetProductsQueryHandler(IDbConnectionFactory dbConnectionFactory)
     {
         _dbConnectionFactory = dbConnectionFactory;
     }
 
-    public async Task<Result<PaginationResult<ProductDto>>> Handle(GetProductsByShopQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginationResult<ProductDto>>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
         await using DbConnection connection = await _dbConnectionFactory.OpenConnectionAsync();
 
-        // Build where conditions
-        var whereConditions = new List<string>
-        {
-            "p.status = @ProductStatus",
-            "p.shop_id = @ShopId"
-        };
+        // Build Where clauses based on filters
+        var whereConditions = new List<string>();
+        var parameters = new Dictionary<string, object>();
 
-        var parameters = new Dictionary<string, object>
+        // Status filter based on access level
+        if (request.Statuses != null && request.Statuses.Any())
         {
-            ["ProductStatus"] = "Active",
-            ["ShopId"] = request.ShopId
-        };
+            whereConditions.Add("p.status = ANY(@Statuses)");
+            parameters["Statuses"] = request.Statuses.Select(s => s.ToString()).ToArray();
 
-        // Text search
+            // TODO: COMPLETE THE CONSIDERATION FOR RELATION BETWEEN SHOP STATUS AND PRODUCT STATUS
+            whereConditions.Add("s.status = @ShopStatus");
+            parameters["ShopStatus"] = "Active";
+        }
+        else
+        {
+            // Default status based on access level
+            switch (request.AccessLevel)
+            {
+                case ProductAccessLevel.Public:
+                    whereConditions.Add("p.status = @ProductStatus");
+                    parameters["ProductStatus"] = ProductStatus.Active.ToString();
+                    break;
+                case ProductAccessLevel.Seller:
+                case ProductAccessLevel.Admin:
+                    // Show all statuses if not specified
+                    break;
+            }
+        }
+
+        // Text search with fulltext
         if (!string.IsNullOrWhiteSpace(request.Q))
         {
             whereConditions.Add("(p.name ILIKE @SearchText OR p.description ILIKE @SearchText)");
@@ -45,6 +64,13 @@ internal sealed class GetProductsByShopQueryHandler : IQueryHandler<GetProductsB
         {
             whereConditions.Add("p.category_id = @CategoryId");
             parameters["CategoryId"] = request.CategoryId.Value;
+        }
+
+        // Shop filter based on access level
+        if (request.ShopId.HasValue)
+        {
+            whereConditions.Add("p.shop_id = @ShopId");
+            parameters["ShopId"] = request.ShopId.Value;
         }
 
         // Price range filter
@@ -60,8 +86,7 @@ internal sealed class GetProductsByShopQueryHandler : IQueryHandler<GetProductsB
             parameters["MaxPrice"] = request.MaxPrice.Value;
         }
 
-
-        // Pickup location filter
+        // Pickup location filter (via shop owner's pickup addresses)
         if (!string.IsNullOrWhiteSpace(request.PickupProvince))
         {
             whereConditions.Add("EXISTS (SELECT 1 FROM \"ecommerce-domain\".addresses a WHERE a.user_id = s.owner_id AND a.is_pick_up_address = true AND a.province = @PickupProvince)");
@@ -74,10 +99,10 @@ internal sealed class GetProductsByShopQueryHandler : IQueryHandler<GetProductsB
             parameters["PickupDistrict"] = request.PickupDistrict;
         }
 
-        // TODO:  Promotion filter (tạm thời luôn false)
+        // Promotion filter (tạm thời luôn false vì chưa có hệ thống promotion)
         if (request.HasPromotion == true)
         {
-            whereConditions.Add("false");
+            whereConditions.Add("false"); // No promotions yet
         }
 
         string whereClause = string.Join(" AND ", whereConditions);
@@ -86,16 +111,16 @@ internal sealed class GetProductsByShopQueryHandler : IQueryHandler<GetProductsB
         string orderBy = request.SortBy switch
         {
             ProductSortBy.Newest => "p.created_at_utc DESC",
-            ProductSortBy.PriceAsc => "min_price ASC",
-            ProductSortBy.PriceDesc => "min_price DESC",
+            ProductSortBy.PriceAsc => "MinPrice ASC",
+            ProductSortBy.PriceDesc => "MinPrice DESC",
             ProductSortBy.Relevance when !string.IsNullOrWhiteSpace(request.Q) =>
                 "CASE WHEN p.name ILIKE @SearchText THEN 1 ELSE 2 END, p.created_at_utc DESC",
             _ => "p.created_at_utc DESC"
         };
 
-        // Main query
+        // Main query with price aggregation
         string mainSql = $"""
-            SELECT
+            SELECT 
                 p.id AS Id,
                 p.shop_id AS ShopId,
                 p.category_id AS CategoryId,
@@ -107,23 +132,23 @@ internal sealed class GetProductsByShopQueryHandler : IQueryHandler<GetProductsB
                 p.updated_at_utc AS UpdatedAtUtc,
                 MIN(pv.price) AS MinPrice,
                 MAX(pv.price) AS MaxPrice,
-                CAST(SUM(pv.stock) AS BIGINT) AS TotalStock,
+                SUM(pv.stock) AS TotalStock,
                 CASE WHEN COUNT(pv.id) > 1 THEN true ELSE false END AS HasVariants
             FROM "ecommerce-domain".products p
             INNER JOIN "ecommerce-domain".shops s ON p.shop_id = s.id
-            LEFT JOIN "ecommerce-domain".product_variants pv ON pv.product_id = p.id
+            LEFT JOIN "ecommerce-domain".product_variants pv ON p.id = pv.product_id AND pv.status = 'Active'
             WHERE {whereClause}
-            GROUP BY p.id, shop_id, category_id, p.name, p.description, p.slug, p.status, p.created_at_utc, p.updated_at_utc
+            GROUP BY p.id, p.shop_id, p.category_id, p.name, p.description, p.slug, p.status, p.created_at_utc, p.updated_at_utc
             ORDER BY {orderBy}
             LIMIT @PageSize OFFSET (@Page - 1) * @PageSize
             """;
 
-        // Count query
+        // Count query - COPY CHÍNH XÁC từ SearchProductsQueryHandler
         string countSql = $"""
             SELECT COUNT(DISTINCT p.id)
             FROM "ecommerce-domain".products p
             INNER JOIN "ecommerce-domain".shops s ON p.shop_id = s.id
-            LEFT JOIN "ecommerce-domain".product_variants pv ON p.id = pv.product_id AND pv.status = @VariantStatus
+            LEFT JOIN "ecommerce-domain".product_variants pv ON p.id = pv.product_id AND pv.status = 'Active'
             WHERE {whereClause}
             """;
 
