@@ -33,11 +33,3 @@ public sealed record SearchProductsQuery(
     int Page = 1,                        // Pagination
     int PageSize = 20                    // Pagination
 ) : IQuery<PaginationResult<ProductDto>>, IPaginableQuery;
-
-public enum ProductSortBy
-{
-    Relevance,    // Default when Q is provided
-    Newest,       // CreatedAtUtc DESC
-    PriceAsc,     // Min price ASC
-    PriceDesc     // Min price DESC
-}
