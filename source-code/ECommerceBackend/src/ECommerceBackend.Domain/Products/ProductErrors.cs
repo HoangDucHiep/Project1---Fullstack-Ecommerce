@@ -12,6 +12,9 @@ public static class ProductErrors
         "Product.NotFound",
         $"Product with ID '{productId}' was not found");
 
+    public static Error NotFound(string slug) => Error.NotFound(
+        "Product.NotFound",
+        $"Product with Slug '{slug}' was not found");
     public static Error SlugAlreadyExists(string slug) => Error.Conflict(
         "Product.SlugAlreadyExists",
         $"A product with slug '{slug}' already exists");

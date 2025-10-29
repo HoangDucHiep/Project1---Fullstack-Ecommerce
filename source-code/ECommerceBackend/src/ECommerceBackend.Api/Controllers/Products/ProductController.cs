@@ -2,6 +2,7 @@
 using ECommerceBackend.Application.Contracts.Commons;
 using ECommerceBackend.Application.Contracts.Products;
 using ECommerceBackend.Application.Products.Commands.CreateNewProduct;
+using ECommerceBackend.Application.Products.Queries.GetProductBySlug;
 using ECommerceBackend.Application.Products.Queries.GetProductDetails;
 using ECommerceBackend.Application.Products.Queries.SearchProducts;
 using ECommerceBackend.Domain.Abstracts;
@@ -125,6 +126,28 @@ public class ProductController : ControllerBase
         Result<PaginationResult<ProductDto>> result = await _sender.Send(query, cancellationToken);
 
         object response = result.ToPaginatedResponse<ProductDto>("Tìm kiếm sản phẩm thành công");
+
+        return result.IsSuccess
+            ? Ok(response)
+            : StatusCode(result.Error.GetStatusCode(), response);
+    }
+
+    /// <summary>
+    /// Get product details by slug
+    /// </summary>
+    /// <param name="slug">Product slug</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Product details</returns>
+    [HttpGet("by-slug/{slug}")]
+    public async Task<IActionResult> GetProductBySlugAsync(
+        string slug,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetProductBySlugQuery(slug);
+
+        Result<ProductDetailDto> result = await _sender.Send(query, cancellationToken);
+
+        object response = result.ToResponse("Lấy chi tiết sản phẩm thành công");
 
         return result.IsSuccess
             ? Ok(response)
