@@ -8,4 +8,4 @@ using ECommerceBackend.Application.Abstracts.Messaging;
 using ECommerceBackend.Domain.Categories;
 
 namespace ECommerceBackend.Application.Categories.GetCategories;
-public sealed record GetCategoriesQuery : IQuery<List<CategoriesDTO>>;
+public sealed record GetCategoriesQuery : IQuery<List<GetCategoriesTreeDTO>>;

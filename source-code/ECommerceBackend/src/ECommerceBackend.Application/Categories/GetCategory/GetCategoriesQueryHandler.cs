@@ -6,7 +6,7 @@ using ECommerceBackend.Domain.Abstracts;
 
 namespace ECommerceBackend.Application.Categories.GetCategories;
 
-internal sealed class GetCategoriesHandler : IQueryHandler<GetCategoriesQuery, List<CategoriesDTO>>
+internal sealed class GetCategoriesHandler : IQueryHandler<GetCategoriesQuery, List<GetCategoriesTreeDTO>>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
 
@@ -15,7 +15,7 @@ internal sealed class GetCategoriesHandler : IQueryHandler<GetCategoriesQuery, L
         _dbConnectionFactory = dbConnectionFactory;
     }
 
-    public async Task<Result<List<CategoriesDTO>>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<GetCategoriesTreeDTO>>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
     {
         await using DbConnection dbConnection = await _dbConnectionFactory.OpenConnectionAsync();
 
@@ -26,8 +26,6 @@ internal sealed class GetCategoriesHandler : IQueryHandler<GetCategoriesQuery, L
                 icon_url as IconUrl,
                 status as Status,
                 parent_id as ParentId,
-                lft as Lft,
-                rgt as Rgt,
                 depth as Depth,
                 created_at_utc as CreatedAtUtc,
                 updated_at_utc as UpdatedAtUtc
@@ -35,19 +33,19 @@ internal sealed class GetCategoriesHandler : IQueryHandler<GetCategoriesQuery, L
             """;
 
         // explicit type thay cho var ở đây
-        IEnumerable<CategoriesDTO> flatList = await dbConnection.QueryAsync<CategoriesDTO>(sql);
+        IEnumerable<GetCategoriesTreeDTO> flatList = await dbConnection.QueryAsync<GetCategoriesTreeDTO>(sql);
         var categories = flatList.ToList();
         var lookup = categories.ToDictionary(c => c.Id, c => c);
-        var roots = new List<CategoriesDTO>();
+        var roots = new List<GetCategoriesTreeDTO>();
 
         // explicit type thay cho var ở đây
-        foreach (CategoriesDTO category in categories)
+        foreach (GetCategoriesTreeDTO category in categories)
         {
             if (category.ParentId == null || category.ParentId == Guid.Empty)
             {
                 roots.Add(category);
             }
-            else if (lookup.TryGetValue(category.ParentId.Value, out CategoriesDTO parent))
+            else if (lookup.TryGetValue(category.ParentId.Value, out GetCategoriesTreeDTO parent))
             {
                 parent.Children.Add(category);
             }

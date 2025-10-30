@@ -32,13 +32,14 @@ public sealed class CreateCategoryCommandHandler
         CreateCategoryCommand command,
         CancellationToken cancellationToken)
     {
+        // Optional: kiểm tra quyền
         // if (!_userContext.IsAuthenticated)
         // {
         //     return Result.Failure<Guid>(CategoryErrors.AccessDenied("create category"));
         // }
 
+        // Kiểm tra trùng tên trong cùng parent
         List<Category> categories = await _categoryRepository.GetAllAsync(cancellationToken);
-
         bool isDuplicate = categories.Any(c =>
             c.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase) &&
             c.ParentId == command.ParentId);
@@ -50,46 +51,29 @@ public sealed class CreateCategoryCommandHandler
             );
         }
 
-        // ====== CASE 1️⃣: ROOT NODE ======
-        if (!command.ParentId.HasValue)
+        // Nếu là root → depth = 0
+        int depth = 0;
+
+        // Nếu có parent → tính depth = parent.Depth + 1
+        if (command.ParentId.HasValue)
         {
-            int maxRight = categories.Any() ? categories.Max(c => c.Rgt) : 0;
+            Category? parent = await _categoryRepository.GetByIdAsync(command.ParentId.Value, cancellationToken);
+            if (parent is null)
+            {
+                return Result.Failure<Guid>(
+                    CategoryErrors.InvalidParent(Guid.Empty, command.ParentId.Value)
+                );
+            }
 
-            var root = Category.Create(
-                name: command.Name,
-                iconUrl: command.IconUrl,
-                parentId: null,
-                lft: maxRight + 1,
-                rgt: maxRight + 2,
-                depth: 0
-            );
-
-            _categoryRepository.Add(root);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            return Result.Success(root.Id);
+            depth = parent.Depth + 1;
         }
 
-        // ====== CASE 2️⃣: CHILD NODE ======
-        Category? parent = await _categoryRepository.GetByIdAsync(command.ParentId.Value, cancellationToken);
-        if (parent is null)
-        {
-            return Result.Failure<Guid>(
-                CategoryErrors.InvalidParent(Guid.Empty, command.ParentId.Value)
-            );
-        }
-
-        int insertPosition = parent.Rgt;
-        int newDepth = parent.Depth + 1;
-
-        await _categoryRepository.ShiftBoundariesAsync(insertPosition, 2, cancellationToken);
-
+        // Tạo category mới
         var category = Category.Create(
             name: command.Name,
             iconUrl: command.IconUrl,
-            parentId: parent.Id,
-            lft: insertPosition,
-            rgt: insertPosition + 1,
-            depth: newDepth
+            parentId: command.ParentId,
+            depth: depth
         );
 
         _categoryRepository.Add(category);

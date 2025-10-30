@@ -18,9 +18,8 @@ public static class CategoryMappings
             Name = category.Name,
             IconUrl = category.IconUrl,
             ParentId = category.ParentId,
-            Lft = category.Lft,
-            Rgt = category.Rgt,
             Depth = category.Depth,
+            Status = category.Status.ToString(),
             CreatedAtUtc = category.CreatedAtUtc,
             UpdatedAtUtc = category.UpdatedAtUtc
         };
@@ -32,8 +31,6 @@ public static class CategoryMappings
            categoryDto.Name,
            categoryDto.IconUrl,
            categoryDto.ParentId,
-           categoryDto.Lft,
-           categoryDto.Rgt,
            categoryDto.Depth
         );
     }

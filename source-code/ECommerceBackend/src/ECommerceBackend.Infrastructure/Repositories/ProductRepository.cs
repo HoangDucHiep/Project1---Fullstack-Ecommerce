@@ -44,4 +44,19 @@ public class ProductRepository : Repository<Product>, IProductRepository
     {
         _dbContext.Set<Product>().Update(product);
     }
+
+    public async Task UpdateRangeAsync(IEnumerable<Product> products, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Set<Product>().UpdateRange(products);
+        await Task.CompletedTask; 
+    }
+
+    public async Task DeleteRangeAsync(IEnumerable<Product> products, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Set<Product>().RemoveRange(products);
+        await Task.CompletedTask;
+    }
+
+
+
 }

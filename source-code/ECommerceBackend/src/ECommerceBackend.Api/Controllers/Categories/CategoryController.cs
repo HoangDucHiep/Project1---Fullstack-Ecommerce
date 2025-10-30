@@ -1,11 +1,16 @@
 ﻿using ECommerceBackend.Api.Controllers.Categories.CategoryRegister;
 using ECommerceBackend.Api.Extensions;
 using ECommerceBackend.Application.Categories;
+using ECommerceBackend.Application.Categories.DeleteCategory;
 using ECommerceBackend.Application.Categories.GetCategories;
+using ECommerceBackend.Application.Categories.GetCategotyByID;
 using ECommerceBackend.Application.Categories.SearchCategory;
+using ECommerceBackend.Application.Categories.UpdateCategory;
 using ECommerceBackend.Application.Contracts.Categories;
 using ECommerceBackend.Domain.Abstracts;
+using ECommerceBackend.Domain.Categories;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceBackend.Api.Controllers.Categories;
@@ -50,16 +55,16 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> Search([FromQuery(Name = "NameOfCategory")] string queryText, CancellationToken cancellationToken)
     {
         var query = new SearchCategoryQuery(queryText);
-        Result<List<CategoryDto>> result = await _sender.Send(query, cancellationToken);
+        Result<List<CategoryTreeDto>> result = await _sender.Send(query, cancellationToken);
 
         return Ok(result.ToResponse("Tìm kiếm danh mục thành công"));
     }
 
-    [HttpGet]
+    [HttpGet("GetAll")]
     public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
     {
         var query = new GetCategoriesQuery();
-        Result<List<CategoriesDTO>> result = await _sender.Send(query, cancellationToken);
+        Result<List<GetCategoriesTreeDTO>> result = await _sender.Send(query, cancellationToken);
 
         if (result.IsFailure)
         {
@@ -69,5 +74,89 @@ public class CategoryController : ControllerBase
         return Ok(result.ToResponse("Lấy danh sách danh mục thành công"));
     }
 
+    /// PBNMinh
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCategoryById(
+    [FromRoute] string id,
+    [FromQuery] bool includeChildren = false,
+    CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(id, out Guid categoryId))
+        {
+            //return NotFound(new { message = $"Category with ID '{id}' was not found." });
+             return StatusCode( CategoryErrors.NotFound(id).Type.StatusCode, CategoryErrors.NotFound(id)
+    );
+        }
+
+        var query = new GetCategoryByIdQuery(categoryId, includeChildren);
+        Result<object> result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+
+    /// PBNMinh
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateCategoryAsync(Guid id, [FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
+    {
+        UpdateCategoryCommand command = new(
+            id,
+            request.Name,
+            request.IconUrl,
+            request.Status,
+            request.NewParentId
+        );
+
+        Result<CategoryDto> result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.Type.StatusCode, result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+
+    //PBNMinh
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteCategoryAsync(
+    Guid id,
+    [FromQuery] Guid? replacementCategoryId,
+    [FromQuery] bool cascade = false,
+    CancellationToken cancellationToken = default)
+    {
+        DeleteCategoryCommand command = new(id, replacementCategoryId, cascade);
+        Result result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            Error err = result.Error;
+
+            if (err.Type == ErrorType.NotFound)
+            {
+                return NotFound(err);
+            }
+
+            if (err.Type == ErrorType.Validation || err.Type == ErrorType.BadRequest)
+            {
+                return BadRequest(err);
+            }
+
+            if (err.Type == ErrorType.Forbidden)
+            {
+                return Forbid();
+            }
+
+            return StatusCode(500, err);
+        }
+
+        return NoContent();
+    }
 
 }
