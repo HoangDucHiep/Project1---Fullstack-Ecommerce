@@ -28,7 +28,7 @@ public class Category : Entity
         // For ORM
     }
     //PBNMinh - 08/10/2025
-    public static Category Create(string name, string iconUrl, Guid? parentId, int lft, int rgt, int depth)
+    public static Category Create(string name, string iconUrl, Guid? parentId, int depth)
     {
         var category = new Category
         {
@@ -37,8 +37,6 @@ public class Category : Entity
             IconUrl = iconUrl,
             Status = CategoryStatus.ACTIVE,
             ParentId = parentId,
-            Lft = lft,
-            Rgt = rgt,
             Depth = depth,
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow
@@ -65,14 +63,18 @@ public class Category : Entity
         // Raise domain event if needed
     }
 
-    public void MoveCategory(Guid newParentId, int newLft, int newRgt, int newDepth)
+
+    public void Rename(string name)
+    {
+        Name = name;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void MoveTo(Guid? newParentId, int newDepth)
     {
         ParentId = newParentId;
-        Lft = newLft;
-        Rgt = newRgt;
         Depth = newDepth;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
-        // Raise domain event if needed
     }
 
 }

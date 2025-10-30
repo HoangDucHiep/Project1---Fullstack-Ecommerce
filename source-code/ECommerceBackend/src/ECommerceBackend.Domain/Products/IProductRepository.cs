@@ -15,4 +15,7 @@ public interface IProductRepository
     void Add(Product product);
     void Update(Product product);
     void Delete(Product product);
+
+    Task UpdateRangeAsync(IEnumerable<Product> products, CancellationToken cancellationToken = default);
+    Task DeleteRangeAsync(IEnumerable<Product> products, CancellationToken cancellationToken = default);
 }

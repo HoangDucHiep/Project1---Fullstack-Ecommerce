@@ -14,8 +14,7 @@ public sealed record CategoryResponse
     public string IconUrl { get; private set; }
     public CategoryStatus Status { get; private set; }
     public Guid? ParentId { get; private set; }
-    public int Lft { get; private set; }
-    public int Rgt { get; private set; }
+
     public int Depth { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
