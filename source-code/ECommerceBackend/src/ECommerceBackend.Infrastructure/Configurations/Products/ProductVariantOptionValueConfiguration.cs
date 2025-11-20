@@ -24,6 +24,13 @@ internal sealed class ProductVariantOptionValueConfiguration : IEntityTypeConfig
         builder.Property(pvov => pvov.OptionValueId)
             .IsRequired();
 
+        builder.Property(pvov => pvov.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        // Query filter for soft delete
+        builder.HasQueryFilter(pvov => !pvov.IsDeleted);
+
         // Indexes
         builder.HasIndex(pvov => pvov.VariantId);
         builder.HasIndex(pvov => pvov.OptionValueId);

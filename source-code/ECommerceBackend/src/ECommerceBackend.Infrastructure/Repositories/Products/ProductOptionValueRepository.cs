@@ -22,6 +22,15 @@ public class ProductOptionValueRepository : Repository<ProductOptionValue>, IPro
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<ProductOptionValue>> GetByProductOptionTypeIdsAsync(List<Guid> productOptionTypeIds, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Set<ProductOptionValue>()
+            .Where(pov => productOptionTypeIds.Contains(pov.ProductOptionTypeId))
+            .OrderBy(pov => pov.ProductOptionTypeId)
+            .ThenBy(pov => pov.Value)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<ProductOptionValue?> GetByProductOptionTypeIdAndValueAsync(Guid productOptionTypeId, string value, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Set<ProductOptionValue>()

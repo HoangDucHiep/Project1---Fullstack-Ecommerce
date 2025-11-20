@@ -10,6 +10,7 @@ public class ProductOptionType : Entity
 {
     public Guid ProductId { get; private set; }
     public string Name { get; private set; }
+    public bool IsDeleted { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
@@ -37,5 +38,17 @@ public class ProductOptionType : Entity
         // Raise domain event if needed
         // optionType.Raise(new ProductOptionTypeCreatedEvent(optionType.Id));
         return optionType;
+    }
+
+    public void UpdateName(string name)
+    {
+        Name = name;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkAsDeleted()
+    {
+        IsDeleted = true;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 }

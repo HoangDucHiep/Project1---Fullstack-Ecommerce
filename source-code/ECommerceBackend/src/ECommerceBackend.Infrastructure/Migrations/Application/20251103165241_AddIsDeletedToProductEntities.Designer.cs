@@ -3,6 +3,7 @@ using System;
 using ECommerceBackend.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerceBackend.Infrastructure.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251103165241_AddIsDeletedToProductEntities")]
+    partial class AddIsDeletedToProductEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -372,8 +375,7 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(0)
-                        .HasColumnName("sort_order")
-                        .HasComment("Video: -1, Images: >= 0");
+                        .HasColumnName("sort_order");
 
                     b.HasKey("Id")
                         .HasName("pk_product_medias");
@@ -389,9 +391,6 @@ namespace ECommerceBackend.Infrastructure.Migrations.Application
 
                     b.HasIndex("ProductId", "IsCover")
                         .HasDatabaseName("ix_product_medias_product_cover");
-
-                    b.HasIndex("ProductId", "SortOrder")
-                        .HasDatabaseName("ix_product_medias_product_sort_order");
 
                     b.HasIndex("ProductVariantId", "IsCover")
                         .HasDatabaseName("ix_product_medias_variant_cover");

@@ -24,11 +24,18 @@ internal sealed class ProductOptionTypeConfiguration : IEntityTypeConfiguration<
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(pot => pot.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(pot => pot.CreatedAtUtc)
             .IsRequired();
 
         builder.Property(pot => pot.UpdatedAtUtc)
             .IsRequired();
+
+        // Query filter for soft delete
+        builder.HasQueryFilter(pot => !pot.IsDeleted);
 
         // Indexes
         builder.HasIndex(pot => pot.ProductId);

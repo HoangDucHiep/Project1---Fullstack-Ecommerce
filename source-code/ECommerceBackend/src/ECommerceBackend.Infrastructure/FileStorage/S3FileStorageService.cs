@@ -12,8 +12,6 @@ using Microsoft.Extensions.Options;
 
 namespace ECommerceBackend.Infrastructure.FileStorage;
 
-
-
 /// <summary>
 /// HDHiep - 10/28/2025
 /// Implementation of IFileStorageService that stores files on Amazon S3.
@@ -152,6 +150,32 @@ public class S3FileStorageService : IFileStorageService
 
         try
         {
+            // Return the direct S3 object URL without query parameters
+            // Format: https://{bucket}.s3.{region}.amazonaws.com/{key}
+            string objectUrl = $"https://{_s3Settings.BucketName}.s3.{_s3Settings.Region ?? "us-east-1"}.amazonaws.com/{filePath}";
+            return Uri.TryCreate(objectUrl, UriKind.Absolute, out Uri? uri) ? uri : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error occurred while generating file URL. Key: {Key}", filePath);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Generate pre-signed URL for secure access
+    /// </summary>
+    /// <param name="filePath">The file path/key</param>
+    /// <returns>Pre-signed URL with query parameters</returns>
+    public Uri? GetPresignedFileUrl(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return null;
+        }
+
+        try
+        {
             // Generate pre-signed URL for secure access
             var request = new GetPreSignedUrlRequest
             {
@@ -166,7 +190,7 @@ public class S3FileStorageService : IFileStorageService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Error occurred while generating file URL. Key: {Key}", filePath);
+            _logger.LogWarning(ex, "Error occurred while generating presigned URL. Key: {Key}", filePath);
             return null;
         }
     }

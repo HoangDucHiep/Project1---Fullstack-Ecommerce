@@ -9,7 +9,8 @@ public record CreateNewProductCommand(
     string Name,
     string Description,
     string Sku, // Product SKU - required
-    List<CreateProductMediaDto> Medias,
+    List<CreateProductImageDto> Images, // Tối đa 10 ảnh
+    CreateProductVideoDto? Video, // Tối đa 1 video (optional)
     List<CreateProductOptionDto> Options,
     List<CreateProductVariantDto> Variants,
     // For simple products (no options/variants)
@@ -21,10 +22,14 @@ public record CreateNewProductCommand(
     double? DefaultLength = null
 ) : ICommand<ProductDetailDto>;
 
-public record CreateProductMediaDto(
-    string? MediaName = null,
-    string? MediaUrl = null,
+public record CreateProductImageDto(
+    string ImageUrl,
     bool IsCover = false,
+    int SortOrder = 0
+);
+
+public record CreateProductVideoDto(
+    string VideoUrl,
     int SortOrder = 0
 );
 
@@ -42,5 +47,5 @@ public record CreateProductVariantDto(
     decimal? Height = null,
     decimal? Width = null,
     decimal? Length = null,
-    List<CreateProductMediaDto>? Medias = null
+    List<CreateProductImageDto>? Images = null // Tối đa 3 ảnh
 );

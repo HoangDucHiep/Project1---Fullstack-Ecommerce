@@ -33,11 +33,20 @@ public class ProductMediaConfiguration : IEntityTypeConfiguration<ProductMedia>
         builder.Property(pm => pm.SortOrder)
             .HasColumnName("sort_order")
             .IsRequired()
-            .HasDefaultValue(0);
+            .HasDefaultValue(0)
+            .HasComment("Video: -1, Images: >= 0");
+
+        builder.Property(pm => pm.IsDeleted)
+            .HasColumnName("is_deleted")
+            .IsRequired()
+            .HasDefaultValue(false);
 
         builder.Property(pm => pm.CreatedAtUtc)
             .HasColumnName("created_at_utc")
             .IsRequired();
+
+        // Query filter for soft delete
+        builder.HasQueryFilter(pm => !pm.IsDeleted);
 
         // Relationships
         builder.HasOne(pm => pm.Product)
@@ -59,6 +68,7 @@ public class ProductMediaConfiguration : IEntityTypeConfiguration<ProductMedia>
         builder.HasIndex(pm => pm.ProductId).HasDatabaseName("ix_product_medias_product_id");
         builder.HasIndex(pm => pm.ProductVariantId).HasDatabaseName("ix_product_medias_product_variant_id");
         builder.HasIndex(pm => pm.MediaId).HasDatabaseName("ix_product_medias_media_id");
+        builder.HasIndex(pm => new { pm.ProductId, pm.SortOrder }).HasDatabaseName("ix_product_medias_product_sort_order");
         builder.HasIndex(pm => new { pm.ProductId, pm.IsCover }).HasDatabaseName("ix_product_medias_product_cover");
         builder.HasIndex(pm => new { pm.ProductVariantId, pm.IsCover }).HasDatabaseName("ix_product_medias_variant_cover");
     }

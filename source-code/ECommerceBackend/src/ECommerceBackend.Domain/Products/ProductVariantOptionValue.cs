@@ -10,6 +10,7 @@ public class ProductVariantOptionValue
 {
     public Guid VariantId { get; private set; }
     public Guid OptionValueId { get; private set; }
+    public bool IsDeleted { get; private set; }
 
     public ProductVariantOptionValue()
     {
@@ -32,5 +33,10 @@ public class ProductVariantOptionValue
         // Raise domain event if needed
         // variantOptionValue.Raise(new ProductVariantOptionValueCreatedEvent(variantOptionValue.VariantId, variantOptionValue.OptionValueId));
         return variantOptionValue;
+    }
+
+    public void MarkAsDeleted()
+    {
+        IsDeleted = true;
     }
 }

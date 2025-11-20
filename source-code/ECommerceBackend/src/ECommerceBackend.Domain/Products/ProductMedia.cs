@@ -8,7 +8,8 @@ public class ProductMedia : Entity
     public Guid? ProductVariantId { get; private set; }
     public Guid MediaId { get; private set; }
     public bool IsCover { get; private set; }
-    public int SortOrder { get; private set; }
+    public int SortOrder { get; private set; } // Video: -1, Images: >= 0
+    public bool IsDeleted { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
     // Navigation properties
@@ -53,6 +54,16 @@ public class ProductMedia : Entity
         };
     }
 
+    /// <summary>
+    /// Helper: Check if this is a video (sortOrder == -1)
+    /// </summary>
+    public bool IsVideo() => SortOrder == -1;
+
+    /// <summary>
+    /// Helper: Check if this is an image (sortOrder >= 0)
+    /// </summary>
+    public bool IsImage() => SortOrder >= 0;
+
     public void UpdateCoverStatus(bool isCover)
     {
         IsCover = isCover;
@@ -61,5 +72,10 @@ public class ProductMedia : Entity
     public void UpdateSortOrder(int sortOrder)
     {
         SortOrder = sortOrder;
+    }
+
+    public void MarkAsDeleted()
+    {
+        IsDeleted = true;
     }
 }

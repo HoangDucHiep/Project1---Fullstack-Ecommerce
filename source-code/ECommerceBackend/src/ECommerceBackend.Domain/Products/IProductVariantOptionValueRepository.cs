@@ -10,6 +10,7 @@ public interface IProductVariantOptionValueRepository
     Task<ProductVariantOptionValue?> GetByCompositeKeyAsync(Guid variantId, Guid optionValueId, CancellationToken cancellationToken = default);
     Task<List<ProductVariantOptionValue>> GetByVariantIdAsync(Guid variantId, CancellationToken cancellationToken = default);
     Task<List<ProductVariantOptionValue>> GetByOptionValueIdAsync(Guid optionValueId, CancellationToken cancellationToken = default);
+    Task<List<ProductVariantOptionValue>> GetByOptionValueIdsAsync(List<Guid> optionValueIds, CancellationToken cancellationToken = default);
     Task AddAsync(ProductVariantOptionValue productVariantOptionValue, CancellationToken cancellationToken = default);
     void Update(ProductVariantOptionValue productVariantOptionValue);
     void Delete(ProductVariantOptionValue productVariantOptionValue);

@@ -52,11 +52,18 @@ internal sealed class ProductVariantConfiguration : IEntityTypeConfiguration<Pro
             .IsRequired()
             .HasColumnType("double precision");
 
+        builder.Property(pv => pv.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(pv => pv.CreatedAtUtc)
             .IsRequired();
 
         builder.Property(pv => pv.UpdatedAtUtc)
             .IsRequired();
+
+        // Query filter for soft delete
+        builder.HasQueryFilter(pv => !pv.IsDeleted);
 
         // Indexes
         builder.HasIndex(pv => pv.ProductId);

@@ -74,8 +74,11 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 throw new ApplicationInvalidOperationException(CategoryErrors.NotFound(request.CategoryId));
             }
 
-            // 3. Validate and resolve all medias
-            List<Media> mediaList = await ResolveMediasAsync(request.Medias, cancellationToken);
+            // 3. Validate and resolve all images and video
+            List<Media> imageMediaList = await ResolveImagesAsync(request.Images, cancellationToken);
+            Media? videoMedia = request.Video != null 
+                ? await ResolveVideoAsync(request.Video, cancellationToken) 
+                : null;
 
             // 4. Generate unique slug, create product entity
             string slug = SlugGenerator.GenerateSlug(request.Name);
@@ -105,9 +108,31 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 await CreateSimpleProduct(request, product, productVariants, cancellationToken);
             }
 
-            // 6. Create product media (main product images)
+            // 6. Create product media (main product images + video)
             var productMedias = new List<ProductMedia>();
-            foreach ((CreateProductMediaDto mediaDto, Media media) in request.Medias.Zip(mediaList))
+            
+            // 6a. Add video FIRST (if exists) - Video luôn hiển thị đầu tiên với sortOrder = -1
+            if (videoMedia != null && request.Video != null)
+            {
+                // Auto-confirm media when linking to product
+                if (videoMedia.IsTemp)
+                {
+                    videoMedia.Confirm();
+                    _mediaRepository.Update(videoMedia);
+                }
+
+                var productMedia = ProductMedia.CreateForProduct(
+                    productId: product.Id,
+                    mediaId: videoMedia.Id,
+                    isCover: false, // Video không bao giờ là cover
+                    sortOrder: -1 // Video luôn ở đầu tiên (sortOrder = -1)
+                );
+                await _productMediaRepository.AddAsync(productMedia, cancellationToken);
+                productMedias.Add(productMedia);
+            }
+            
+            // 6b. Add images AFTER video (sortOrder >= 0)
+            foreach ((CreateProductImageDto imageDto, Media media) in request.Images.Zip(imageMediaList))
             {
                 // Auto-confirm media when linking to product
                 if (media.IsTemp)
@@ -119,11 +144,11 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 var productMedia = ProductMedia.CreateForProduct(
                     productId: product.Id,
                     mediaId: media.Id,
-                    isCover: mediaDto.IsCover,
-                    sortOrder: mediaDto.SortOrder
+                    isCover: imageDto.IsCover,
+                    sortOrder: imageDto.SortOrder // Images: sortOrder >= 0
                 );
-                productMedias.Add(productMedia);
                 await _productMediaRepository.AddAsync(productMedia, cancellationToken);
+                productMedias.Add(productMedia);
             }
 
             // 7. Save all changes
@@ -240,10 +265,10 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 }
             }
 
-            // Create variant media if specified
-            if (variantDto.Medias != null && variantDto.Medias.Any())
+            // Create variant images if specified
+            if (variantDto.Images != null && variantDto.Images.Any())
             {
-                await CreateVariantMedia(variantDto, product.Id, variant.Id, cancellationToken);
+                await CreateVariantImages(variantDto, product.Id, variant.Id, cancellationToken);
             }
         }
     }
@@ -270,15 +295,15 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
         await _productVariantRepository.AddAsync(defaultVariant, cancellationToken);
     }
 
-    private async Task CreateVariantMedia(
+    private async Task CreateVariantImages(
         CreateProductVariantDto variantDto,
         Guid productId,
         Guid variantId,
         CancellationToken cancellationToken)
     {
-        List<Media> variantMediaList = await ResolveMediasAsync(variantDto.Medias!, cancellationToken);
+        List<Media> variantImageMediaList = await ResolveVariantImagesAsync(variantDto.Images!, cancellationToken);
 
-        foreach ((CreateProductMediaDto mediaDto, Media media) in variantDto.Medias!.Zip(variantMediaList))
+        foreach ((CreateProductImageDto imageDto, Media media) in variantDto.Images!.Zip(variantImageMediaList))
         {
             // Auto-confirm media when linking to product
             if (media.IsTemp)
@@ -291,41 +316,34 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 productId: productId,
                 productVariantId: variantId,
                 mediaId: media.Id,
-                isCover: mediaDto.IsCover,
-                sortOrder: mediaDto.SortOrder
+                isCover: imageDto.IsCover,
+                sortOrder: imageDto.SortOrder // Variant chỉ có ảnh (sortOrder >= 0)
             );
             await _productMediaRepository.AddAsync(productMedia, cancellationToken);
         }
     }
 
     /// <summary>
-    /// Resolves media DTOs to actual Media entities by name or URL
+    /// Resolves product image DTOs to actual Media entities (must be Image type)
     /// </summary>
-    private async Task<List<Media>> ResolveMediasAsync(List<CreateProductMediaDto> mediaDtos, CancellationToken cancellationToken)
+    private async Task<List<Media>> ResolveImagesAsync(List<CreateProductImageDto> imageDtos, CancellationToken cancellationToken)
     {
         var mediaList = new List<Media>();
         var missingMediaInfo = new List<string>();
 
-        foreach (CreateProductMediaDto mediaDto in mediaDtos)
+        foreach (CreateProductImageDto imageDto in imageDtos)
         {
-            Media? media = null;
-
-            // Try to find by filename first
-            if (!string.IsNullOrWhiteSpace(mediaDto.MediaName))
-            {
-                media = await _mediaRepository.GetByFileNameAsync(mediaDto.MediaName, cancellationToken);
-            }
-
-            // If not found by name, try by URL
-            if (media == null && !string.IsNullOrWhiteSpace(mediaDto.MediaUrl))
-            {
-                media = await _mediaRepository.GetByFileUrlAsync(mediaDto.MediaUrl, cancellationToken);
-            }
-
+            Media? media = await _mediaRepository.GetByFileUrlAsync(imageDto.ImageUrl, cancellationToken);
+            
             if (media == null)
             {
-                string identifier = mediaDto.MediaName ?? mediaDto.MediaUrl ?? "unknown";
-                missingMediaInfo.Add(identifier);
+                missingMediaInfo.Add(imageDto.ImageUrl);
+            }
+            else if (media.MediaType != MediaType.Image)
+            {
+                throw new ApplicationInvalidOperationException(
+                    Error.Validation("Media.InvalidType", $"Media {imageDto.ImageUrl} không phải là ảnh")
+                );
             }
             else
             {
@@ -336,10 +354,42 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
         if (missingMediaInfo.Any())
         {
             throw new ApplicationInvalidOperationException(
-                Error.NotFound("Media.NotFound", $"Media not found: {string.Join(", ", missingMediaInfo)}")
+                Error.NotFound("Media.NotFound", $"Không tìm thấy ảnh: {string.Join(", ", missingMediaInfo)}")
             );
         }
 
         return mediaList;
+    }
+
+    /// <summary>
+    /// Resolves variant image DTOs to actual Media entities (must be Image type)
+    /// </summary>
+    private async Task<List<Media>> ResolveVariantImagesAsync(List<CreateProductImageDto> imageDtos, CancellationToken cancellationToken)
+    {
+        return await ResolveImagesAsync(imageDtos, cancellationToken);
+    }
+
+    /// <summary>
+    /// Resolves product video DTO to actual Media entity (must be Video type)
+    /// </summary>
+    private async Task<Media> ResolveVideoAsync(CreateProductVideoDto videoDto, CancellationToken cancellationToken)
+    {
+        Media? media = await _mediaRepository.GetByFileUrlAsync(videoDto.VideoUrl, cancellationToken);
+        
+        if (media == null)
+        {
+            throw new ApplicationInvalidOperationException(
+                Error.NotFound("Media.NotFound", $"Không tìm thấy video: {videoDto.VideoUrl}")
+            );
+        }
+
+        if (media.MediaType != MediaType.Video)
+        {
+            throw new ApplicationInvalidOperationException(
+                Error.Validation("Media.InvalidType", $"Media {videoDto.VideoUrl} không phải là video")
+            );
+        }
+
+        return media;
     }
 }

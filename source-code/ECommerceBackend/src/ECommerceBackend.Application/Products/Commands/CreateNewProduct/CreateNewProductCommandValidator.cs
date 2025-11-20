@@ -26,20 +26,28 @@ public class CreateNewProductCommandValidator : AbstractValidator<CreateNewProdu
             .MaximumLength(2000)
             .WithMessage("Mô tả sản phẩm không được vượt quá 2000 ký tự");
 
-        RuleFor(x => x.Medias)
+        // Validate Images
+        RuleFor(x => x.Images)
             .NotNull()
-            .WithMessage("Danh sách media không được null")
+            .WithMessage("Danh sách ảnh không được null")
             .Must(x => x.Count > 0)
             .WithMessage("Sản phẩm phải có ít nhất 1 hình ảnh")
             .Must(x => x.Count <= 10)
             .WithMessage("Sản phẩm không được có quá 10 hình ảnh")
-            .Must(HaveOnlyOneCoverImage)
-            .WithMessage("Sản phẩm chỉ được có 1 ảnh cover")
-            .Must(HaveUniqueSortOrders)
-            .WithMessage("Thứ tự sắp xếp media không được trùng lặp");
+            .Must(HaveExactlyOneCoverImage)
+            .WithMessage("Sản phẩm phải có đúng 1 ảnh cover")
+            .Must(CoverImageHasSortOrderZero)
+            .WithMessage("Ảnh cover phải có sortOrder = 0")
+            .Must(HaveUniqueImageSortOrders)
+            .WithMessage("Thứ tự sắp xếp ảnh không được trùng lặp");
 
-        RuleForEach(x => x.Medias)
-            .SetValidator(new CreateProductMediaDtoValidator());
+        RuleForEach(x => x.Images)
+            .SetValidator(new CreateProductImageDtoValidator());
+
+        // Validate Video (optional)
+        RuleFor(x => x.Video)
+            .SetValidator(new CreateProductVideoDtoValidator()!)
+            .When(x => x.Video != null);
 
         RuleFor(x => x.Options)
             .NotNull()
@@ -133,35 +141,49 @@ public class CreateNewProductCommandValidator : AbstractValidator<CreateNewProdu
         return variantCombinations.Count == variantCombinations.Distinct().Count();
     }
 
-    private static bool HaveOnlyOneCoverImage(List<CreateProductMediaDto> medias)
+    private static bool HaveExactlyOneCoverImage(List<CreateProductImageDto> images)
     {
-        return medias.Count(m => m.IsCover) <= 1;
+        return images.Count(m => m.IsCover) == 1;
     }
 
-    private static bool HaveUniqueSortOrders(List<CreateProductMediaDto> medias)
+    private static bool CoverImageHasSortOrderZero(List<CreateProductImageDto> images)
     {
-        var sortOrders = medias.Select(m => m.SortOrder).ToList();
+        CreateProductImageDto? coverImage = images.FirstOrDefault(m => m.IsCover);
+        return coverImage == null || coverImage.SortOrder == 0;
+    }
+
+    private static bool HaveUniqueImageSortOrders(List<CreateProductImageDto> images)
+    {
+        var sortOrders = images.Select(m => m.SortOrder).ToList();
         return sortOrders.Count == sortOrders.Distinct().Count();
     }
 }
 
-public class CreateProductMediaDtoValidator : AbstractValidator<CreateProductMediaDto>
+public class CreateProductImageDtoValidator : AbstractValidator<CreateProductImageDto>
 {
-    public CreateProductMediaDtoValidator()
+    public CreateProductImageDtoValidator()
     {
-        RuleFor(x => x)
-            .Must(x => !string.IsNullOrWhiteSpace(x.MediaName) || !string.IsNullOrWhiteSpace(x.MediaUrl))
-            .WithMessage("Phải cung cấp ít nhất MediaName hoặc MediaUrl");
-
-        RuleFor(x => x.MediaName)
-            .MaximumLength(255)
-            .When(x => !string.IsNullOrWhiteSpace(x.MediaName))
-            .WithMessage("Tên media không được vượt quá 255 ký tự");
-
-        RuleFor(x => x.MediaUrl)
+        RuleFor(x => x.ImageUrl)
+            .NotEmpty()
+            .WithMessage("URL ảnh là bắt buộc")
             .MaximumLength(500)
-            .When(x => !string.IsNullOrWhiteSpace(x.MediaUrl))
-            .WithMessage("URL media không được vượt quá 500 ký tự");
+            .WithMessage("URL ảnh không được vượt quá 500 ký tự");
+
+        RuleFor(x => x.SortOrder)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Thứ tự sắp xếp phải >= 0");
+    }
+}
+
+public class CreateProductVideoDtoValidator : AbstractValidator<CreateProductVideoDto>
+{
+    public CreateProductVideoDtoValidator()
+    {
+        RuleFor(x => x.VideoUrl)
+            .NotEmpty()
+            .WithMessage("URL video là bắt buộc")
+            .MaximumLength(500)
+            .WithMessage("URL video không được vượt quá 500 ký tự");
 
         RuleFor(x => x.SortOrder)
             .GreaterThanOrEqualTo(0)
@@ -235,26 +257,35 @@ public class CreateProductVariantDtoValidator : AbstractValidator<CreateProductV
             .When(x => x.Length.HasValue)
             .WithMessage("Chiều dài phải lớn hơn 0");
 
-        RuleFor(x => x.Medias)
-            .Must(x => x == null || x.Count <= 5)
-            .WithMessage("Variant không được có quá 5 hình ảnh")
+        RuleFor(x => x.Images)
+            .Must(x => x == null || x.Count <= 3)
+            .WithMessage("Variant không được có quá 3 hình ảnh")
             .Must(x => x == null || x.Count(m => m.IsCover) <= 1)
-            .WithMessage("Variant chỉ được có 1 ảnh cover")
-            .Must(x => x == null || HaveUniqueVariantSortOrders(x))
-            .WithMessage("Thứ tự sắp xếp media trong variant không được trùng lặp");
+            .WithMessage("Variant chỉ được có tối đa 1 ảnh cover")
+            .Must(x => x == null || !x.Any() || VariantCoverImageHasSortOrderZero(x))
+            .WithMessage("Ảnh cover của variant phải có sortOrder = 0")
+            .Must(x => x == null || HaveUniqueVariantImageSortOrders(x))
+            .WithMessage("Thứ tự sắp xếp ảnh trong variant không được trùng lặp");
 
-        RuleForEach(x => x.Medias)
-            .SetValidator(new CreateProductMediaDtoValidator())
-            .When(x => x.Medias != null);
+        RuleForEach(x => x.Images)
+            .SetValidator(new CreateProductImageDtoValidator())
+            .When(x => x.Images != null);
 
         RuleFor(x => x.OptionValues)
             .NotNull()
             .WithMessage("Danh sách option values không được null");
     }
 
-    private static bool HaveUniqueVariantSortOrders(List<CreateProductMediaDto> medias)
+    private static bool VariantCoverImageHasSortOrderZero(List<CreateProductImageDto> images)
     {
-        var sortOrders = medias.Select(m => m.SortOrder).ToList();
+        CreateProductImageDto? coverImage = images.FirstOrDefault(m => m.IsCover);
+        // Nếu có cover image, phải có sortOrder = 0
+        return coverImage == null || coverImage.SortOrder == 0;
+    }
+
+    private static bool HaveUniqueVariantImageSortOrders(List<CreateProductImageDto> images)
+    {
+        var sortOrders = images.Select(m => m.SortOrder).ToList();
         return sortOrders.Count == sortOrders.Distinct().Count();
     }
 }

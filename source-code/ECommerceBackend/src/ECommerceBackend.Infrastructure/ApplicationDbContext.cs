@@ -116,11 +116,8 @@ public class ApplicationDbContext : DbContext, IUnitOfWork
         }
         finally
         {
-            if (CurrentTransaction != null)
-            {
-                CurrentTransaction.Dispose();
-                CurrentTransaction = null;
-            }
+            CurrentTransaction?.Dispose();
+            CurrentTransaction = null;
         }
     }
 

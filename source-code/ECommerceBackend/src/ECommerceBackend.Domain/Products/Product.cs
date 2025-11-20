@@ -10,7 +10,6 @@ public enum ProductStatus
 {
     Active, // publicly available
     Inactive,   // hidden from customers
-    Deleted,  // soft-deleted
     Locked,   // locked by admin
     OutOfStock  // out of stock
 }
@@ -58,5 +57,21 @@ public sealed class Product : Entity
         // Raise domain event if needed
         // product.Raise(new ProductCreatedEvent(product.Id));
         return product;
+    }
+
+    public void UpdateBasicInfo(string name, string description, string slug, string sku, Guid categoryId)
+    {
+        Name = name;
+        Description = description;
+        Slug = slug;
+        Sku = sku;
+        CategoryId = categoryId;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateStatus(ProductStatus status)
+    {
+        Status = status;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 }

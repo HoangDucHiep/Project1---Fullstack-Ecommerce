@@ -39,7 +39,8 @@ public class Shop : Entity
             OwnerId = ownerId,
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
-            Status = ShopStatus.PENDING
+            // hdhiep - TODO: Change to PENDING Later
+            Status = ShopStatus.ACTIVE
         };
         // Raise domain event if needed
         return shop;

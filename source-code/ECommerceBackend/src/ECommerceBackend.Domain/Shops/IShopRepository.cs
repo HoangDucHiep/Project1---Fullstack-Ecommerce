@@ -10,5 +10,6 @@ public interface IShopRepository
 {
     Task<List<Shop>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<Shop?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Shop?> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default);
     void Add(Shop shop);
 }

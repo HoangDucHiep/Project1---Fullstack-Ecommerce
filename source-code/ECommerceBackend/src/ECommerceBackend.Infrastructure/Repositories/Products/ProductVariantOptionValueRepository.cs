@@ -42,6 +42,13 @@ public class ProductVariantOptionValueRepository : IProductVariantOptionValueRep
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<ProductVariantOptionValue>> GetByOptionValueIdsAsync(List<Guid> optionValueIds, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Set<ProductVariantOptionValue>()
+            .Where(pvov => optionValueIds.Contains(pvov.OptionValueId))
+            .ToListAsync(cancellationToken);
+    }
+
     public void Delete(ProductVariantOptionValue productVariantOptionValue)
     {
         _dbContext.Set<ProductVariantOptionValue>().Remove(productVariantOptionValue);

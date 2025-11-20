@@ -9,7 +9,8 @@ public record CreateNewProductRequest(
     string Name,
     string Description,
     string Sku, // Product SKU - required
-    List<CreateProductMediaRequest> Medias,
+    List<CreateProductImageRequest> Images, // Tối đa 10 ảnh
+    CreateProductVideoRequest? Video, // Tối đa 1 video (optional)
     List<CreateProductOptionRequest> Options,
     List<CreateProductVariantRequest> Variants,
     // For simple products (no options/variants)
@@ -22,12 +23,19 @@ public record CreateNewProductRequest(
 );
 
 /// <summary>
-/// Request DTO for product media
+/// Request DTO for product image
 /// </summary>
-public record CreateProductMediaRequest(
-    string? MediaName = null,
-    string? MediaUrl = null,
+public record CreateProductImageRequest(
+    string ImageUrl,
     bool IsCover = false,
+    int SortOrder = 0
+);
+
+/// <summary>
+/// Request DTO for product video
+/// </summary>
+public record CreateProductVideoRequest(
+    string VideoUrl,
     int SortOrder = 0
 );
 
@@ -51,5 +59,14 @@ public record CreateProductVariantRequest(
     decimal? Height = null,
     decimal? Width = null,
     decimal? Length = null,
-    List<CreateProductMediaRequest>? Medias = null
+    List<CreateProductImageRequest>? Images = null // Tối đa 3 ảnh
+);
+
+/// <summary>
+/// Request DTO for variant image
+/// </summary>
+public record CreateVariantImageRequest(
+    string ImageUrl,
+    bool IsCover = false,
+    int SortOrder = 0
 );

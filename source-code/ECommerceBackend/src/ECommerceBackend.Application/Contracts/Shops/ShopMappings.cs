@@ -5,18 +5,17 @@ internal static class ShopMappings
 {
     public static ShopDto ToShopDto(this Shop shop)
     {
-        return new ShopDto
-        {
-            Id = shop.Id,
-            Name = shop.Name,
-            Description = shop.Description,
-            LogoUrl = shop.LogoUrl,
-            BannerUrl = shop.BannerUrl,
-            Status = shop.Status,
-            OwnerId = shop.OwnerId,
-            CreatedAtUtc = shop.CreatedAtUtc,
-            UpdatedAtUtc = shop.UpdatedAtUtc
-        };
+        return new ShopDto(
+            shop.Id,
+            shop.Name,
+            shop.Description,
+            shop.LogoUrl,
+            shop.BannerUrl,
+            shop.Status,
+            shop.OwnerId,
+            shop.CreatedAtUtc,
+            shop.UpdatedAtUtc
+        );
     }
 
     public static Shop ToShopEntity(this ShopDto shopDto)

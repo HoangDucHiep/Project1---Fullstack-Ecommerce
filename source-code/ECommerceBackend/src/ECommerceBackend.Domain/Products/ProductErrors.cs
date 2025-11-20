@@ -110,5 +110,29 @@ public static class ProductErrors
     public static Error VariantMultipleCoverImages(string sku) => Error.Validation(
         "Product.VariantMultipleCoverImages",
         $"Variant '{sku}' cannot have more than one cover image");
+
+    public static Error Unauthorized => Error.Forbidden(
+        "Product.Unauthorized",
+        "Bạn không có quyền cập nhật sản phẩm này");
+
+    public static Error ProductLocked => Error.Failure(
+        "Product.Locked",
+        "Không thể cập nhật sản phẩm đang bị khóa bởi Admin");
+
+    public static Error InvalidStatusTransition => Error.Validation(
+        "Product.InvalidStatusTransition",
+        "Trạng thái không hợp lệ. Seller chỉ có thể chuyển giữa Active, Inactive, OutOfStock");
+
+    public static Error OptionNotFound(Guid optionId) => Error.NotFound(
+        "Product.OptionNotFound",
+        $"Product option with ID '{optionId}' was not found");
+
+    public static Error OptionValueNotFound(Guid valueId) => Error.NotFound(
+        "Product.OptionValueNotFound",
+        $"Product option value with ID '{valueId}' was not found");
+
+    public static Error VariantNotFound(Guid variantId) => Error.NotFound(
+        "Product.VariantNotFound",
+        $"Product variant with ID '{variantId}' was not found");
 }
 

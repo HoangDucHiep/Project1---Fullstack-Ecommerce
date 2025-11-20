@@ -11,6 +11,7 @@ public class ProductOptionValue : Entity
 {
     public Guid ProductOptionTypeId { get; private set; }
     public string Value { get; private set; }
+    public bool IsDeleted { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
@@ -37,5 +38,17 @@ public class ProductOptionValue : Entity
         // Raise domain event if needed
         // optionValue.Raise(new ProductOptionValueCreatedEvent(optionValue.Id));
         return optionValue;
+    }
+
+    public void UpdateValue(string value)
+    {
+        Value = value;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkAsDeleted()
+    {
+        IsDeleted = true;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 }

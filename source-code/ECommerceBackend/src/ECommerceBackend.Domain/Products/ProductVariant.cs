@@ -11,7 +11,6 @@ public enum VariantStatus
 {
     Active,
     Inactive,
-    Deleted,
     Locked,
     OutOfStock
 }
@@ -32,6 +31,7 @@ public class ProductVariant : Entity
     public double Height { get; private set; }  // Y - in centimeters
     public double Width { get; private set; }   // X - in centimeters
     public double Length { get; private set; }  // Z - in centimeters
+    public bool IsDeleted { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
@@ -71,5 +71,29 @@ public class ProductVariant : Entity
         // Raise domain event if needed
         // variant.Raise(new ProductVariantCreatedEvent(variant.Id));
         return variant;
+    }
+
+    public void UpdateDetails(string sku, decimal price, int stock, double weight, double height, double width, double length)
+    {
+        Sku = sku;
+        Price = price;
+        Stock = stock;
+        Weight = weight;
+        Height = height;
+        Width = width;
+        Length = length;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateStatus(VariantStatus status)
+    {
+        Status = status;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkAsDeleted()
+    {
+        IsDeleted = true;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 }
