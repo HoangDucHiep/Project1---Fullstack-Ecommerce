@@ -63,6 +63,18 @@ public static class ProductErrors
         "Product.DuplicateSku",
         $"A product variant with SKU '{sku}' already exists");
 
+    public static Error SkuDuplicate(string sku) => Error.Conflict(
+        "Product.SkuDuplicate",
+        $"SKU '{sku}' đã tồn tại trong shop này");
+
+    public static Error VariantSkuDuplicate(string sku) => Error.Conflict(
+        "Variant.SkuDuplicate",
+        $"Variant SKU '{sku}' đã tồn tại trong shop này");
+
+    public static Error VariantSkuDuplicateInRequest(string duplicates) => Error.Validation(
+        "Variant.SkuDuplicateInRequest",
+        $"Variant SKU trùng lặp trong request: {duplicates}");
+
     public static Error InvalidVariantCount(int expected, int actual) => Error.Validation(
         "Product.InvalidVariantCount",
         $"Number of variants ({actual}) does not match the expected combinations ({expected})");

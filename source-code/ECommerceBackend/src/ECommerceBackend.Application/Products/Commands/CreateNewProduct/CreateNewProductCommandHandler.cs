@@ -74,13 +74,62 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 throw new ApplicationInvalidOperationException(CategoryErrors.NotFound(request.CategoryId));
             }
 
-            // 3. Validate and resolve all images and video
+            // 3. Validate Product SKU is unique within shop
+            Product? existingProduct = await _productRepository.GetBySkuAsync(
+                request.Sku, request.ShopId, cancellationToken);
+
+            if (existingProduct != null)
+            {
+                throw new ApplicationInvalidOperationException(
+                    ProductErrors.SkuDuplicate(request.Sku)
+                );
+            }
+
+            // 4. Validate Variant SKUs are unique within shop AND within request
+            if (request.Options.Any())
+            {
+                // Collect all variant SKUs
+                var variantSkus = request.Variants
+                    .Where(v => !string.IsNullOrWhiteSpace(v.Sku))
+                    .Select(v => v.Sku!)
+                    .ToList();
+
+                // Check duplicates within request
+                var duplicates = variantSkus
+                    .GroupBy(s => s)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (duplicates.Any())
+                {
+                    throw new ApplicationInvalidOperationException(
+                        ProductErrors.VariantSkuDuplicateInRequest(string.Join(", ", duplicates))
+                    );
+                }
+
+                // Check duplicates in database
+                foreach (string variantSku in variantSkus)
+                {
+                    ProductVariant? existingVariant = await _productVariantRepository.GetBySkuAsync(
+                        variantSku, request.ShopId, cancellationToken);
+
+                    if (existingVariant != null)
+                    {
+                        throw new ApplicationInvalidOperationException(
+                            ProductErrors.VariantSkuDuplicate(variantSku)
+                        );
+                    }
+                }
+            }
+
+            // 5. Validate and resolve all images and video
             List<Media> imageMediaList = await ResolveImagesAsync(request.Images, cancellationToken);
             Media? videoMedia = request.Video != null 
                 ? await ResolveVideoAsync(request.Video, cancellationToken) 
                 : null;
 
-            // 4. Generate unique slug, create product entity
+            // 6. Generate unique slug, create product entity
             string slug = SlugGenerator.GenerateSlug(request.Name);
             var product = Product.Create(
                 shopId: request.ShopId,
@@ -96,7 +145,7 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
             var productOptions = new List<ProductOptionType>();
             var productVariants = new List<ProductVariant>();
 
-            // 5. Determine product type and create accordingly
+            // 7. Determine product type and create accordingly
             if (request.Options.Any())
             {
                 // Complex product with options and variants
@@ -108,10 +157,10 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 await CreateSimpleProduct(request, product, productVariants, cancellationToken);
             }
 
-            // 6. Create product media (main product images + video)
+            // 8. Create product media (main product images + video)
             var productMedias = new List<ProductMedia>();
             
-            // 6a. Add video FIRST (if exists) - Video luôn hiển thị đầu tiên với sortOrder = -1
+            // 8a. Add video FIRST (if exists) - Video luôn hiển thị đầu tiên với sortOrder = -1
             if (videoMedia != null && request.Video != null)
             {
                 // Auto-confirm media when linking to product
@@ -131,7 +180,7 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 productMedias.Add(productMedia);
             }
             
-            // 6b. Add images AFTER video (sortOrder >= 0)
+            // 8b. Add images AFTER video (sortOrder >= 0)
             foreach ((CreateProductImageDto imageDto, Media media) in request.Images.Zip(imageMediaList))
             {
                 // Auto-confirm media when linking to product
@@ -151,10 +200,10 @@ public class CreateNewProductCommandHandler : ICommandHandler<CreateNewProductCo
                 productMedias.Add(productMedia);
             }
 
-            // 7. Save all changes
+            // 9. Save all changes
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // 8. Build response DTO
+            // 10. Build response DTO
             List<ProductMediaDto> mediaDtos = await _assembler.BuildMediaDtos(productMedias, cancellationToken);
 
             ProductDetailDto productDetailDto;

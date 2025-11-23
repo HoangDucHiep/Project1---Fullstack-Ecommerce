@@ -11,9 +11,10 @@ public record UpdateProductCommand(
     string Description,
     string Sku,
     ProductStatus Status,
-    List<UpdateProductMediaDto> Medias,
+    List<UpdateProductImageDto> Images,
     List<UpdateProductOptionDto> Options,
     List<UpdateProductVariantDto> Variants,
+    UpdateProductVideoDto? Video = null,
     // For simple products
     decimal? DefaultPrice = null,
     int? DefaultStock = null,
@@ -23,36 +24,38 @@ public record UpdateProductCommand(
     double? DefaultLength = null
 ) : ICommand<ProductDetailDto>;
 
-public record UpdateProductMediaDto(
-    string? MediaUrl = null,
-    Guid? Id = null,
-    bool IsCover = false,
-    int SortOrder = 0
+public record UpdateProductImageDto(
+    string ImageUrl,
+    bool IsCover,
+    int SortOrder,
+    Guid? Id = null
+);
+
+public record UpdateProductVideoDto(
+    string VideoUrl,
+    Guid? Id = null
 );
 
 public record UpdateProductOptionDto(
-    Guid? Id = null,
-    string Name = "",
-    List<UpdateProductOptionValueDto>? Values = null
+    string Name,
+    List<UpdateProductOptionValueDto> Values,
+    Guid? Id = null
 );
 
 public record UpdateProductOptionValueDto(
-    Guid? Id = null,
-    string Value = ""
+    string Value,
+    Guid? Id = null
 );
 
 public record UpdateProductVariantDto(
+    List<string> OptionValues,
+    decimal Price,
+    int Stock,
+    string Sku,
     Guid? Id = null,
-    List<string>? OptionValues = null,
-    decimal Price = 0,
-    int Stock = 0,
-    string? Sku = null,
     double? Weight = null,
     double? Height = null,
     double? Width = null,
     double? Length = null,
-    List<UpdateProductMediaDto>? Medias = null
+    List<UpdateProductImageDto>? Images = null
 );
-
-
-

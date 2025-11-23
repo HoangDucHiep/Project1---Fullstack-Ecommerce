@@ -11,9 +11,10 @@ public record UpdateProductRequest(
     string Description,
     string Sku,
     ProductStatus Status,
-    List<UpdateProductMediaRequest> Medias,
+    List<UpdateProductImageRequest> Images,
     List<UpdateProductOptionRequest> Options,
     List<UpdateProductVariantRequest> Variants,
+    UpdateProductVideoRequest? Video = null,
     // For simple products (no options/variants)
     decimal? DefaultPrice = null,
     int? DefaultStock = null,
@@ -24,13 +25,21 @@ public record UpdateProductRequest(
 );
 
 /// <summary>
-/// Request DTO for product media (update)
+/// Request DTO for product image (update)
 /// </summary>
-public record UpdateProductMediaRequest(
-    string? MediaUrl = null,
-    Guid? Id = null, // null = new media
-    bool IsCover = false,
-    int SortOrder = 0
+public record UpdateProductImageRequest(
+    string ImageUrl,
+    bool IsCover,
+    int SortOrder,
+    Guid? Id = null // null = new image, có Id = existing image
+);
+
+/// <summary>
+/// Request DTO for product video (update)
+/// </summary>
+public record UpdateProductVideoRequest(
+    string VideoUrl,
+    Guid? Id = null // null = new video, có Id = existing video
 );
 
 /// <summary>
@@ -57,12 +66,11 @@ public record UpdateProductVariantRequest(
     List<string> OptionValues,
     decimal Price,
     int Stock,
+    string Sku,
     Guid? Id = null, // null = new variant
-    string? Sku = null,
     decimal? Weight = null,
     decimal? Height = null,
     decimal? Width = null,
     decimal? Length = null,
-    List<UpdateProductMediaRequest>? Medias = null
+    List<UpdateProductImageRequest>? Images = null // Variant chỉ có Images, không có Video
 );
-

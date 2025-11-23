@@ -100,11 +100,11 @@ public class SellerProductController : ControllerBase
             Description: request.Description,
             Sku: request.Sku,
             Status: request.Status,
-            Medias: request.Medias.Select(m => new UpdateProductMediaDto(
-                MediaUrl: m.MediaUrl,
-                Id: m.Id,
-                IsCover: m.IsCover,
-                SortOrder: m.SortOrder)).ToList(),
+            Images: request.Images.Select(img => new UpdateProductImageDto(
+                ImageUrl: img.ImageUrl,
+                Id: img.Id,
+                IsCover: img.IsCover,
+                SortOrder: img.SortOrder)).ToList(),
             Options: request.Options.Select(o => new UpdateProductOptionDto(
                 Name: o.Name,
                 Values: o.Values.Select(v => new UpdateProductOptionValueDto(
@@ -121,11 +121,16 @@ public class SellerProductController : ControllerBase
                 Height: (double?)v.Height,
                 Width: (double?)v.Width,
                 Length: (double?)v.Length,
-                Medias: v.Medias?.Select(m => new UpdateProductMediaDto(
-                    MediaUrl: m.MediaUrl,
-                    Id: m.Id,
-                    IsCover: m.IsCover,
-                    SortOrder: m.SortOrder)).ToList())).ToList(),
+                Images: v.Images?.Select(img => new UpdateProductImageDto(
+                    ImageUrl: img.ImageUrl,
+                    Id: img.Id,
+                    IsCover: img.IsCover,
+                    SortOrder: img.SortOrder)).ToList())).ToList(),
+            Video: request.Video != null
+                ? new UpdateProductVideoDto(
+                    VideoUrl: request.Video.VideoUrl,
+                    Id: request.Video.Id)
+                : null,
             DefaultPrice: request.DefaultPrice,
             DefaultStock: request.DefaultStock,
             DefaultWeight: (double?)request.DefaultWeight,

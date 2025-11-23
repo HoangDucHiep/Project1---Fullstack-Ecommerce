@@ -20,6 +20,12 @@ public class ProductRepository : Repository<Product>, IProductRepository
             .FirstOrDefaultAsync(p => p.Slug == slug, cancellationToken);
     }
 
+    public async Task<Product?> GetBySkuAsync(string sku, Guid shopId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Set<Product>()
+            .FirstOrDefaultAsync(p => p.Sku == sku && p.ShopId == shopId, cancellationToken);
+    }
+
     public async Task<List<Product>> GetByShopIdAsync(Guid shopId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Set<Product>()

@@ -1,454 +1,718 @@
 using ECommerceBackend.Application.Abstracts;
+using ECommerceBackend.Application.Abstracts.Authentication;
+using ECommerceBackend.Application.Abstracts.Exceptions;
 using ECommerceBackend.Application.Abstracts.Messaging;
 using ECommerceBackend.Application.Contracts.Products;
+using ECommerceBackend.Application.Products.Services;
 using ECommerceBackend.Domain.Abstracts;
 using ECommerceBackend.Domain.Abstracts.Utils;
 using ECommerceBackend.Domain.Categories;
 using ECommerceBackend.Domain.Medias;
 using ECommerceBackend.Domain.Products;
-using Microsoft.Extensions.Logging;
 
 namespace ECommerceBackend.Application.Products.Commands.UpdateProduct;
 
+/// HDHiep - 11/23/2024
+/// <summary>
+/// Handler for updating an existing product
+/// </summary>
 public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand, ProductDetailDto>
 {
     private readonly IProductRepository _productRepository;
-    private readonly IProductMediaRepository _productMediaRepository;
+    private readonly IProductVariantRepository _productVariantRepository;
     private readonly IProductOptionTypeRepository _productOptionTypeRepository;
     private readonly IProductOptionValueRepository _productOptionValueRepository;
-    private readonly IProductVariantRepository _productVariantRepository;
     private readonly IProductVariantOptionValueRepository _productVariantOptionValueRepository;
+    private readonly IProductMediaRepository _productMediaRepository;
     private readonly IMediaRepository _mediaRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IUserContext _userContext;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<UpdateProductCommandHandler> _logger;
+    private readonly ProductDetailAssembler _assembler;
 
     public UpdateProductCommandHandler(
         IProductRepository productRepository,
-        IProductMediaRepository productMediaRepository,
+        IProductVariantRepository productVariantRepository,
         IProductOptionTypeRepository productOptionTypeRepository,
         IProductOptionValueRepository productOptionValueRepository,
-        IProductVariantRepository productVariantRepository,
         IProductVariantOptionValueRepository productVariantOptionValueRepository,
+        IProductMediaRepository productMediaRepository,
         IMediaRepository mediaRepository,
         ICategoryRepository categoryRepository,
+        IUserContext userContext,
         IUnitOfWork unitOfWork,
-        ILogger<UpdateProductCommandHandler> logger)
+        ProductDetailAssembler assembler)
     {
         _productRepository = productRepository;
-        _productMediaRepository = productMediaRepository;
+        _productVariantRepository = productVariantRepository;
         _productOptionTypeRepository = productOptionTypeRepository;
         _productOptionValueRepository = productOptionValueRepository;
-        _productVariantRepository = productVariantRepository;
         _productVariantOptionValueRepository = productVariantOptionValueRepository;
+        _productMediaRepository = productMediaRepository;
         _mediaRepository = mediaRepository;
         _categoryRepository = categoryRepository;
+        _userContext = userContext;
         _unitOfWork = unitOfWork;
-        _logger = logger;
+        _assembler = assembler;
     }
 
     public async Task<Result<ProductDetailDto>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        // ===== BƯỚC 1: Load Product với Authorization checks =====
-        Product? product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
-        if (product == null)
+        return await _unitOfWork.ExecuteInTransactionAsync(async () =>
         {
-            return Result.Failure<ProductDetailDto>(ProductErrors.NotFound(request.Id));
-        }
-
-        // TODO: Authorization check - verify seller owns this product's shop
-        // var currentUserShopId = GetCurrentUserShopId(); // Get from ClaimsPrincipal
-        // if (product.ShopId != currentUserShopId)
-        //     return Result.Failure<ProductDetailDto>(ProductErrors.Unauthorized);
-
-        // Status validation
-        if (product.Status == ProductStatus.Locked)
-        {
-            return Result.Failure<ProductDetailDto>(ProductErrors.ProductLocked);
-        }
-
-        // Validate status transition for Seller
-        ProductStatus[] allowedStatuses = [ProductStatus.Active, ProductStatus.Inactive, ProductStatus.OutOfStock];
-        if (!allowedStatuses.Contains(request.Status))
-        {
-            return Result.Failure<ProductDetailDto>(ProductErrors.InvalidStatusTransition);
-        }
-
-        // ===== BƯỚC 2: Validate Category exists =====
-        Category? category = await _categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken);
-        if (category == null)
-        {
-            return Result.Failure<ProductDetailDto>(ProductErrors.CategoryNotFound(request.CategoryId));
-        }
-
-        // ===== BƯỚC 3: Update Basic Info =====
-        string slug = SlugGenerator.GenerateSlug(request.Name);
-        Product? existingSlugProduct = await _productRepository.GetBySlugAsync(slug, cancellationToken);
-        if (existingSlugProduct != null && existingSlugProduct.Id != product.Id)
-        {
-            // Make slug unique if conflict
-            slug = $"{slug}-{Guid.NewGuid().ToString()[..8]}";
-        }
-
-        product.UpdateBasicInfo(request.Name, request.Description, slug, request.Sku, request.CategoryId);
-        product.UpdateStatus(request.Status);
-
-        // ===== BƯỚC 4: Update Media (Incremental) =====
-        List<ProductMedia> existingMedias = await _productMediaRepository.GetByProductIdAsync(product.Id, cancellationToken);
-        var existingMediasDict = existingMedias.Where(m => m.ProductVariantId == null).ToDictionary(m => m.Id);
-
-        foreach (var mediaDto in request.Medias)
-        {
-            if (mediaDto.Id.HasValue)
+            // ===== BƯỚC 1: Load và validate Product =====
+            Product? product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (product == null)
             {
-                // ===== UPDATE: Cập nhật metadata của media đã tồn tại =====
-                if (existingMediasDict.TryGetValue(mediaDto.Id.Value, out var existingMedia))
+                throw new ApplicationInvalidOperationException(ProductErrors.NotFound(request.Id));
+            }
+
+            // Authorization check - verify seller owns this product's shop
+            // TODO: Implement proper authorization when Shop-User relationship is ready
+            // For now, skip this check
+
+            // Validate product not locked
+            if (product.Status == ProductStatus.Locked)
+            {
+                throw new ApplicationInvalidOperationException(ProductErrors.ProductLocked);
+            }
+
+            // Validate status transition for Seller
+            ProductStatus[] allowedStatuses = [ProductStatus.Active, ProductStatus.Inactive, ProductStatus.OutOfStock];
+            if (!allowedStatuses.Contains(request.Status))
+            {
+                throw new ApplicationInvalidOperationException(ProductErrors.InvalidStatusTransition);
+            }
+
+            // ===== BƯỚC 2: Validate Category exists =====
+            Category? category = await _categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken);
+            if (category == null)
+            {
+                throw new ApplicationInvalidOperationException(CategoryErrors.NotFound(request.CategoryId));
+            }
+
+            // ===== BƯỚC 3: Validate SKU unique (if changed) =====
+            if (product.Sku != request.Sku)
+            {
+                Product? existingProduct = await _productRepository.GetBySkuAsync(
+                    request.Sku, product.ShopId, cancellationToken);
+
+                if (existingProduct != null)
                 {
-                    // Chỉ update IsCover và SortOrder
-                    existingMedia.UpdateCoverStatus(mediaDto.IsCover);
-                    existingMedia.UpdateSortOrder(mediaDto.SortOrder);
-                    
-                    // Đánh dấu đã xử lý
-                    existingMediasDict.Remove(mediaDto.Id.Value);
+                    throw new ApplicationInvalidOperationException(
+                        ProductErrors.SkuDuplicate(request.Sku)
+                    );
                 }
-                // Nếu không tìm thấy Id trong DB → bỏ qua (có thể log warning)
+            }
+
+            // ===== BƯỚC 4: Update Basic Info =====
+            string slug = SlugGenerator.GenerateSlug(request.Name);
+            Product? existingSlugProduct = await _productRepository.GetBySlugAsync(slug, cancellationToken);
+            if (existingSlugProduct != null && existingSlugProduct.Id != product.Id)
+            {
+                // Make slug unique if conflict
+                slug = $"{slug}-{Guid.NewGuid().ToString()[..8]}";
+            }
+
+            product.UpdateBasicInfo(request.Name, request.Description, slug, request.Sku, request.CategoryId);
+            product.UpdateStatus(request.Status);
+            _productRepository.Update(product);
+
+            // ===== BƯỚC 5: Determine product type =====
+            bool isComplexProduct = request.Options.Any();
+
+            if (isComplexProduct)
+            {
+                // Complex product: Update options, variants, and their media
+                await UpdateComplexProduct(request, product, cancellationToken);
             }
             else
             {
-                // ===== CREATE: Thêm media mới =====
-                if (string.IsNullOrWhiteSpace(mediaDto.MediaUrl))
-                {
-                    return Result.Failure<ProductDetailDto>(ProductErrors.MediaNotFound("MediaUrl is required"));
-                }
-
-                var mediaEntity = await _mediaRepository.GetByFileUrlAsync(mediaDto.MediaUrl, cancellationToken);
-                if (mediaEntity == null)
-                {
-                    return Result.Failure<ProductDetailDto>(ProductErrors.MediaNotFound(mediaDto.MediaUrl));
-                }
-
-                // Tạo ProductMedia mới
-                var productMedia = ProductMedia.CreateForProduct(
-                    product.Id,
-                    mediaEntity.Id,
-                    mediaDto.IsCover,
-                    mediaDto.SortOrder
-                );
-                await _productMediaRepository.AddAsync(productMedia, cancellationToken);
+                // Simple product: Update ghost variant
+                await UpdateSimpleProduct(request, product, cancellationToken);
             }
-        }
 
-        // ===== DELETE: Soft delete các media không có trong request =====
-        foreach (var unprocessedMedia in existingMediasDict.Values)
-        {
-            unprocessedMedia.MarkAsDeleted();
-        }
+            // ===== BƯỚC 6: Update product media (Images + Video) =====
+            await UpdateProductMedia(request, product.Id, cancellationToken);
 
-        // ===== BƯỚC 5: Update Options & Values (Incremental) =====
-        var existingOptions = await _productOptionTypeRepository.GetByProductIdAsync(product.Id, cancellationToken);
-        var existingValues = await _productOptionValueRepository.GetByProductOptionTypeIdsAsync(
-            existingOptions.Select(o => o.Id).ToList(),
-            cancellationToken
-        );
+            // ===== BƯỚC 7: Save all changes =====
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+            // ===== BƯỚC 8: Build response DTO =====
+            return await BuildProductDetailDto(product.Id, isComplexProduct, cancellationToken);
+        }, cancellationToken);
+    }
+
+    private async Task UpdateComplexProduct(
+        UpdateProductCommand request,
+        Product product,
+        CancellationToken cancellationToken)
+    {
+        // Load existing options, values, variants
+        List<ProductOptionType> existingOptions = await _productOptionTypeRepository.GetByProductIdAsync(product.Id, cancellationToken);
+        List<ProductVariant> existingVariants = await _productVariantRepository.GetByProductIdAsync(product.Id, cancellationToken);
+
+        // Create dictionaries for quick lookup
         var existingOptionsDict = existingOptions.ToDictionary(o => o.Id);
-        var processedOptions = new Dictionary<string, ProductOptionType>();
-        var processedValues = new Dictionary<Guid, List<ProductOptionValue>>();
+        var existingVariantsDict = existingVariants.ToDictionary(v => v.Id);
 
-        foreach (var optionDto in request.Options)
+        // Track which entities are still in use
+        var processedOptionIds = new HashSet<Guid>();
+        var processedVariantIds = new HashSet<Guid>();
+
+        // ===== 1. Update/Create Options and Values =====
+        var optionValueMap = new Dictionary<string, Dictionary<string, ProductOptionValue>>();
+
+        foreach (UpdateProductOptionDto optionDto in request.Options)
         {
-            ProductOptionType optionType;
+            ProductOptionType option;
 
-            if (optionDto.Id.HasValue)
+            if (optionDto.Id.HasValue && existingOptionsDict.TryGetValue(optionDto.Id.Value, out var existingOption))
             {
                 // Update existing option
-                if (existingOptionsDict.TryGetValue(optionDto.Id.Value, out var existingOption))
-                {
-                    existingOption.UpdateName(optionDto.Name);
-                    optionType = existingOption;
-                    existingOptionsDict.Remove(optionDto.Id.Value);
-                }
-                else
-                {
-                    return Result.Failure<ProductDetailDto>(ProductErrors.OptionNotFound(optionDto.Id.Value));
-                }
+                existingOption.UpdateName(optionDto.Name);
+                option = existingOption;
+                processedOptionIds.Add(option.Id);
             }
             else
             {
                 // Create new option
-                optionType = ProductOptionType.Create(product.Id, optionDto.Name);
-                await _productOptionTypeRepository.AddAsync(optionType, cancellationToken);
+                option = ProductOptionType.Create(product.Id, optionDto.Name);
+                await _productOptionTypeRepository.AddAsync(option, cancellationToken);
+                processedOptionIds.Add(option.Id);
             }
 
-            processedOptions[optionDto.Name] = optionType;
+            // Update/Create option values
+            List<ProductOptionValue> existingValues = await _productOptionValueRepository.GetByProductOptionTypeIdAsync(option.Id, cancellationToken);
+            var existingValuesDict = existingValues.ToDictionary(v => v.Id);
+            var processedValueIds = new HashSet<Guid>();
 
-            // Process values for this option
-            var existingValuesForOption = existingValues.Where(v => v.ProductOptionTypeId == optionType.Id).ToList();
-            var existingValuesDict = existingValuesForOption.ToDictionary(v => v.Id);
-            var processedValuesForOption = new List<ProductOptionValue>();
+            var optionValues = new Dictionary<string, ProductOptionValue>();
 
-            if (optionDto.Values != null)
+            foreach (UpdateProductOptionValueDto valueDto in optionDto.Values)
             {
-                foreach (var valueDto in optionDto.Values)
+                ProductOptionValue optionValue;
+
+                if (valueDto.Id.HasValue && existingValuesDict.TryGetValue(valueDto.Id.Value, out var existingValue))
                 {
-                    ProductOptionValue optionValue;
-
-                    if (valueDto.Id.HasValue)
-                    {
-                        // Update existing value
-                        if (existingValuesDict.TryGetValue(valueDto.Id.Value, out var existingValue))
-                        {
-                            existingValue.UpdateValue(valueDto.Value);
-                            optionValue = existingValue;
-                            existingValuesDict.Remove(valueDto.Id.Value);
-                        }
-                        else
-                        {
-                            return Result.Failure<ProductDetailDto>(ProductErrors.OptionValueNotFound(valueDto.Id.Value));
-                        }
-                    }
-                    else
-                    {
-                        // Create new value
-                        optionValue = ProductOptionValue.Create(optionType.Id, valueDto.Value);
-                        await _productOptionValueRepository.AddAsync(optionValue, cancellationToken);
-                    }
-
-                    processedValuesForOption.Add(optionValue);
-                }
-            }
-
-            processedValues[optionType.Id] = processedValuesForOption;
-
-            // Soft delete unprocessed values
-            foreach (var unprocessedValue in existingValuesDict.Values)
-            {
-                unprocessedValue.MarkAsDeleted();
-                // CASCADE: Soft delete variants using this value
-                await SoftDeleteVariantsUsingValueAsync(unprocessedValue.Id, cancellationToken);
-            }
-        }
-
-        // Soft delete unprocessed options
-        foreach (var unprocessedOption in existingOptionsDict.Values)
-        {
-            unprocessedOption.MarkAsDeleted();
-            // CASCADE: Soft delete all values
-            var valuesToDelete = existingValues.Where(v => v.ProductOptionTypeId == unprocessedOption.Id).ToList();
-            foreach (var val in valuesToDelete)
-            {
-                val.MarkAsDeleted();
-            }
-            // CASCADE: Soft delete all variants
-            await SoftDeleteVariantsUsingOptionAsync(unprocessedOption.Id, cancellationToken);
-        }
-
-        // ===== BƯỚC 6: Update Variants (Incremental) =====
-        var existingVariants = await _productVariantRepository.GetByProductIdAsync(product.Id, cancellationToken);
-        var existingVariantsDict = existingVariants.ToDictionary(v => v.Id);
-
-        foreach (var variantDto in request.Variants)
-        {
-            ProductVariant variant;
-
-            if (variantDto.Id.HasValue)
-            {
-                // Update existing variant
-                if (existingVariantsDict.TryGetValue(variantDto.Id.Value, out var existingVariant))
-                {
-                    existingVariant.UpdateDetails(
-                        variantDto.Sku ?? $"{request.Sku}-{Guid.NewGuid().ToString()[..8]}",
-                        variantDto.Price,
-                        variantDto.Stock,
-                        variantDto.Weight ?? request.DefaultWeight ?? 0,
-                        variantDto.Height ?? request.DefaultHeight ?? 0,
-                        variantDto.Width ?? request.DefaultWidth ?? 0,
-                        variantDto.Length ?? request.DefaultLength ?? 0
-                    );
-                    variant = existingVariant;
-                    existingVariantsDict.Remove(variantDto.Id.Value);
-
-                    // Update variant option values (delete old, create new)
-                    var existingVOVs = await _productVariantOptionValueRepository.GetByVariantIdAsync(variant.Id, cancellationToken);
-                    foreach (var vov in existingVOVs)
-                    {
-                        vov.MarkAsDeleted();
-                    }
-
-                    // Update variant medias (incremental)
-                    if (variantDto.Medias != null && variantDto.Medias.Any())
-                    {
-                        var existingVariantMedias = await _productMediaRepository.GetByProductVariantIdAsync(variant.Id, cancellationToken);
-                        var existingVariantMediasDict = existingVariantMedias.ToDictionary(m => m.Id);
-
-                        foreach (var mediaDto in variantDto.Medias)
-                        {
-                            if (mediaDto.Id.HasValue)
-                            {
-                                // Update existing variant media
-                                if (existingVariantMediasDict.TryGetValue(mediaDto.Id.Value, out var existingMedia))
-                                {
-                                    existingMedia.UpdateCoverStatus(mediaDto.IsCover);
-                                    existingMedia.UpdateSortOrder(mediaDto.SortOrder);
-                                    existingVariantMediasDict.Remove(mediaDto.Id.Value);
-                                }
-                            }
-                            else
-                            {
-                                // Create new variant media
-                                if (string.IsNullOrWhiteSpace(mediaDto.MediaUrl))
-                                {
-                                    return Result.Failure<ProductDetailDto>(ProductErrors.MediaNotFound("Variant media: MediaUrl is required"));
-                                }
-
-                                var mediaEntity = await _mediaRepository.GetByFileUrlAsync(mediaDto.MediaUrl, cancellationToken);
-                                if (mediaEntity == null)
-                                {
-                                    return Result.Failure<ProductDetailDto>(ProductErrors.MediaNotFound($"Variant media: {mediaDto.MediaUrl}"));
-                                }
-
-                                var variantMedia = ProductMedia.CreateForVariant(
-                                    product.Id,
-                                    variant.Id,
-                                    mediaEntity.Id,
-                                    mediaDto.IsCover,
-                                    mediaDto.SortOrder
-                                );
-                                await _productMediaRepository.AddAsync(variantMedia, cancellationToken);
-                            }
-                        }
-
-                        // Soft delete unprocessed variant medias
-                        foreach (var unprocessedMedia in existingVariantMediasDict.Values)
-                        {
-                            unprocessedMedia.MarkAsDeleted();
-                        }
-                    }
+                    // Update existing value
+                    existingValue.UpdateValue(valueDto.Value);
+                    optionValue = existingValue;
+                    processedValueIds.Add(optionValue.Id);
                 }
                 else
                 {
-                    return Result.Failure<ProductDetailDto>(ProductErrors.VariantNotFound(variantDto.Id.Value));
+                    // Create new value
+                    optionValue = ProductOptionValue.Create(option.Id, valueDto.Value);
+                    await _productOptionValueRepository.AddAsync(optionValue, cancellationToken);
+                    processedValueIds.Add(optionValue.Id);
                 }
+
+                optionValues[valueDto.Value] = optionValue;
+            }
+
+            optionValueMap[optionDto.Name] = optionValues;
+
+            // Soft delete unused values
+            foreach (var value in existingValues)
+            {
+                if (!processedValueIds.Contains(value.Id))
+                {
+                    value.MarkAsDeleted();
+                }
+            }
+        }
+
+        // Soft delete unused options (and cascade to values)
+        foreach (var option in existingOptions)
+        {
+            if (!processedOptionIds.Contains(option.Id))
+            {
+                option.MarkAsDeleted();
+            }
+        }
+
+        // ===== 2. Validate Variant SKUs =====
+        var variantSkus = request.Variants
+            .Select(v => v.Sku)
+            .ToList();
+
+        // Check duplicates within request
+        var duplicates = variantSkus
+            .GroupBy(s => s)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+
+        if (duplicates.Any())
+        {
+            throw new ApplicationInvalidOperationException(
+                ProductErrors.VariantSkuDuplicateInRequest(string.Join(", ", duplicates))
+            );
+        }
+
+        // Check duplicates in database (excluding current product's variants)
+        foreach (string variantSku in variantSkus)
+        {
+            ProductVariant? existingVariant = await _productVariantRepository.GetBySkuAsync(
+                variantSku, product.ShopId, cancellationToken);
+
+            if (existingVariant != null && existingVariant.ProductId != product.Id)
+            {
+                throw new ApplicationInvalidOperationException(
+                    ProductErrors.VariantSkuDuplicate(variantSku)
+                );
+            }
+        }
+
+        // ===== 3. Update/Create Variants =====
+        foreach (UpdateProductVariantDto variantDto in request.Variants)
+        {
+            ProductVariant variant;
+
+            if (variantDto.Id.HasValue && existingVariantsDict.TryGetValue(variantDto.Id.Value, out var existingVariant))
+            {
+                // Update existing variant
+                existingVariant.UpdateDetails(
+                    sku: variantDto.Sku,
+                    price: variantDto.Price,
+                    stock: variantDto.Stock,
+                    weight: variantDto.Weight ?? 0,
+                    height: variantDto.Height ?? 0,
+                    width: variantDto.Width ?? 0,
+                    length: variantDto.Length ?? 0
+                );
+                variant = existingVariant;
+                processedVariantIds.Add(variant.Id);
             }
             else
             {
                 // Create new variant
                 variant = ProductVariant.Create(
-                    product.Id,
-                    variantDto.Sku ?? $"{request.Sku}-{Guid.NewGuid().ToString()[..8]}",
-                    variantDto.Price,
-                    variantDto.Stock,
-                    variantDto.Weight ?? request.DefaultWeight ?? 0,
-                    variantDto.Height ?? request.DefaultHeight ?? 0,
-                    variantDto.Width ?? request.DefaultWidth ?? 0,
-                    variantDto.Length ?? request.DefaultLength ?? 0
+                    productId: product.Id,
+                    sku: variantDto.Sku,
+                    price: variantDto.Price,
+                    stock: variantDto.Stock,
+                    weight: variantDto.Weight ?? 0,
+                    height: variantDto.Height ?? 0,
+                    width: variantDto.Width ?? 0,
+                    length: variantDto.Length ?? 0
                 );
                 await _productVariantRepository.AddAsync(variant, cancellationToken);
+                processedVariantIds.Add(variant.Id);
             }
 
-            // Create ProductVariantOptionValue links
-            if (variantDto.OptionValues != null)
+            // Update variant option values
+            await UpdateVariantOptionValues(variant, variantDto.OptionValues, optionValueMap, request.Options, cancellationToken);
+
+            // Update variant images
+            if (variantDto.Images != null)
             {
-                foreach (var optionValueString in variantDto.OptionValues)
-                {
-                    // Find option value by string
-                    var optionValue = processedValues.Values
-                        .SelectMany(v => v)
-                        .FirstOrDefault(v => v.Value == optionValueString);
+                await UpdateVariantImages(variant.Id, product.Id, variantDto.Images, cancellationToken);
+            }
+        }
 
-                    if (optionValue == null)
-                    {
-                        return Result.Failure<ProductDetailDto>(ProductErrors.InvalidOptionValue(optionValueString, ""));
-                    }
+        // Soft delete unused variants
+        foreach (var variant in existingVariants)
+        {
+            if (!processedVariantIds.Contains(variant.Id))
+            {
+                variant.MarkAsDeleted();
+            }
+        }
+    }
 
-                    var vov = ProductVariantOptionValue.Create(variant.Id, optionValue.Id);
-                    await _productVariantOptionValueRepository.AddAsync(vov, cancellationToken);
-                }
+    private async Task UpdateSimpleProduct(
+        UpdateProductCommand request,
+        Product product,
+        CancellationToken cancellationToken)
+    {
+        // Load existing variants (should be 1 ghost variant)
+        List<ProductVariant> existingVariants = await _productVariantRepository.GetByProductIdAsync(product.Id, cancellationToken);
+
+        if (existingVariants.Count == 0)
+        {
+            // Create ghost variant if not exists
+            var defaultVariant = ProductVariant.Create(
+                productId: product.Id,
+                sku: $"DEFAULT-{Guid.NewGuid().ToString()[..8]}",
+                price: request.DefaultPrice!.Value,
+                stock: request.DefaultStock!.Value,
+                weight: request.DefaultWeight ?? 0,
+                height: request.DefaultHeight ?? 0,
+                width: request.DefaultWidth ?? 0,
+                length: request.DefaultLength ?? 0
+            );
+            await _productVariantRepository.AddAsync(defaultVariant, cancellationToken);
+        }
+        else
+        {
+            // Update ghost variant
+            var ghostVariant = existingVariants.First();
+            ghostVariant.UpdateDetails(
+                sku: ghostVariant.Sku, // Don't change SKU
+                price: request.DefaultPrice!.Value,
+                stock: request.DefaultStock!.Value,
+                weight: request.DefaultWeight ?? 0,
+                height: request.DefaultHeight ?? 0,
+                width: request.DefaultWidth ?? 0,
+                length: request.DefaultLength ?? 0
+            );
+        }
+    }
+
+    private async Task UpdateProductMedia(
+        UpdateProductCommand request,
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        // Load existing product media (excluding variant media)
+        List<ProductMedia> existingMedias = await _productMediaRepository.GetByProductIdAsync(productId, cancellationToken);
+        var existingProductMedias = existingMedias.Where(m => m.ProductVariantId == null).ToList();
+
+        var processedMediaIds = new HashSet<Guid>();
+
+        // ===== 1. Update/Create Video (sortOrder = -1) =====
+        var existingVideo = existingProductMedias.FirstOrDefault(m => m.IsVideo());
+
+        if (request.Video != null && !string.IsNullOrWhiteSpace(request.Video.VideoUrl))
+        {
+            Media? videoMedia = await _mediaRepository.GetByFileUrlAsync(request.Video.VideoUrl, cancellationToken);
+            if (videoMedia == null)
+            {
+                throw new ApplicationInvalidOperationException(
+                    Error.NotFound("Media.NotFound", $"Không tìm thấy video: {request.Video.VideoUrl}")
+                );
             }
 
-            // Create variant medias
-            if (variantDto.Medias != null && variantDto.Medias.Any())
+            if (videoMedia.MediaType != MediaType.Video)
             {
-                foreach (var mediaDto in variantDto.Medias)
+                throw new ApplicationInvalidOperationException(
+                    Error.Validation("Media.InvalidType", $"Media {request.Video.VideoUrl} không phải là video")
+                );
+            }
+
+            if (request.Video.Id.HasValue && existingVideo != null && existingVideo.Id == request.Video.Id.Value)
+            {
+                // Update existing video - check if URL changed
+                if (existingVideo.MediaId != videoMedia.Id)
                 {
-                    if (string.IsNullOrWhiteSpace(mediaDto.MediaUrl))
-                    {
-                        return Result.Failure<ProductDetailDto>(ProductErrors.MediaNotFound("Variant media: MediaUrl is required"));
-                    }
+                    // URL changed - recreate
+                    existingVideo.MarkAsDeleted();
 
-                    var mediaEntity = await _mediaRepository.GetByFileUrlAsync(mediaDto.MediaUrl, cancellationToken);
-                    if (mediaEntity == null)
-                    {
-                        return Result.Failure<ProductDetailDto>(ProductErrors.MediaNotFound($"Variant media: {mediaDto.MediaUrl}"));
-                    }
-
-                    var variantMedia = ProductMedia.CreateForVariant(
-                        product.Id,
-                        variant.Id,
-                        mediaEntity.Id,
-                        mediaDto.IsCover,
-                        mediaDto.SortOrder
+                    var newVideo = ProductMedia.CreateForProduct(
+                        productId: productId,
+                        mediaId: videoMedia.Id,
+                        isCover: false,
+                        sortOrder: -1
                     );
-                    await _productMediaRepository.AddAsync(variantMedia, cancellationToken);
+                    await _productMediaRepository.AddAsync(newVideo, cancellationToken);
+                    processedMediaIds.Add(newVideo.Id);
+
+                    if (videoMedia.IsTemp)
+                    {
+                        videoMedia.Confirm();
+                        _mediaRepository.Update(videoMedia);
+                    }
+                }
+                else
+                {
+                    // Same URL - keep existing
+                    processedMediaIds.Add(existingVideo.Id);
+                }
+            }
+            else
+            {
+                // Delete old video if exists
+                existingVideo?.MarkAsDeleted();
+
+                // Create new video
+                var newVideo = ProductMedia.CreateForProduct(
+                    productId: productId,
+                    mediaId: videoMedia.Id,
+                    isCover: false,
+                    sortOrder: -1
+                );
+                await _productMediaRepository.AddAsync(newVideo, cancellationToken);
+                processedMediaIds.Add(newVideo.Id);
+
+                if (videoMedia.IsTemp)
+                {
+                    videoMedia.Confirm();
+                    _mediaRepository.Update(videoMedia);
+                }
+            }
+        }
+        else
+        {
+            // Delete existing video if no video in request
+            existingVideo?.MarkAsDeleted();
+        }
+
+        // ===== 2. Update/Create Images (sortOrder >= 0) =====
+        var existingImages = existingProductMedias.Where(m => m.IsImage()).ToList();
+        var existingImagesDict = existingImages.ToDictionary(m => m.Id);
+
+        foreach (UpdateProductImageDto imageDto in request.Images)
+        {
+            Media? imageMedia = await _mediaRepository.GetByFileUrlAsync(imageDto.ImageUrl, cancellationToken);
+            if (imageMedia == null)
+            {
+                throw new ApplicationInvalidOperationException(
+                    Error.NotFound("Media.NotFound", $"Không tìm thấy ảnh: {imageDto.ImageUrl}")
+                );
+            }
+
+            if (imageMedia.MediaType != MediaType.Image)
+            {
+                throw new ApplicationInvalidOperationException(
+                    Error.Validation("Media.InvalidType", $"Media {imageDto.ImageUrl} không phải là ảnh")
+                );
+            }
+
+            if (imageDto.Id.HasValue && existingImagesDict.TryGetValue(imageDto.Id.Value, out var existingImage))
+            {
+                // Update existing image
+                if (existingImage.MediaId != imageMedia.Id)
+                {
+                    // URL changed - recreate
+                    existingImage.MarkAsDeleted();
+
+                    var newImage = ProductMedia.CreateForProduct(
+                        productId: productId,
+                        mediaId: imageMedia.Id,
+                        isCover: imageDto.IsCover,
+                        sortOrder: imageDto.SortOrder
+                    );
+                    await _productMediaRepository.AddAsync(newImage, cancellationToken);
+                    processedMediaIds.Add(newImage.Id);
+
+                    if (imageMedia.IsTemp)
+                    {
+                        imageMedia.Confirm();
+                        _mediaRepository.Update(imageMedia);
+                    }
+                }
+                else
+                {
+                    // URL same - update metadata
+                    existingImage.UpdateCoverStatus(imageDto.IsCover);
+                    existingImage.UpdateSortOrder(imageDto.SortOrder);
+                    processedMediaIds.Add(existingImage.Id);
+                }
+            }
+            else
+            {
+                // Create new image
+                var newImage = ProductMedia.CreateForProduct(
+                    productId: productId,
+                    mediaId: imageMedia.Id,
+                    isCover: imageDto.IsCover,
+                    sortOrder: imageDto.SortOrder
+                );
+                await _productMediaRepository.AddAsync(newImage, cancellationToken);
+                processedMediaIds.Add(newImage.Id);
+
+                if (imageMedia.IsTemp)
+                {
+                    imageMedia.Confirm();
+                    _mediaRepository.Update(imageMedia);
                 }
             }
         }
 
-        // Soft delete unprocessed variants
-        foreach (var unprocessedVariant in existingVariantsDict.Values)
+        // Soft delete unused images
+        foreach (var image in existingImages)
         {
-            unprocessedVariant.MarkAsDeleted();
-            // CASCADE: Soft delete VOVs and medias
-            var vovsToDelete = await _productVariantOptionValueRepository.GetByVariantIdAsync(unprocessedVariant.Id, cancellationToken);
-            foreach (var vov in vovsToDelete)
+            if (!processedMediaIds.Contains(image.Id))
             {
-                vov.MarkAsDeleted();
+                image.MarkAsDeleted();
+            }
+        }
+    }
+
+    private async Task UpdateVariantImages(
+        Guid variantId,
+        Guid productId,
+        List<UpdateProductImageDto> imageDtos,
+        CancellationToken cancellationToken)
+    {
+        // Load existing variant media
+        List<ProductMedia> existingMedias = await _productMediaRepository.GetByProductIdAsync(productId, cancellationToken);
+        var existingVariantImages = existingMedias.Where(m => m.ProductVariantId == variantId && m.IsImage()).ToList();
+        var existingImagesDict = existingVariantImages.ToDictionary(m => m.Id);
+
+        var processedMediaIds = new HashSet<Guid>();
+
+        foreach (UpdateProductImageDto imageDto in imageDtos)
+        {
+            Media? imageMedia = await _mediaRepository.GetByFileUrlAsync(imageDto.ImageUrl, cancellationToken);
+            if (imageMedia == null)
+            {
+                throw new ApplicationInvalidOperationException(
+                    Error.NotFound("Media.NotFound", $"Không tìm thấy ảnh: {imageDto.ImageUrl}")
+                );
+            }
+
+            if (imageMedia.MediaType != MediaType.Image)
+            {
+                throw new ApplicationInvalidOperationException(
+                    Error.Validation("Media.InvalidType", $"Media {imageDto.ImageUrl} không phải là ảnh")
+                );
+            }
+
+            if (imageDto.Id.HasValue && existingImagesDict.TryGetValue(imageDto.Id.Value, out var existingImage))
+            {
+                // Update existing image
+                if (existingImage.MediaId != imageMedia.Id)
+                {
+                    // URL changed - recreate
+                    existingImage.MarkAsDeleted();
+
+                    var newImage = ProductMedia.CreateForVariant(
+                        productId: productId,
+                        productVariantId: variantId,
+                        mediaId: imageMedia.Id,
+                        isCover: imageDto.IsCover,
+                        sortOrder: imageDto.SortOrder
+                    );
+                    await _productMediaRepository.AddAsync(newImage, cancellationToken);
+                    processedMediaIds.Add(newImage.Id);
+
+                    if (imageMedia.IsTemp)
+                    {
+                        imageMedia.Confirm();
+                        _mediaRepository.Update(imageMedia);
+                    }
+                }
+                else
+                {
+                    // URL same - update metadata
+                    existingImage.UpdateCoverStatus(imageDto.IsCover);
+                    existingImage.UpdateSortOrder(imageDto.SortOrder);
+                    processedMediaIds.Add(existingImage.Id);
+                }
+            }
+            else
+            {
+                // Create new image
+                var newImage = ProductMedia.CreateForVariant(
+                    productId: productId,
+                    productVariantId: variantId,
+                    mediaId: imageMedia.Id,
+                    isCover: imageDto.IsCover,
+                    sortOrder: imageDto.SortOrder
+                );
+                await _productMediaRepository.AddAsync(newImage, cancellationToken);
+                processedMediaIds.Add(newImage.Id);
+
+                if (imageMedia.IsTemp)
+                {
+                    imageMedia.Confirm();
+                    _mediaRepository.Update(imageMedia);
+                }
             }
         }
 
-        // ===== BƯỚC 7: Save Changes =====
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        // ===== BƯỚC 8: Return Updated Product Details =====
-        // TODO: Query product details using Dapper similar to GetProductsQueryHandler
-        // For now, return a basic DTO
-        return Result.Success(ProductDetailDto.CreateClean(
-            id: product.Id,
-            shopId: product.ShopId,
-            categoryId: product.CategoryId,
-            name: product.Name,
-            description: product.Description,
-            slug: product.Slug,
-            sku: product.Sku,
-            status: product.Status,
-            createdAtUtc: product.CreatedAtUtc,
-            updatedAtUtc: product.UpdatedAtUtc,
-            medias: new List<ProductMediaDto>(),
-            hasVariants: request.Options.Count > 0,
-            variantCount: request.Variants.Count
-        ));
-    }
-
-    private async Task SoftDeleteVariantsUsingValueAsync(Guid optionValueId, CancellationToken cancellationToken)
-    {
-        var vovsUsingValue = await _productVariantOptionValueRepository.GetByOptionValueIdAsync(optionValueId, cancellationToken);
-        var variantIdsToDelete = vovsUsingValue.Select(vov => vov.VariantId).ToList();
-
-        foreach (var variantId in variantIdsToDelete)
+        // Soft delete unused images
+        foreach (var image in existingVariantImages)
         {
-            var variant = await _productVariantRepository.GetByIdAsync(variantId, cancellationToken);
-            variant?.MarkAsDeleted();
+            if (!processedMediaIds.Contains(image.Id))
+            {
+                image.MarkAsDeleted();
+            }
         }
     }
 
-    private async Task SoftDeleteVariantsUsingOptionAsync(Guid optionTypeId, CancellationToken cancellationToken)
+    private async Task UpdateVariantOptionValues(
+        ProductVariant variant,
+        List<string> optionValues,
+        Dictionary<string, Dictionary<string, ProductOptionValue>> optionValueMap,
+        List<UpdateProductOptionDto> options,
+        CancellationToken cancellationToken)
     {
-        var valuesToDelete = await _productOptionValueRepository.GetByProductOptionTypeIdAsync(optionTypeId, cancellationToken);
+        // Load existing variant option values
+        List<ProductVariantOptionValue> existingVOVs = await _productVariantOptionValueRepository.GetByVariantIdAsync(variant.Id, cancellationToken);
 
-        foreach (var value in valuesToDelete)
+        // Soft delete all existing
+        foreach (var vov in existingVOVs)
         {
-            await SoftDeleteVariantsUsingValueAsync(value.Id, cancellationToken);
+            vov.MarkAsDeleted();
+        }
+
+        // Create new ones
+        for (int i = 0; i < optionValues.Count && i < options.Count; i++)
+        {
+            string optionValue = optionValues[i];
+            string optionName = options[i].Name;
+
+            if (optionValueMap.TryGetValue(optionName, out Dictionary<string, ProductOptionValue>? values) &&
+                values.TryGetValue(optionValue, out ProductOptionValue? productOptionValue))
+            {
+                var variantOptionValue = ProductVariantOptionValue.Create(
+                    variantId: variant.Id,
+                    optionValueId: productOptionValue.Id
+                );
+                await _productVariantOptionValueRepository.AddAsync(variantOptionValue, cancellationToken);
+            }
+        }
+    }
+
+    private async Task<ProductDetailDto> BuildProductDetailDto(
+        Guid productId,
+        bool isComplexProduct,
+        CancellationToken cancellationToken)
+    {
+        // Reload product with all related data
+        Product product = (await _productRepository.GetByIdAsync(productId, cancellationToken))!;
+        List<ProductMedia> productMedias = await _productMediaRepository.GetByProductIdAsync(productId, cancellationToken);
+        var mainProductMedias = productMedias.Where(m => m.ProductVariantId == null).ToList();
+
+        var mediaDtos = await _assembler.BuildMediaDtos(mainProductMedias, cancellationToken);
+
+        if (isComplexProduct)
+        {
+            List<ProductOptionType> options = await _productOptionTypeRepository.GetByProductIdAsync(productId, cancellationToken);
+            List<ProductVariant> variants = await _productVariantRepository.GetByProductIdAsync(productId, cancellationToken);
+
+            var optionDtos = await _assembler.BuildOptionDtos(options, cancellationToken);
+            var variantDtos = await _assembler.BuildVariantDtos(variants, cancellationToken);
+
+            return _assembler.BuildProductDetail(
+                product,
+                mediaDtos,
+                options,
+                variants,
+                optionDtos,
+                variantDtos,
+                simpleOverrides: null
+            );
+        }
+        else
+        {
+            List<ProductVariant> variants = await _productVariantRepository.GetByProductIdAsync(productId, cancellationToken);
+            ProductVariant? ghostVariant = variants.FirstOrDefault();
+
+            ProductDetailAssembler.SimpleOverrides? overrides = ghostVariant != null
+                ? new ProductDetailAssembler.SimpleOverrides(
+                    Price: (decimal?)ghostVariant.Price,
+                    Stock: ghostVariant.Stock,
+                    Weight: (decimal?)ghostVariant.Weight,
+                    Height: (decimal?)ghostVariant.Height,
+                    Width: (decimal?)ghostVariant.Width,
+                    Length: (decimal?)ghostVariant.Length
+                )
+                : null;
+
+            return _assembler.BuildProductDetail(
+                product,
+                mediaDtos,
+                productOptions: new List<ProductOptionType>(),
+                productVariants: variants,
+                optionDtos: null,
+                variantDtos: null,
+                simpleOverrides: overrides
+            );
         }
     }
 }
-
