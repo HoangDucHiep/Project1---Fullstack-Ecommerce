@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ECommerceBackend.Domain.Categories;
 
 namespace ECommerceBackend.Application.Contracts.Categories;
-
-/// PBNMinh- 08/09/2025
-public sealed record class CategoryDto
+public sealed record  CategoryTreeDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
@@ -19,17 +16,5 @@ public sealed record class CategoryDto
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 
-
-    public static CategoryDto From(Category category)
-    {
-        return new CategoryDto
-        {
-            Id = category.Id,
-            Name = category.Name,
-            IconUrl = category.IconUrl,
-            Status = category.Status.ToString(),
-            ParentId = category.ParentId,
-            Depth = category.Depth
-        };
-    }
+    public List<CategoryTreeDto> Children { get; set; } = new();
 }
