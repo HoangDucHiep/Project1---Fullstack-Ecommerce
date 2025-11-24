@@ -26,20 +26,20 @@ public record UpdateProductRequest(
 
 /// <summary>
 /// Request DTO for product image (update)
+/// URL là identifier - giữ lại URL cũ để update metadata, thay đổi URL để thêm mới
 /// </summary>
 public record UpdateProductImageRequest(
     string ImageUrl,
     bool IsCover,
-    int SortOrder,
-    Guid? Id = null // null = new image, có Id = existing image
+    int SortOrder
 );
 
 /// <summary>
 /// Request DTO for product video (update)
+/// URL là identifier - giữ lại URL cũ để giữ video, thay đổi URL để thay video
 /// </summary>
 public record UpdateProductVideoRequest(
-    string VideoUrl,
-    Guid? Id = null // null = new video, có Id = existing video
+    string VideoUrl
 );
 
 /// <summary>
@@ -67,6 +67,7 @@ public record UpdateProductVariantRequest(
     decimal Price,
     int Stock,
     string Sku,
+    VariantStatus Status,
     Guid? Id = null, // null = new variant
     decimal? Weight = null,
     decimal? Height = null,

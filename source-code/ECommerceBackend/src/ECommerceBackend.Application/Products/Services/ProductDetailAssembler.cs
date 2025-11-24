@@ -96,6 +96,7 @@ public sealed class ProductDetailAssembler
                 variant.Price,
                 variant.Stock,
                 variant.Sku,
+                variant.Status,
                 (decimal)variant.Weight,
                 (decimal)variant.Height,
                 (decimal)variant.Width,

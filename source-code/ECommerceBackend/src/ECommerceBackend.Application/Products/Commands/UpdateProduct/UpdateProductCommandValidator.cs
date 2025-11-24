@@ -247,6 +247,10 @@ public class UpdateProductVariantDtoValidator : AbstractValidator<UpdateProductV
             .MaximumLength(100)
             .WithMessage("SKU variant không được vượt quá 100 ký tự");
 
+        RuleFor(x => x.Status)
+            .IsInEnum()
+            .WithMessage("Trạng thái variant không hợp lệ");
+
         RuleFor(x => x.Weight)
             .GreaterThanOrEqualTo(0)
             .When(x => x.Weight.HasValue)

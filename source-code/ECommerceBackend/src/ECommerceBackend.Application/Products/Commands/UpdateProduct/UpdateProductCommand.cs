@@ -27,13 +27,11 @@ public record UpdateProductCommand(
 public record UpdateProductImageDto(
     string ImageUrl,
     bool IsCover,
-    int SortOrder,
-    Guid? Id = null
+    int SortOrder
 );
 
 public record UpdateProductVideoDto(
-    string VideoUrl,
-    Guid? Id = null
+    string VideoUrl
 );
 
 public record UpdateProductOptionDto(
@@ -52,6 +50,7 @@ public record UpdateProductVariantDto(
     decimal Price,
     int Stock,
     string Sku,
+    VariantStatus Status,
     Guid? Id = null,
     double? Weight = null,
     double? Height = null,

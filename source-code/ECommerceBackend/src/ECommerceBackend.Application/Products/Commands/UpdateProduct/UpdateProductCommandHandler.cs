@@ -154,6 +154,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
 
         // Create dictionaries for quick lookup
         var existingOptionsDict = existingOptions.ToDictionary(o => o.Id);
+        var existingOptionsByName = existingOptions.ToDictionary(o => o.Name);
         var existingVariantsDict = existingVariants.ToDictionary(v => v.Id);
 
         // Track which entities are still in use
@@ -167,7 +168,19 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
         {
             ProductOptionType option;
 
-            if (optionDto.Id.HasValue && existingOptionsDict.TryGetValue(optionDto.Id.Value, out var existingOption))
+            // Try to find existing option by Id first, then by Name
+            ProductOptionType? existingOption = null;
+
+            if (optionDto.Id.HasValue && existingOptionsDict.TryGetValue(optionDto.Id.Value, out var existingById))
+            {
+                existingOption = existingById;
+            }
+            else if (existingOptionsByName.TryGetValue(optionDto.Name, out var existingByName))
+            {
+                existingOption = existingByName;
+            }
+
+            if (existingOption != null)
             {
                 // Update existing option
                 existingOption.UpdateName(optionDto.Name);
@@ -185,6 +198,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
             // Update/Create option values
             List<ProductOptionValue> existingValues = await _productOptionValueRepository.GetByProductOptionTypeIdAsync(option.Id, cancellationToken);
             var existingValuesDict = existingValues.ToDictionary(v => v.Id);
+            var existingValuesByValue = existingValues.ToDictionary(v => v.Value);
             var processedValueIds = new HashSet<Guid>();
 
             var optionValues = new Dictionary<string, ProductOptionValue>();
@@ -193,7 +207,19 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
             {
                 ProductOptionValue optionValue;
 
-                if (valueDto.Id.HasValue && existingValuesDict.TryGetValue(valueDto.Id.Value, out var existingValue))
+                // Try to find existing value by Id first, then by Value
+                ProductOptionValue? existingValue = null;
+
+                if (valueDto.Id.HasValue && existingValuesDict.TryGetValue(valueDto.Id.Value, out var existingValueById))
+                {
+                    existingValue = existingValueById;
+                }
+                else if (existingValuesByValue.TryGetValue(valueDto.Value, out var existingValueByValue))
+                {
+                    existingValue = existingValueByValue;
+                }
+
+                if (existingValue != null)
                 {
                     // Update existing value
                     existingValue.UpdateValue(valueDto.Value);
@@ -282,6 +308,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                     width: variantDto.Width ?? 0,
                     length: variantDto.Length ?? 0
                 );
+                existingVariant.UpdateStatus(variantDto.Status);
                 variant = existingVariant;
                 processedVariantIds.Add(variant.Id);
             }
@@ -298,6 +325,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                     width: variantDto.Width ?? 0,
                     length: variantDto.Length ?? 0
                 );
+                variant.UpdateStatus(variantDto.Status);
                 await _productVariantRepository.AddAsync(variant, cancellationToken);
                 processedVariantIds.Add(variant.Id);
             }
@@ -312,12 +340,29 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
             }
         }
 
-        // Soft delete unused variants
+        // Soft delete unused variants (with cascade delete)
         foreach (var variant in existingVariants)
         {
             if (!processedVariantIds.Contains(variant.Id))
             {
                 variant.MarkAsDeleted();
+                
+                // CASCADE: Xóa variant option values
+                List<ProductVariantOptionValue> vovs = await _productVariantOptionValueRepository
+                    .GetByVariantIdAsync(variant.Id, cancellationToken);
+                foreach (var vov in vovs)
+                {
+                    vov.MarkAsDeleted();
+                }
+                
+                // CASCADE: Xóa variant images
+                List<ProductMedia> allMedias = await _productMediaRepository
+                    .GetByProductIdAsync(product.Id, cancellationToken);
+                var variantImages = allMedias.Where(m => m.ProductVariantId == variant.Id);
+                foreach (var img in variantImages)
+                {
+                    img.MarkAsDeleted();
+                }
             }
         }
     }
@@ -370,7 +415,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
         List<ProductMedia> existingMedias = await _productMediaRepository.GetByProductIdAsync(productId, cancellationToken);
         var existingProductMedias = existingMedias.Where(m => m.ProductVariantId == null).ToList();
 
-        var processedMediaIds = new HashSet<Guid>();
+        var processedUrls = new HashSet<string>();
 
         // ===== 1. Update/Create Video (sortOrder = -1) =====
         var existingVideo = existingProductMedias.FirstOrDefault(m => m.IsVideo());
@@ -392,41 +437,17 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                 );
             }
 
-            if (request.Video.Id.HasValue && existingVideo != null && existingVideo.Id == request.Video.Id.Value)
+            // Check if URL same as existing video
+            if (existingVideo != null && existingVideo.Media.FileUrl == request.Video.VideoUrl)
             {
-                // Update existing video - check if URL changed
-                if (existingVideo.MediaId != videoMedia.Id)
-                {
-                    // URL changed - recreate
-                    existingVideo.MarkAsDeleted();
-
-                    var newVideo = ProductMedia.CreateForProduct(
-                        productId: productId,
-                        mediaId: videoMedia.Id,
-                        isCover: false,
-                        sortOrder: -1
-                    );
-                    await _productMediaRepository.AddAsync(newVideo, cancellationToken);
-                    processedMediaIds.Add(newVideo.Id);
-
-                    if (videoMedia.IsTemp)
-                    {
-                        videoMedia.Confirm();
-                        _mediaRepository.Update(videoMedia);
-                    }
-                }
-                else
-                {
-                    // Same URL - keep existing
-                    processedMediaIds.Add(existingVideo.Id);
-                }
+                // Same URL - keep existing
+                processedUrls.Add(request.Video.VideoUrl);
             }
             else
             {
-                // Delete old video if exists
+                // Different URL or no existing video - recreate
                 existingVideo?.MarkAsDeleted();
 
-                // Create new video
                 var newVideo = ProductMedia.CreateForProduct(
                     productId: productId,
                     mediaId: videoMedia.Id,
@@ -434,7 +455,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                     sortOrder: -1
                 );
                 await _productMediaRepository.AddAsync(newVideo, cancellationToken);
-                processedMediaIds.Add(newVideo.Id);
+                processedUrls.Add(request.Video.VideoUrl);
 
                 if (videoMedia.IsTemp)
                 {
@@ -451,7 +472,6 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
 
         // ===== 2. Update/Create Images (sortOrder >= 0) =====
         var existingImages = existingProductMedias.Where(m => m.IsImage()).ToList();
-        var existingImagesDict = existingImages.ToDictionary(m => m.Id);
 
         foreach (UpdateProductImageDto imageDto in request.Images)
         {
@@ -470,40 +490,19 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                 );
             }
 
-            if (imageDto.Id.HasValue && existingImagesDict.TryGetValue(imageDto.Id.Value, out var existingImage))
+            // Find existing image by URL
+            var existingImage = existingImages.FirstOrDefault(img => img.Media.FileUrl == imageDto.ImageUrl);
+
+            if (existingImage != null)
             {
-                // Update existing image
-                if (existingImage.MediaId != imageMedia.Id)
-                {
-                    // URL changed - recreate
-                    existingImage.MarkAsDeleted();
-
-                    var newImage = ProductMedia.CreateForProduct(
-                        productId: productId,
-                        mediaId: imageMedia.Id,
-                        isCover: imageDto.IsCover,
-                        sortOrder: imageDto.SortOrder
-                    );
-                    await _productMediaRepository.AddAsync(newImage, cancellationToken);
-                    processedMediaIds.Add(newImage.Id);
-
-                    if (imageMedia.IsTemp)
-                    {
-                        imageMedia.Confirm();
-                        _mediaRepository.Update(imageMedia);
-                    }
-                }
-                else
-                {
-                    // URL same - update metadata
-                    existingImage.UpdateCoverStatus(imageDto.IsCover);
-                    existingImage.UpdateSortOrder(imageDto.SortOrder);
-                    processedMediaIds.Add(existingImage.Id);
-                }
+                // URL exists - update metadata only
+                existingImage.UpdateCoverStatus(imageDto.IsCover);
+                existingImage.UpdateSortOrder(imageDto.SortOrder);
+                processedUrls.Add(imageDto.ImageUrl);
             }
             else
             {
-                // Create new image
+                // New URL - create new image
                 var newImage = ProductMedia.CreateForProduct(
                     productId: productId,
                     mediaId: imageMedia.Id,
@@ -511,7 +510,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                     sortOrder: imageDto.SortOrder
                 );
                 await _productMediaRepository.AddAsync(newImage, cancellationToken);
-                processedMediaIds.Add(newImage.Id);
+                processedUrls.Add(imageDto.ImageUrl);
 
                 if (imageMedia.IsTemp)
                 {
@@ -521,10 +520,10 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
             }
         }
 
-        // Soft delete unused images
+        // Soft delete images not in request
         foreach (var image in existingImages)
         {
-            if (!processedMediaIds.Contains(image.Id))
+            if (!processedUrls.Contains(image.Media.FileUrl))
             {
                 image.MarkAsDeleted();
             }
@@ -540,9 +539,8 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
         // Load existing variant media
         List<ProductMedia> existingMedias = await _productMediaRepository.GetByProductIdAsync(productId, cancellationToken);
         var existingVariantImages = existingMedias.Where(m => m.ProductVariantId == variantId && m.IsImage()).ToList();
-        var existingImagesDict = existingVariantImages.ToDictionary(m => m.Id);
 
-        var processedMediaIds = new HashSet<Guid>();
+        var processedUrls = new HashSet<string>();
 
         foreach (UpdateProductImageDto imageDto in imageDtos)
         {
@@ -561,41 +559,19 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                 );
             }
 
-            if (imageDto.Id.HasValue && existingImagesDict.TryGetValue(imageDto.Id.Value, out var existingImage))
+            // Find existing image by URL
+            var existingImage = existingVariantImages.FirstOrDefault(img => img.Media.FileUrl == imageDto.ImageUrl);
+
+            if (existingImage != null)
             {
-                // Update existing image
-                if (existingImage.MediaId != imageMedia.Id)
-                {
-                    // URL changed - recreate
-                    existingImage.MarkAsDeleted();
-
-                    var newImage = ProductMedia.CreateForVariant(
-                        productId: productId,
-                        productVariantId: variantId,
-                        mediaId: imageMedia.Id,
-                        isCover: imageDto.IsCover,
-                        sortOrder: imageDto.SortOrder
-                    );
-                    await _productMediaRepository.AddAsync(newImage, cancellationToken);
-                    processedMediaIds.Add(newImage.Id);
-
-                    if (imageMedia.IsTemp)
-                    {
-                        imageMedia.Confirm();
-                        _mediaRepository.Update(imageMedia);
-                    }
-                }
-                else
-                {
-                    // URL same - update metadata
-                    existingImage.UpdateCoverStatus(imageDto.IsCover);
-                    existingImage.UpdateSortOrder(imageDto.SortOrder);
-                    processedMediaIds.Add(existingImage.Id);
-                }
+                // URL exists - update metadata only
+                existingImage.UpdateCoverStatus(imageDto.IsCover);
+                existingImage.UpdateSortOrder(imageDto.SortOrder);
+                processedUrls.Add(imageDto.ImageUrl);
             }
             else
             {
-                // Create new image
+                // New URL - create new image
                 var newImage = ProductMedia.CreateForVariant(
                     productId: productId,
                     productVariantId: variantId,
@@ -604,7 +580,7 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
                     sortOrder: imageDto.SortOrder
                 );
                 await _productMediaRepository.AddAsync(newImage, cancellationToken);
-                processedMediaIds.Add(newImage.Id);
+                processedUrls.Add(imageDto.ImageUrl);
 
                 if (imageMedia.IsTemp)
                 {
@@ -614,10 +590,10 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
             }
         }
 
-        // Soft delete unused images
+        // Soft delete images not in request
         foreach (var image in existingVariantImages)
         {
-            if (!processedMediaIds.Contains(image.Id))
+            if (!processedUrls.Contains(image.Media.FileUrl))
             {
                 image.MarkAsDeleted();
             }
@@ -634,13 +610,8 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
         // Load existing variant option values
         List<ProductVariantOptionValue> existingVOVs = await _productVariantOptionValueRepository.GetByVariantIdAsync(variant.Id, cancellationToken);
 
-        // Soft delete all existing
-        foreach (var vov in existingVOVs)
-        {
-            vov.MarkAsDeleted();
-        }
-
-        // Create new ones
+        // Build target option value IDs from request
+        var targetOptionValueIds = new HashSet<Guid>();
         for (int i = 0; i < optionValues.Count && i < options.Count; i++)
         {
             string optionValue = optionValues[i];
@@ -649,9 +620,28 @@ public sealed class UpdateProductCommandHandler : ICommandHandler<UpdateProductC
             if (optionValueMap.TryGetValue(optionName, out Dictionary<string, ProductOptionValue>? values) &&
                 values.TryGetValue(optionValue, out ProductOptionValue? productOptionValue))
             {
+                targetOptionValueIds.Add(productOptionValue.Id);
+            }
+        }
+
+        // Soft delete VOVs that are not in target set
+        foreach (var vov in existingVOVs)
+        {
+            if (!targetOptionValueIds.Contains(vov.OptionValueId))
+            {
+                vov.MarkAsDeleted();
+            }
+        }
+
+        // Create new VOVs that don't exist yet
+        var existingOptionValueIds = existingVOVs.Select(vov => vov.OptionValueId).ToHashSet();
+        foreach (var targetOptionValueId in targetOptionValueIds)
+        {
+            if (!existingOptionValueIds.Contains(targetOptionValueId))
+            {
                 var variantOptionValue = ProductVariantOptionValue.Create(
                     variantId: variant.Id,
-                    optionValueId: productOptionValue.Id
+                    optionValueId: targetOptionValueId
                 );
                 await _productVariantOptionValueRepository.AddAsync(variantOptionValue, cancellationToken);
             }

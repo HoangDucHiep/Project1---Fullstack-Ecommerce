@@ -132,6 +132,7 @@ public record ProductVariantDetailDto(
     decimal Price,
     int Stock,
     string? Sku, // Variant SKU
+    VariantStatus Status,
 
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     decimal? Weight,

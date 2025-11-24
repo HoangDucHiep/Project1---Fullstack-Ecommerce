@@ -102,7 +102,6 @@ public class SellerProductController : ControllerBase
             Status: request.Status,
             Images: request.Images.Select(img => new UpdateProductImageDto(
                 ImageUrl: img.ImageUrl,
-                Id: img.Id,
                 IsCover: img.IsCover,
                 SortOrder: img.SortOrder)).ToList(),
             Options: request.Options.Select(o => new UpdateProductOptionDto(
@@ -115,21 +114,20 @@ public class SellerProductController : ControllerBase
                 OptionValues: v.OptionValues,
                 Price: v.Price,
                 Stock: v.Stock,
-                Id: v.Id,
                 Sku: v.Sku,
+                Status: v.Status,
+                Id: v.Id,
                 Weight: (double?)v.Weight,
                 Height: (double?)v.Height,
                 Width: (double?)v.Width,
                 Length: (double?)v.Length,
                 Images: v.Images?.Select(img => new UpdateProductImageDto(
                     ImageUrl: img.ImageUrl,
-                    Id: img.Id,
                     IsCover: img.IsCover,
                     SortOrder: img.SortOrder)).ToList())).ToList(),
             Video: request.Video != null
                 ? new UpdateProductVideoDto(
-                    VideoUrl: request.Video.VideoUrl,
-                    Id: request.Video.Id)
+                    VideoUrl: request.Video.VideoUrl)
                 : null,
             DefaultPrice: request.DefaultPrice,
             DefaultStock: request.DefaultStock,
