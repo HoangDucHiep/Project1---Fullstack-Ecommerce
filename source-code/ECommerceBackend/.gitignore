@@ -403,3 +403,8 @@ containers
 .env
 *.Development.*
 wwwroot
+
+/source-code/ECommerceBackend/containers/pgadmin
+.containers
+.env
+appsettings.Development.json
