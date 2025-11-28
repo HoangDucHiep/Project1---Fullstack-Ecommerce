@@ -8,7 +8,13 @@ import SignUpPage from "../pages/SignUpPage";
 import TestPage from "../pages/TestPage";
 import BuyPage from "../pages/BuyPage";
 import AccountPage from "../pages/AccountPage";
-
+import SellerProductPage from "../pages/SellerProductPage";
+import SellerPendingProductPage from "../pages/SellerPendingProductPage";
+import SellerUnapprovedProductPage from "../pages/SellerUnapprovedProductPage";
+import SellerDiscountVoucherPage from "../pages/SellerDiscountVoucherPage";
+import SellerChatComponentPage from "../pages/SellerChatComponentPage";
+import SellerCanceledProductPage from "../pages/SellerCanceledProductPage";
+import SellerOrderReportPage from "../pages/SellerOrderReportPage";
 export const routes = [
     {
         id: "home",
@@ -80,4 +86,56 @@ export const routes = [
         isShowHeader: false,
         isPrivate: false,
     },
+    {   
+        id: "SellerProductPage",
+        path: "/SellerProductPage",
+        page:SellerProductPage,
+        isShowHeader: false,
+        isPrivate: false,
+    },
+    {
+        id: "SellerPendingProductPage", 
+        path: "/SellerPendingProductPage",
+        page: SellerPendingProductPage,
+        isShowHeader: false,
+        isPrivate: false,
+    },
+    {
+        id: "SellerUnapprovedProductPage", 
+        path: "/SellerUnapprovedProductPage",
+        page: SellerUnapprovedProductPage,
+        isShowHeader: false,
+        isFinite: false,
+    },
+    {
+        id: "SellerCanceledProductPage",
+        path: "/SellerCanceledProductPage",
+        page: SellerCanceledProductPage,
+        isShowHeader: false,
+        isPrivate: false,
+    },
+    {
+        id: "SellerDiscountVoucherPage",
+        path: "/SellerDiscountVoucherPage",
+        page: SellerDiscountVoucherPage,
+        isShowHeader: false,
+        isPrivate: false,
+    },
+    {
+        id: "SellerChatComponentPage",
+        path: "/SellerChatComponentPage",
+        page: SellerChatComponentPage,
+        isShowHeader: false,
+        isPrivate: false,
+    },
+    {
+        id: "SellerOrderReportPage",
+        path: "/SellerOrderReportPage",
+        page: SellerOrderReportPage,
+        isShowHeader: false,
+        isPrivate: false,
+    },
+
+
+
 ];

@@ -1,6 +1,6 @@
 ﻿import React from 'react';
-import { Layout, Typography, Space, Button } from 'antd';
-import { SyncOutlined, SettingOutlined, FilterOutlined } from '@ant-design/icons';
+import { Layout, Typography } from 'antd';
+import { SyncOutlined } from '@ant-design/icons';
 import SalesChart from '../../components/seller/SellerOrderReport/SalesChart';
 import SellerOrderListTable from '../../components/seller/SellerOrderReport/SellerOrderListTable';
 
@@ -19,10 +19,7 @@ const SellerOrderReportPage: React.FC = () => {
     const [chartShadowDepth, setChartShadowDepth] = React.useState(6);
     const [tableShadowDepth, setTableShadowDepth] = React.useState(6);
 
-    const handleRefresh = () => {
-        // Thay alert() bằng console.log() để tránh lỗi môi trường iFrame
-        console.log('Đang làm mới dữ liệu...');
-    };
+
 
     // Style cơ bản cho khối (giả lập Card Ant Design)
     const cardBaseStyle: React.CSSProperties = {
@@ -43,13 +40,7 @@ const SellerOrderReportPage: React.FC = () => {
                         <SyncOutlined style={{ marginRight: 10, color: '#faad14' }} />
                         Báo Cáo Tổng Quan Đơn Hàng
                     </Title>
-                    <Space>
-                        <Button icon={<FilterOutlined />}>Bộ lọc</Button>
-                        <Button icon={<SettingOutlined />}>Cấu hình</Button>
-                        <Button type="primary" onClick={handleRefresh} icon={<SyncOutlined />}>
-                            Làm mới
-                        </Button>
-                    </Space>
+                   
                 </div>
 
                 {/* --- 1. SELLER SALES CHART (Ở TRÊN) --- */}
