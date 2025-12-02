@@ -30,10 +30,6 @@ internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .HasMaxLength(20);
         builder.Property(c => c.ParentId)
             .IsRequired(false);
-        builder.Property(c => c.Lft)
-            .IsRequired();
-        builder.Property(c => c.Rgt)
-            .IsRequired();
         builder.Property(c => c.Depth)
             .IsRequired();
         builder.Property(c => c.CreatedAtUtc)
@@ -43,7 +39,6 @@ internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.HasIndex(c => c.Name).IsUnique(false);
 
         // for hierarchical queries, consider indexing Lft and Rgt
-        builder.HasIndex(c => new { c.Lft, c.Rgt });
         builder.HasIndex(c => new { c.ParentId });
 
         // relationships

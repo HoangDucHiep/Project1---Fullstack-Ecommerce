@@ -26,6 +26,7 @@ public sealed class Product : Entity
     public string Description { get; private set; }
     public string Slug { get; private set; }
     public string Sku { get; private set; } // Product SKU
+    public bool IsDeleted { get; private set; }
     public ProductStatus Status { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }

@@ -33,10 +33,16 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(20);
+        builder.Property(pv => pv.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
         builder.Property(p => p.CreatedAtUtc)
             .IsRequired();
         builder.Property(p => p.UpdatedAtUtc)
             .IsRequired();
+
+
+        builder.HasQueryFilter(p => !p.IsDeleted);
 
         // Indexes
         builder.HasIndex(p => p.Slug).IsUnique();
