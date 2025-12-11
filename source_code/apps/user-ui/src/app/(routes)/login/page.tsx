@@ -161,13 +161,6 @@ const Login = () => {
               <p className="text-red-500 text-sm mt-2">{serverError}</p>
             )}
 
-            {loginMutation?.isError &&
-              loginMutation.error instanceof AxiosError && (
-                <p className="text-red-500 text-sm mt-2">
-                  {(loginMutation.error.response?.data as { message?: string })
-                    ?.message || loginMutation.error.message}
-                </p>
-              )}
           </form>
         </div>
       </div>
