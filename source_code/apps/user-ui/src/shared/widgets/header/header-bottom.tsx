@@ -2,6 +2,7 @@
 import CartIcon from "apps/user-ui/src/assets/svgs/cart-icon";
 import ProfileIcon from "apps/user-ui/src/assets/svgs/profile-icon";
 import { navItems } from "apps/user-ui/src/configs/constants";
+import useUser from "apps/user-ui/src/hooks/useUser";
 import { AlignLeft, ChevronDown, HeartIcon } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ import React, { useEffect, useState } from "react";
 function HeaderBottom() {
   const [show, setShow] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const { user, isLoading } = useUser();
 
   // track scroll position
   useEffect(() => {
@@ -75,17 +77,37 @@ function HeaderBottom() {
           {isSticky && (
             <div className="flex items-center gap-8 pb-2">
               <div className="flex items-center gap-2">
-                <Link
-                  href={"/login"}
-                  className="border-2 w-[50px] h-[50px] flex items-center justify-center rounded-full border-[#010f1c1a]"
-                >
-                  <ProfileIcon />
-                </Link>
+                {!isLoading && user ? (
+                  <>
+                    <Link
+                      href={"/profile"}
+                      className="border-2 w-[50px] h-[50px] flex items-center justify-center rounded-full border-[#010f1c1a]"
+                    >
+                      <ProfileIcon />
+                    </Link>
 
-                <Link href={"/login"}>
-                  <span className="block font-medium">Hello, </span>
-                  <span className="block font-semibold">Sign in</span>
-                </Link>
+                    <Link href={"/profile"} className="block">
+                      <span className="block font-medium">Hello, </span>
+                      <span className="block font-semibold">{user?.name}</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href={"/login"}
+                      className="border-2 w-[50px] h-[50px] flex items-center justify-center rounded-full border-[#010f1c1a]"
+                    >
+                      <ProfileIcon />
+                    </Link>
+
+                    <Link href={"/login"}>
+                      <span className="block font-medium">Hello, </span>
+                      <span className="block font-semibold">
+                        {isLoading ? "Loading..." : "Sign in"}
+                      </span>
+                    </Link>
+                  </>
+                )}
               </div>
 
               <div className="flex items-center gap-5">
