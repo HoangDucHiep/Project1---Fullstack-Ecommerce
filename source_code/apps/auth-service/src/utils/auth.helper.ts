@@ -1,8 +1,9 @@
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import crypto from "crypto";
 import { sendEmail } from "./sendMail";
 import { ValidationError } from "@packages/error-handler";
 import redis from "@packages/libs/redis";
+import prisma from "@packages/libs/prisma";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -109,4 +110,63 @@ export const verifyOtp = async (email: string, otp: string, next: NextFunction) 
 
   await redis.del(`otp:${email}`, failedAttemptsKey);
   return true;
+}
+
+
+
+export const handleForgotPassword = async(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  userType: "user" | "seller"
+) => {
+  try {
+    const {email} = req.body;
+
+    if(!email) throw new ValidationError("Vui lòng cung cấp email.");
+
+    // Find user/seller in DB
+    const user = userType === "user" && await prisma.users.findUnique({where: {email}});
+
+    if (!user) throw new ValidationError(`${userType} với email này không tồn tại.`);
+
+    // Check OTP restrictions
+    await checkOtpRestrictions(email, next);
+    await trackOtpRequests(email, next);
+
+    // Generate OTP and send Email
+    await sendOtp(user.name, email, "forgot-password-user-email");
+
+    res.status(200).json({
+      success: true,
+      message: "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư đến và xác nhận.",
+    });
+
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const verifyForgotPasswordOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {email, otp} = req.body;
+
+    if (!email || !otp) {
+      return next(new ValidationError("Vui lòng cung cấp email và mã OTP."));
+    }
+
+    await verifyOtp(email, otp, next);
+
+    res.status(200).json({
+      success: true,
+      message: "Mã OTP đã được xác thực thành công. Bạn có thể đặt lại mật khẩu của mình.",
+    });
+
+  } catch (error) {
+    next(error);
+  }
 }
