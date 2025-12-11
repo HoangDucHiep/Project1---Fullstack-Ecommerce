@@ -31,27 +31,21 @@ export const validateRegistrationData = (
 
 export const checkOtpRestrictions = async (email: string, next: NextFunction) => {
   if (await redis.get(`otp_lock:${email}`)) {
-    return next(
-      new ValidationError(
-        "Bạn đã vượt quá số lần thử mã OTP. Vui lòng thử lại sau 30 phút."
-      )
+    throw new ValidationError(
+      "Bạn đã vượt quá số lần thử mã OTP. Vui lòng thử lại sau 30 phút."
     );
   }
 
   if (await redis.get(`otp_spam_lock:${email}`)) {
-    return next(
-      new ValidationError(
-        "Bạn đã gửi quá nhiều yêu cầu mã OTP. Vui lòng thử lại sau 1 giờ."
-      )
+    throw new ValidationError(
+      "Bạn đã gửi quá nhiều yêu cầu mã OTP. Vui lòng thử lại sau 1 giờ."
     );
   }
 
   if (await redis.get(`otp_cooldown:${email}`)) {
-    return next(
-      new ValidationError(
-        "Vui lòng chờ 1 phút trước khi yêu cầu mã OTP mới."
-      )
-    )
+    throw new ValidationError(
+      "Vui lòng chờ 1 phút trước khi yêu cầu mã OTP mới."
+    );
   }
 };
 
@@ -62,10 +56,8 @@ export const trackOtpRequests = async (email: string, next: NextFunction) => {
 
   if (otpRequests >= 2) {
     await redis.set(`otp_spam_lock:${email}`, "1", "EX", 3600); // 1 hour lock
-    return next(
-      new ValidationError(
-        "Too many OTP requests. Please wait 1 hour before trying again."
-      )
+    throw new ValidationError(
+      "Too many OTP requests. Please wait 1 hour before trying again."
     );
   }
 
