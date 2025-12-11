@@ -8,10 +8,11 @@ import {
   verifyOtp,
 } from "../utils/auth.helper";
 import prisma from "@packages/libs/prisma";
-import { ValidationError } from "@packages/error-handler";
+import { AuthError, ValidationError } from "@packages/error-handler";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { setCookie } from "../utils/cookies/setCookie";
+import exp from "constants";
 
 // Register a new user
 export const userRegistration = async (
@@ -117,8 +118,8 @@ export const loginUser = async (
     );
 
     // store the refresh token and access token in
-    setCookie(res, "refreshToken", refreshToken);
-    setCookie(res, "accessToken", accessToken);
+    setCookie(res, "refresh_token", refreshToken);
+    setCookie(res, "access_token", accessToken);
 
     res.status(200).json({
       message: "Login successful!",
@@ -128,55 +129,120 @@ export const loginUser = async (
         email: user.email,
       },
     });
-
   } catch (error) {
     return;
   }
 };
 
+// refresh token
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const refreshToken = req.cookies.refresh_token;
 
-// user forgot password
-export const userForgotPassword = async(req: Request, res: Response, next: NextFunction) => {
-  await handleForgotPassword(req, res, next, "user");
+    if (!refreshToken) {
+      return new ValidationError(
+        "Chưa xác thực đăng nhập. Không có refresh token. Vui lòng đăng nhập lại."
+      );
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET as string
+    ) as { id: string; role: string };
+
+    if (!decoded || !decoded.id || !decoded.role) {
+      return new JsonWebTokenError("Refresh token không hợp lệ.");
+    }
+
+    //let account;
+    // if (decoded.role === "user")
+    const user = await prisma.users.findUnique({ where: { id: decoded.id } });
+
+    if (!user) {
+      return new AuthError("Tài khoản không tồn tại.");
+    }
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id, role: decoded.role },
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    setCookie(res, "access_token", newAccessToken);
+    return res.status(201).json({
+      success: true,
+      message: "Refresh token successful!",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getUser = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const user = req.user;
+    res.status(201).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
+
+// user forgot password
+export const userForgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  await handleForgotPassword(req, res, next, "user");
+};
+
 // verify user otp for forgot password
-export const verifyUserForgotPasswordOtp = async(
+export const verifyUserForgotPasswordOtp = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   await verifyForgotPasswordOtp(req, res, next);
-}
-
+};
 
 // user reset password
-export const resetUserPassword = async(
+export const resetUserPassword = async (
   req: Request,
   res: Response,
   next: NextFunction
-)  => {
+) => {
   try {
     const { email, newPassword } = req.body;
 
     if (!email || !newPassword) {
-      return next(new ValidationError("Vui lòng cung cấp email và mật khẩu mới."));
+      return next(
+        new ValidationError("Vui lòng cung cấp email và mật khẩu mới.")
+      );
     }
 
     const user = await prisma.users.findUnique({ where: { email } });
 
-    if (!user) return next(new ValidationError("Tài khoản với email này không tồn tại."));
+    if (!user)
+      return next(
+        new ValidationError("Tài khoản với email này không tồn tại.")
+      );
 
     // compare new password with old password
     const isSamePassword = await bcrypt.compare(newPassword, user.password!);
 
     if (isSamePassword) {
       return next(
-        new ValidationError(
-          "Mật khẩu mới phải khác với mật khẩu cũ."
-        )
+        new ValidationError("Mật khẩu mới phải khác với mật khẩu cũ.")
       );
-    };
+    }
 
     // hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -189,10 +255,10 @@ export const resetUserPassword = async(
 
     res.status(200).json({
       success: true,
-      message: "Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập với mật khẩu mới của mình.",
+      message:
+        "Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập với mật khẩu mới của mình.",
     });
-
   } catch (error) {
     next(error);
   }
-}
+};
