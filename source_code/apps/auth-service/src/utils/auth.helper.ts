@@ -83,3 +83,30 @@ export const sendOtp = async (
   await redis.set(`otp:${email}`, otp, "EX", 5 * 60); // OTP valid for 5 minutes
   await redis.set(`otp_cooldown:${email}`, "true", "EX", 60); // 1 minutes cooldown
 };
+
+
+export const verifyOtp = async (email: string, otp: string, next: NextFunction) => {
+  const storedOtp = await redis.get(`otp:${email}`);
+
+  if (!storedOtp) {
+    throw new ValidationError("Mã OTP đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu mã mới.");
+  }
+
+  const failedAttemptsKey = `otp_attempts:${email}`;
+  const failedAttempts = parseInt((await redis.get(failedAttemptsKey)) || "0");
+
+  if (storedOtp !== otp) {
+    if (failedAttempts >= 2) {
+      await redis.set(`otp_lock:${email}`, "locked", "EX", 1800);
+      await redis.del(`otp:${email}`, failedAttemptsKey);
+
+      throw new ValidationError("Bạn đã vượt quá số lần thử mã OTP. Vui lòng thử lại sau 30 phút.");
+    }
+
+    await redis.set(failedAttemptsKey, failedAttempts + 1, "EX", 300);
+    throw new ValidationError(`Mã OTP không hợp lệ. Còn ${2 - failedAttempts} lần thử.`);
+  }
+
+  await redis.del(`otp:${email}`, failedAttemptsKey);
+  return true;
+}

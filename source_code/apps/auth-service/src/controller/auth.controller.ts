@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { checkOtpRestrictions, sendOtp, trackOtpRequests } from "../utils/auth.helper";
+import { checkOtpRestrictions, sendOtp, trackOtpRequests, verifyOtp } from "../utils/auth.helper";
 import prisma from "@packages/libs/prisma";
 import { ValidationError } from "@packages/error-handler";
+import bcrypt from "bcryptjs";
 
 // Register a new user
 export const userRegistration = async (
@@ -31,5 +32,44 @@ export const userRegistration = async (
     });
   } catch (error) {
     next(error);
+  }
+};
+
+
+// OTP verification and user creation would go here
+export const verifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp, password, name } = req.body;
+    if (!email || !otp || !password || !name) {
+      return next(new ValidationError("Yêu cầu cung cấp đầy đủ thông tin."));
+    }
+
+    const existingUser = await prisma.users.findUnique({ where: { email } });
+
+    if (existingUser) {
+      return next(new ValidationError("Tài khoản với email này đã tồn tại."));
+    }
+
+    const isOtpValid = await verifyOtp(email, otp, next);
+    if (!isOtpValid) {
+      return; // Stop execution if OTP is invalid
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.users.create({
+      data: { name, email, password: hashedPassword },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Tài khoản của bạn đã được tạo thành công.",
+    });
+  } catch (error) {
+    return next(error);
   }
 };
