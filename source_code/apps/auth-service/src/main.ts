@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { errorMiddleware } from '../../../packages/error-handler/error-middleware';
-
+import router from './routes/auth.router';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger-output.json';
+import { errorMiddleware } from '@packages/error-handler/error-middleware';
 
 const app = express();
 
@@ -23,6 +25,16 @@ app.get('/', (req, res) => {
     res.send({ 'message': 'Welcome to auth-service!' });
 });
 
+// Routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.get("/docs-json", (req, res) => {
+    res.json(swaggerDocument);
+})
+
+app.use("/api", router);
+
+
+// Error Handling Middleware
 app.use(errorMiddleware);
 
 

@@ -1,22 +1,23 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "out-tsc/auth-service",
     "types": [
-      "node"
+      "node",
+      "express",
     ],
     "rootDir": "../../",
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
+    "tsBuildInfoFile": "out-tsc/auth-service/tsconfig.app.tsbuildinfo"
   },
   "include": [
     "src/**/*.ts",
-    "../../packages/**/*.ts"
+    "../../packages/**/*.ts",
+    "../../**/*.json"
   ],
   "exclude": [
     "out-tsc",
     "dist",
     "jest.config.ts",
-    "jest.config.cts",
     "src/**/*.spec.ts",
     "src/**/*.test.ts"
   ]

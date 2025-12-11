@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Eshop - Xác nhận Email</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style type="text/css">
+    /* Base */
+    body {
+      margin: 0;
+      padding: 0;
+      min-width: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      background-color: #fafafa;
+      color: #222222;
+    }
+    a {
+      color: #000;
+      text-decoration: none;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-top: 0;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    p {
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+    table td {
+      vertical-align: top;
+    }
+
+    /* Layout */
+    .email-wrapper {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .email-header {
+      background-color: #0070f3;
+      padding: 24px;
+      color: #ffffff;
+    }
+
+    .email-body {
+      background-color: #ffffff;
+      padding: 24px;
+    }
+
+    .email-footer {
+      background-color: #f6f6f6;
+      padding: 24px;
+    }
+
+    .button {
+      display: inline-block;
+      background-color: #0070f3;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      padding: 12px 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="email-header">
+      <h1>Chào mừng đến với Eshop</h1>
+    </div>
+    <div class="email-body">
+      <p>Xin chào <%= name %></p>
+      <p>
+        Cảm ơn bạn đã đăng ký tại Eshop. Vui lòng sử dụng mã OTP sau để kích hoạt tài khoản của bạn:
+      </p>
+      <h2><%= otp %></h2>
+      <p>
+        Vui lòng nhập mã này trên trang kích hoạt trong vòng 5 phút tới.
+      </p>
+      <p>
+        Nếu bạn không đăng ký tài khoản Eshop, vui lòng bỏ qua email này.
+      </p>
+    </div>
+    <div class="email-footer">
+      <p>
+        Nếu bạn có bất kỳ câu hỏi nào, xin đừng ngần ngại liên hệ với đội ngũ hỗ trợ của chúng tôi tại <a href="mailto:support@eshop.com">support@eshop.com</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

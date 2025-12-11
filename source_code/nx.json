@@ -17,7 +17,7 @@
       "{workspaceRoot}/.github/workflows/ci.yml"
     ]
   },
-  "nxCloudId": "6939b35f01b45a3fd0aeba3b",
+  "nxCloudId": "693a4fc51b58936683faa7e3",
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
@@ -43,25 +43,13 @@
       ]
     },
     {
-      "plugin": "@nx/docker",
-      "options": {
-        "buildTarget": {
-          "name": "docker:build"
-        },
-        "runTarget": {
-          "name": "docker:run"
-        }
-      }
-    },
-    {
       "plugin": "@nx/webpack/plugin",
       "options": {
         "buildTargetName": "build",
         "serveTargetName": "serve",
         "previewTargetName": "preview",
         "buildDepsTargetName": "build-deps",
-        "watchDepsTargetName": "watch-deps",
-        "serveStaticTargetName": "serve-static"
+        "watchDepsTargetName": "watch-deps"
       }
     }
   ],

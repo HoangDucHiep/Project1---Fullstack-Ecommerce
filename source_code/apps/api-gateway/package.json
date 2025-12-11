@@ -4,56 +4,25 @@
   "private": true,
   "nx": {
     "targets": {
-      "prune-lockfile": {
-        "dependsOn": [
-          "build"
-        ],
-        "cache": true,
-        "executor": "@nx/js:prune-lockfile",
-        "outputs": [
-          "{workspaceRoot}/apps/api-gateway/dist/package.json",
-          "{workspaceRoot}/apps/api-gateway/dist/package-lock.json"
-        ],
-        "options": {
-          "buildTarget": "build"
-        }
-      },
-      "copy-workspace-modules": {
-        "dependsOn": [
-          "build"
-        ],
-        "cache": true,
-        "outputs": [
-          "{workspaceRoot}/apps/api-gateway/dist/workspace_modules"
-        ],
-        "executor": "@nx/js:copy-workspace-modules",
-        "options": {
-          "buildTarget": "build"
-        }
-      },
-      "prune": {
-        "dependsOn": [
-          "prune-lockfile",
-          "copy-workspace-modules"
-        ],
-        "executor": "nx:noop"
-      },
       "serve": {
-        "executor": "nx:run-commands",
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
         "options": {
-          "command": "npx nx build api-gateway && node apps/api-gateway/dist/main.js"
+          "buildTarget": "@source-code/api-gateway:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@source-code/api-gateway:build:development"
+          },
+          "production": {
+            "buildTarget": "@source-code/api-gateway:build:production"
+          }
         }
       }
     }
-  },
-  "dependencies": {
-    "express": "^4.21.2"
-  },
-  "devDependencies": {
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
-    "@types/express-http-proxy": "^1.6.7",
-    "@types/morgan": "^1.9.10",
-    "@types/swagger-ui-express": "^4.1.8"
   }
 }
