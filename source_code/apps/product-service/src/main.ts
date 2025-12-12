@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-/* import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from './swagger-output.json'; */
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger-output.json';
 import { errorMiddleware } from '@packages/error-handler/error-middleware';
+import router from './routes/product.routes';
 
 const app = express();
 
@@ -25,12 +26,12 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-/* app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get("/docs-json", (req, res) => {
     res.json(swaggerDocument);
-}) */
+})
 
-/* app.use("/api", router); */
+app.use("/api", router);
 
 
 // Error Handling Middleware

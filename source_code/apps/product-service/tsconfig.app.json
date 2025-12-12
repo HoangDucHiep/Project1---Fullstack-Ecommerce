@@ -11,7 +11,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "../../packages/**/*.ts"
+    "../../packages/**/*.ts",
+    "./src/*.json"
   ],
   "exclude": []
 }

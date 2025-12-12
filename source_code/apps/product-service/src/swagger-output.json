@@ -1,0 +1,29 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Product Service API",
+    "description": "Auto-generated Swagger documentation for Auth Service API",
+    "version": "1.0.0"
+  },
+  "host": "localhost:6002",
+  "basePath": "/api/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/get-categories": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    }
+  },
+  "prefix": "/api/"
+}
