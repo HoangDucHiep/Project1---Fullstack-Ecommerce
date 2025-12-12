@@ -14,6 +14,11 @@ import bcrypt from "bcryptjs";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { setCookie } from "../utils/cookies/setCookie";
 import exp from "constants";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-11-17.clover",
+});
 
 // Register a new user
 export const userRegistration = async (
@@ -176,6 +181,16 @@ export const refreshToken = async (
     );
 
     setCookie(res, "access_token", newAccessToken);
+
+    // also refresh the refresh token
+    const newRefreshToken = jwt.sign(
+      { id: decoded.id, role: decoded.role },
+      process.env.REFRESH_TOKEN_SECRET as string,
+      { expiresIn: "7d" }
+    );
+
+    setCookie(res, "refresh_token", newRefreshToken);
+
     return res.status(201).json({
       success: true,
       message: "Refresh token successful!",
@@ -232,10 +247,11 @@ export const resetUserPassword = async (
 
     const user = await prisma.users.findUnique({ where: { email } });
 
-    if (!user)
+    if (!user) {
       return next(
         new ValidationError("Tài khoản với email này không tồn tại.")
       );
+    }
 
     // compare new password with old password
     const isSamePassword = await bcrypt.compare(newPassword, user.password!);
@@ -362,7 +378,7 @@ export const createShop = async (
       address,
       opening_hours,
       category,
-      sellerId
+      sellerId,
     };
 
     if (website && website.trim() !== "") {
@@ -371,18 +387,128 @@ export const createShop = async (
 
     const shop = await prisma.shops.create({
       data: shopData,
-    })
+    });
 
     res.status(201).json({
       succecss: true,
       shop,
       message: "Shop đã được tạo thành công.",
     });
-
   } catch (error) {
     next(error);
   }
 };
 
-
 // create stripe connect account link
+export const createStripeConnectLink = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { sellerId } = req.body;
+
+    if (!sellerId) return next(new ValidationError("Seller ID là bắt buộc."));
+
+    const seller = await prisma.sellers.findUnique({ where: { id: sellerId } });
+
+    if (!seller) return next(new ValidationError("Người bán không tồn tại."));
+
+    const account = await stripe.accounts.create({
+      type: "express",
+      email: seller.email!,
+      country: "GB",
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+    });
+
+    await prisma.sellers.update({
+      where: { id: sellerId },
+      data: { stripeId: account.id },
+    });
+
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: "http://localhost:3000/success",
+      return_url: "http://localhost:3000/success",
+      type: "account_onboarding",
+    });
+
+    res.json({
+      success: true,
+      url: accountLink.url,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
+export const loginSeller = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password)
+      return next(new ValidationError("Vui lòng cung cấp email và mật khẩu."));
+
+    const seller = await prisma.sellers.findUnique({ where: { email } });
+
+    if (!seller) return next(new ValidationError("Tài khoản không tồn tại."));
+
+    const isMatch = await bcrypt.compare(password, seller.password!);
+
+    if (!isMatch)
+      return next(new ValidationError("Thông tin đăng nhập không hợp lệ."));
+
+    // Generate access and refresh tokens
+    const accessToken = jwt.sign(
+      { id: seller.id, role: "seller" },
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: seller.id, role: "seller" },
+      process.env.REFRESH_TOKEN_SECRET as string,
+      { expiresIn: "7d" }
+    );
+
+    // store the refresh token and access token in
+    setCookie(res, "seller_refresh_token", refreshToken);
+    setCookie(res, "seller_access_token", accessToken);
+
+    res.status(200).json({
+      message: "Login successful!",
+      user: {
+        id: seller.id,
+        name: seller.name,
+        email: seller.email,
+      },
+    });
+  } catch (error) {
+    return;
+  }
+};
+
+
+export const getSeller = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const seller = req.seller;
+    res.status(201).json({
+      success: true,
+      seller,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
