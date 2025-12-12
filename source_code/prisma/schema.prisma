@@ -69,7 +69,7 @@ model sellers {
   phone_number String
   country      String   @default("VN")
   password     String
-  stripId      String?
+  stripeId      String?
   shop         shops?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
