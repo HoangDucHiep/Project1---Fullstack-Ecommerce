@@ -1,0 +1,28 @@
+{
+  "name": "@source-code/product-service",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@source-code/product-service:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@source-code/product-service:build:development"
+          },
+          "production": {
+            "buildTarget": "@source-code/product-service:build:production"
+          }
+        }
+      }
+    }
+  }
+}
