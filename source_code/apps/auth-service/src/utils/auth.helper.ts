@@ -29,7 +29,10 @@ export const validateRegistrationData = (
   return true;
 };
 
-export const checkOtpRestrictions = async (email: string, next: NextFunction) => {
+export const checkOtpRestrictions = async (
+  email: string,
+  next: NextFunction
+) => {
   if (await redis.get(`otp_lock:${email}`)) {
     throw new ValidationError(
       "Bạn đã vượt quá số lần thử mã OTP. Vui lòng thử lại sau 30 phút."
@@ -77,12 +80,17 @@ export const sendOtp = async (
   await redis.set(`otp_cooldown:${email}`, "true", "EX", 60); // 1 minutes cooldown
 };
 
-
-export const verifyOtp = async (email: string, otp: string, next: NextFunction) => {
+export const verifyOtp = async (
+  email: string,
+  otp: string,
+  next: NextFunction
+) => {
   const storedOtp = await redis.get(`otp:${email}`);
 
   if (!storedOtp) {
-    throw new ValidationError("Mã OTP đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu mã mới.");
+    throw new ValidationError(
+      "Mã OTP đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu mã mới."
+    );
   }
 
   const failedAttemptsKey = `otp_attempts:${email}`;
@@ -93,51 +101,63 @@ export const verifyOtp = async (email: string, otp: string, next: NextFunction) 
       await redis.set(`otp_lock:${email}`, "locked", "EX", 1800);
       await redis.del(`otp:${email}`, failedAttemptsKey);
 
-      throw new ValidationError("Bạn đã vượt quá số lần thử mã OTP. Vui lòng thử lại sau 30 phút.");
+      throw new ValidationError(
+        "Bạn đã vượt quá số lần thử mã OTP. Vui lòng thử lại sau 30 phút."
+      );
     }
 
     await redis.set(failedAttemptsKey, failedAttempts + 1, "EX", 300);
-    throw new ValidationError(`Mã OTP không hợp lệ. Còn ${2 - failedAttempts} lần thử.`);
+    throw new ValidationError(
+      `Mã OTP không hợp lệ. Còn ${2 - failedAttempts} lần thử.`
+    );
   }
 
   await redis.del(`otp:${email}`, failedAttemptsKey);
   return true;
-}
+};
 
-
-
-export const handleForgotPassword = async(
+export const handleForgotPassword = async (
   req: Request,
   res: Response,
   next: NextFunction,
   userType: "user" | "seller"
 ) => {
   try {
-    const {email} = req.body;
+    const { email } = req.body;
 
-    if(!email) throw new ValidationError("Vui lòng cung cấp email.");
+    if (!email) throw new ValidationError("Vui lòng cung cấp email.");
 
     // Find user/seller in DB
-    const user = userType === "user" && await prisma.users.findUnique({where: {email}});
+    const user =
+      userType === "user"
+        ? await prisma.users.findUnique({ where: { email } })
+        : await prisma.sellers.findUnique({ where: { email } });
 
-    if (!user) throw new ValidationError(`${userType} với email này không tồn tại.`);
+    if (!user)
+      throw new ValidationError(`${userType} với email này không tồn tại.`);
 
     // Check OTP restrictions
     await checkOtpRestrictions(email, next);
     await trackOtpRequests(email, next);
 
     // Generate OTP and send Email
-    await sendOtp(user.name, email, "forgot-password-user-email");
+    await sendOtp(
+      user.name,
+      email,
+      userType === "user"
+        ? "forgot-password-user-email"
+        : "forgot-password-seller-email"
+    );
 
     res.status(200).json({
       success: true,
-      message: "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư đến và xác nhận.",
+      message:
+        "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư đến và xác nhận.",
     });
-
   } catch (error) {
     next(error);
   }
-}
+};
 
 export const verifyForgotPasswordOtp = async (
   req: Request,
@@ -145,7 +165,7 @@ export const verifyForgotPasswordOtp = async (
   next: NextFunction
 ) => {
   try {
-    const {email, otp} = req.body;
+    const { email, otp } = req.body;
 
     if (!email || !otp) {
       return next(new ValidationError("Vui lòng cung cấp email và mã OTP."));
@@ -155,10 +175,10 @@ export const verifyForgotPasswordOtp = async (
 
     res.status(200).json({
       success: true,
-      message: "Mã OTP đã được xác thực thành công. Bạn có thể đặt lại mật khẩu của mình.",
+      message:
+        "Mã OTP đã được xác thực thành công. Bạn có thể đặt lại mật khẩu của mình.",
     });
-
   } catch (error) {
     next(error);
   }
-}
+};
