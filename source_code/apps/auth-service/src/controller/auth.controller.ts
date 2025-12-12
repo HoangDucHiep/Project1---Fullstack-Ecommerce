@@ -4,6 +4,7 @@ import {
   handleForgotPassword,
   sendOtp,
   trackOtpRequests,
+  validateRegistrationData,
   verifyForgotPasswordOtp,
   verifyOtp,
 } from "../utils/auth.helper";
@@ -144,8 +145,10 @@ export const refreshToken = async (
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      return new ValidationError(
-        "Chưa xác thực đăng nhập. Không có refresh token. Vui lòng đăng nhập lại."
+      return next(
+        new ValidationError(
+          "Chưa xác thực đăng nhập. Không có refresh token. Vui lòng đăng nhập lại."
+        )
       );
     }
 
@@ -155,7 +158,7 @@ export const refreshToken = async (
     ) as { id: string; role: string };
 
     if (!decoded || !decoded.id || !decoded.role) {
-      return new JsonWebTokenError("Refresh token không hợp lệ.");
+      return next(new JsonWebTokenError("Refresh token không hợp lệ."));
     }
 
     //let account;
@@ -163,7 +166,7 @@ export const refreshToken = async (
     const user = await prisma.users.findUnique({ where: { id: decoded.id } });
 
     if (!user) {
-      return new AuthError("Tài khoản không tồn tại.");
+      return next(new AuthError("Tài khoản không tồn tại."));
     }
 
     const newAccessToken = jwt.sign(
@@ -192,8 +195,7 @@ export const getUser = async (req: any, res: Response, next: NextFunction) => {
   } catch (error) {
     next(error);
   }
-}
-
+};
 
 // user forgot password
 export const userForgotPassword = async (
@@ -262,3 +264,125 @@ export const resetUserPassword = async (
     next(error);
   }
 };
+
+// register a new seller
+export const registerSeller = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    validateRegistrationData(req.body, "seller");
+
+    const { name, email } = req.body;
+
+    const existingSeller = await prisma.sellers.findUnique({
+      where: { email },
+    });
+
+    if (existingSeller) {
+      throw new ValidationError("Tài khoản với email này đã tồn tại.");
+    }
+
+    await checkOtpRestrictions(email, next);
+    await trackOtpRequests(email, next);
+    await sendOtp(name, email, "seller-activation");
+
+    res.status(200).json({
+      message:
+        "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư đến và xác nhận.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// verify seller otp for forgot password
+export const verifySeller = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp, password, name, phone_number, country } = req.body;
+
+    if (!email || !otp || !password || !name || !phone_number || !country) {
+      return next(new ValidationError("Vui lòng cung cấp đầy đủ thông tin."));
+    }
+
+    const existingSeller = await prisma.sellers.findUnique({
+      where: { email },
+    });
+
+    if (existingSeller) {
+      throw new ValidationError("Tài khoản với email này đã tồn tại.");
+    }
+
+    await verifyOtp(email, otp, next);
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const seller = await prisma.sellers.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        phone_number,
+        country,
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      seller,
+      message: "Tài khoản người bán của bạn đã được tạo thành công.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// create a new shop
+export const createShop = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { name, bio, address, opening_hours, website, category, sellerId } =
+      req.body;
+
+    if (!name || !address || !category || !sellerId) {
+      return next(new ValidationError("Vui lòng cung cấp đầy đủ thông tin."));
+    }
+
+    const shopData: any = {
+      name,
+      bio,
+      address,
+      opening_hours,
+      category,
+      sellerId
+    };
+
+    if (website && website.trim() !== "") {
+      shopData.website = website;
+    }
+
+    const shop = await prisma.shops.create({
+      data: shopData,
+    })
+
+    res.status(201).json({
+      succecss: true,
+      shop,
+      message: "Shop đã được tạo thành công.",
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// create stripe connect account link
