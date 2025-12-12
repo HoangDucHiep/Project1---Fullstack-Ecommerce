@@ -8,17 +8,19 @@ import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { countries } from "apps/seller-ui/src/utils/countries";
+import CreateShop from "apps/seller-ui/src/shared/modules/auth/create-shop";
+import StripeLogo from "apps/seller-ui/src/assets/svgs/stripe-logo";
 
 const Signup = () => {
   /* stepper */
-  const [activeStep, setActiveStep] = useState(1);
+  const [activeStep, setActiveStep] = useState(3);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [canResend, setCanResend] = useState(true);
   const [timer, setTimer] = useState(60);
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [sellerData, setSellerData] = useState<FormData | null>(null);
-  const [sellerId, setSellerId] = useState("")
+  const [sellerId, setSellerId] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const router = useRouter();
@@ -41,6 +43,8 @@ const Signup = () => {
       });
     }, 1000);
   };
+
+  const connectStripe = async () => {}
 
   const signupMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -347,6 +351,21 @@ const Signup = () => {
               </div>
             )}
           </>
+        )}
+        {activeStep === 2 && (
+          <CreateShop sellerId={sellerId} setActiveStep={setActiveStep} />
+        )}
+        {activeStep === 3 && (
+          <div className="text-center">
+            <h3 className="text-2xl font-semibold">Withdraw Method</h3>
+            <br />
+            <button
+              className="w-full m-auto flex items-center justify-center gap-3 text-lg bg-[#344155] text-white py-2 rounded-lg"
+              onClick={connectStripe}
+            >
+              Connect Stripe <StripeLogo />
+            </button>
+          </div>
         )}
       </div>
     </div>
