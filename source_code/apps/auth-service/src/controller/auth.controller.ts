@@ -123,6 +123,10 @@ export const loginUser = async (
       { expiresIn: "7d" }
     );
 
+    // Clear any existing seller cookies to prevent conflicts
+    res.clearCookie("seller_access_token");
+    res.clearCookie("seller_refresh_token");
+
     // store the refresh token and access token in
     setCookie(res, "refresh_token", refreshToken);
     setCookie(res, "access_token", accessToken);
@@ -142,12 +146,15 @@ export const loginUser = async (
 
 // refresh token
 export const refreshToken = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const refreshToken = req.cookies.refresh_token;
+    const refreshToken =
+      req.cookies["seller_refresh_token"] ||
+      req.cookies["refresh_token"] ||
+      req.headers.authorization?.split(" ")[1];
 
     if (!refreshToken) {
       return next(
@@ -166,11 +173,17 @@ export const refreshToken = async (
       return next(new JsonWebTokenError("Refresh token không hợp lệ."));
     }
 
-    //let account;
-    // if (decoded.role === "user")
-    const user = await prisma.users.findUnique({ where: { id: decoded.id } });
+    let account;
+    if (decoded.role === "user") {
+      account = await prisma.users.findUnique({ where: { id: decoded.id } });
+    } else if (decoded.role === "seller") {
+      account = await prisma.sellers.findUnique({
+        where: { id: decoded.id },
+        include: { shop: true },
+      });
+    }
 
-    if (!user) {
+    if (!account) {
       return next(new AuthError("Tài khoản không tồn tại."));
     }
 
@@ -180,7 +193,11 @@ export const refreshToken = async (
       { expiresIn: "15m" }
     );
 
-    setCookie(res, "access_token", newAccessToken);
+    if (decoded.role === "user") {
+      setCookie(res, "access_token", newAccessToken);
+    } else if (decoded.role === "seller") {
+      setCookie(res, "seller_access_token", newAccessToken);
+    }
 
     // also refresh the refresh token
     const newRefreshToken = jwt.sign(
@@ -189,7 +206,13 @@ export const refreshToken = async (
       { expiresIn: "7d" }
     );
 
-    setCookie(res, "refresh_token", newRefreshToken);
+    if (decoded.role === "user") {
+      setCookie(res, "refresh_token", newRefreshToken);
+    } else if (decoded.role === "seller") {
+      setCookie(res, "seller_refresh_token", newRefreshToken);
+    }
+
+    req.role = decoded.role;
 
     return res.status(201).json({
       success: true,
@@ -445,7 +468,6 @@ export const createStripeConnectLink = async (
   }
 };
 
-
 export const loginSeller = async (
   req: Request,
   res: Response,
@@ -479,6 +501,10 @@ export const loginSeller = async (
       { expiresIn: "7d" }
     );
 
+    // Clear any existing user cookies to prevent conflicts
+    res.clearCookie("access_token");
+    res.clearCookie("refresh_token");
+
     // store the refresh token and access token in
     setCookie(res, "seller_refresh_token", refreshToken);
     setCookie(res, "seller_access_token", accessToken);
@@ -496,7 +522,6 @@ export const loginSeller = async (
   }
 };
 
-
 export const getSeller = async (
   req: any,
   res: Response,
@@ -511,4 +536,4 @@ export const getSeller = async (
   } catch (error) {
     next(error);
   }
-}
+};
