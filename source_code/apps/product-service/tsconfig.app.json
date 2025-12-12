@@ -13,6 +13,6 @@
     "src/**/*.ts",
     "../../packages/**/*.ts",
     "./src/*.json"
-  ],
+, "../../packages/components/size-selector/index.tsx"  ],
   "exclude": []
 }

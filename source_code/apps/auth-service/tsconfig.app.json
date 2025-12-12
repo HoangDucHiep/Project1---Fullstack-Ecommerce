@@ -13,7 +13,7 @@
     "src/**/*.ts",
     "../../packages/**/*.ts",
     "../../**/*.json"
-  ],
+, "../../packages/components/size-selector/index.tsx"  ],
   "exclude": [
     "out-tsc",
     "dist",
