@@ -38,8 +38,8 @@ model shopReviews {
   reviews   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  shopId    String?  @db.ObjectId
-  shops     shops?   @relation(fields: [shopId], references: [id])
+  shopsId    String?  @db.ObjectId
+  shops     shops?   @relation(fields: [shopsId], references: [id])
 }
 
 model shops {
@@ -54,7 +54,7 @@ model shops {
   website       String?
   socialLinks   Json[]
   ratings       Float        @default(0)
-  shopReviews   shopReviews[]
+  reviews   shopReviews[]
   sellerId      String  @unique @db.ObjectId
   sellers        sellers @relation(fields: [sellerId], references: [id])
   createdAt      DateTime @default(now())
@@ -73,7 +73,5 @@ model sellers {
   shop         shops?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  shopId       String?  @db.ObjectId
-  shopsId      String?  @db.ObjectId
 }
 
