@@ -4,6 +4,7 @@ import {
   handleForgotPassword,
   sendOtp,
   trackOtpRequests,
+  validateRegistrationData,
   verifyForgotPasswordOtp,
   verifyOtp,
 } from "../utils/auth.helper";
@@ -262,3 +263,21 @@ export const resetUserPassword = async (
     next(error);
   }
 };
+
+
+// register a new seller
+export const registerSeller = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    validateRegistrationData(req.body, "seller");
+
+    const {name, email} = req.body;
+
+
+  } catch (error) {
+    next(error);
+  }
+}
