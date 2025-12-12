@@ -44,7 +44,23 @@ const Signup = () => {
     }, 1000);
   };
 
-  const connectStripe = async () => {}
+  const connectStripe = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/create-stripe-link`,
+        { sellerId }
+      );
+
+      // Redirect to Stripe onboarding URL
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      }
+
+
+    } catch (error) {
+      console.log("Stripe Connection Error: ", error);
+    }
+  }
 
   const signupMutation = useMutation({
     mutationFn: async (data: FormData) => {
