@@ -13,6 +13,8 @@ import dynamic from "next/dynamic";
 import SizeSelector from "packages/components/size-selector";
 import Image from "next/image";
 import { enhancements } from "apps/seller-ui/src/utils/AI.enhancements";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 // ✅ Dynamic import to avoid SSR issues with Quill
 const RichTextEditor = dynamic(
@@ -44,6 +46,8 @@ const Page = () => {
   const [images, setImages] = useState<(UploadedImage | null)[]>([null]);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
+
+  const router = useRouter();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["categories"],
@@ -77,8 +81,16 @@ const Page = () => {
     return selectedCategory ? subCategoriesData[selectedCategory] || [] : [];
   }, [selectedCategory, subCategoriesData]);
 
-  const onSubmit = (data: any) => {
-    console.log(data);
+  const onSubmit = async (data: any) => {
+    try {
+      setLoading(true);
+      await axiosInstance.post("/product/api/create-product", data);
+      router.push("/dashboard/all-products");
+    } catch (error: any) {
+      toast.error(error?.data?.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const convertFileToBase64 = (file: File) => {
@@ -154,7 +166,7 @@ const Page = () => {
 
     try {
       // Remove existing transformation parameters
-      const baseUrl = selectedImage.split('?')[0];
+      const baseUrl = selectedImage.split("?")[0];
       const transformedUrl = `${baseUrl}?tr=${transformation}`;
       setSelectedImage(transformedUrl);
     } catch (error) {
@@ -243,7 +255,7 @@ const Page = () => {
                   cols={10}
                   label="Short Description * (Max 150 words)"
                   placeholder="Enter product description for quick view"
-                  {...register("description", {
+                  {...register("short_description", {
                     required: "Description is required",
                     validate: (value) => {
                       const wordCount = value.trim().split(/\s+/).length;
