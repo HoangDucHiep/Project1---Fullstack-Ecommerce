@@ -1,4 +1,5 @@
 import express from 'express';
+import "./jobs/product-crone.job"
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
