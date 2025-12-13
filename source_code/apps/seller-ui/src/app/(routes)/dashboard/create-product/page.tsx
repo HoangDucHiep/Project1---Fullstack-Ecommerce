@@ -69,36 +69,59 @@ const Page = () => {
     console.log(data);
   };
 
-  const handleImageChange = (file: File | null, index: number) => {
-    const updatedImages = [...images];
-    updatedImages[index] = file;
+  const convertFileToBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
-    if (index === images.length - 1 && images.length < 8) {
-      updatedImages.push(null); // Add a new placeholder for the next image
+  const handleImageChange = async (file: File | null, index: number) => {
+    if (!file) return;
+
+    try {
+      const fileName = await convertFileToBase64(file);
+
+      const response = await axiosInstance.post(
+        "/product/api/upload-product-image",
+        fileName
+      );
+
+      const updatedImages = [...images];
+      updatedImages[index] = response.data.file_name;
+
+      if (index === images.length - 1 && updatedImages.length < 8) {
+        updatedImages.push(null);
+      }
+
+      setImages(updatedImages);
+      setValue("images", updatedImages);
+    } catch (error) {
+      console.log(error);
     }
-
-    setImages(updatedImages);
-    setValue("images", updatedImages);
   };
 
   const handleRemoveImage = (index: number) => {
-    setImages((prevImages) => {
-      let updatedImages = [...prevImages];
+    try {
+      const updatedImages = [...images];
 
-      if (index === -1) {
-        updatedImages[0] = null;
-      } else {
-        updatedImages.splice(index, 1);
+      const imageToDelete = updatedImages[index];
+      if (imageToDelete && typeof imageToDelete === "string") {
+        // delete our picture
       }
 
+      updatedImages.splice(index, 1);
+
+      // Add null placeholder
       if (!updatedImages.includes(null) && updatedImages.length < 8) {
-        updatedImages.push(null); // Ensure there's always a placeholder if less than 8 images
+        updatedImages.push(null);
       }
 
-      return updatedImages;
-    });
-
-    setValue("images", images);
+      setImages(updatedImages);
+      setValue("images", updatedImages);
+    } catch (error) {}
   };
 
   const handleSaveDraft = () => {};
@@ -526,13 +549,17 @@ const Page = () => {
                           const currentSelection = watch("discountCodes") || [];
                           const updatedSelection = currentSelection?.includes(
                             code.id
-                          ) ? currentSelection.filter((id: string) => id !== code.id) : [...currentSelection, code.id];
+                          )
+                            ? currentSelection.filter(
+                                (id: string) => id !== code.id
+                              )
+                            : [...currentSelection, code.id];
 
                           setValue("discountCodes", updatedSelection);
                         }}
                       >
-                        {code?.public_name} ({code.discountValue} {code.discountType === "percentage" ? "%" : "$"})
-
+                        {code?.public_name} ({code.discountValue}{" "}
+                        {code.discountType === "percentage" ? "%" : "$"})
                       </button>
                     ))}
                   </div>
