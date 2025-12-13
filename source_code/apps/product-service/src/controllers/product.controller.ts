@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
-import { NotFoundError, ValidationError } from "@packages/error-handler";
+import {
+  AuthError,
+  NotFoundError,
+  ValidationError,
+} from "@packages/error-handler";
 import { imagekit } from "@packages/libs/imagekit";
 
 const prisma = new PrismaClient();
@@ -122,7 +126,6 @@ export const deleteDiscountCode = async (
   }
 };
 
-
 // upload product image
 export const uploadProductImage = async (
   req: Request,
@@ -145,8 +148,7 @@ export const uploadProductImage = async (
   } catch (error) {
     next(error);
   }
-}
-
+};
 
 // delete product image
 export const deleteProductImage = async (
@@ -162,6 +164,93 @@ export const deleteProductImage = async (
     res.status(201).json({
       success: true,
       response,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// create product
+export const createProduct = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      title,
+      short_description,
+      detailed_description,
+      warranty,
+      custom_specifications,
+      slug,
+      tags,
+      cash_on_delivery,
+      brand,
+      video_url,
+      category,
+      colors = [],
+      sizes = [],
+      discountCodes,
+      stock,
+      sale_price,
+      regular_price,
+      subCategory,
+      customProperties = {},
+      images = [],
+    } = req.body;
+
+    if (
+      !title ||
+      !slug ||
+      !short_description ||
+      !category ||
+      !subCategory ||
+      !images ||
+      !tags ||
+      !stock ||
+      !regular_price
+    ) {
+      return next(new ValidationError("Please fill all required fields"));
+    }
+
+    if (!req.seller.id) {
+      return next(new AuthError("Only sellers can create products"));
+    }
+
+    const newProduct = await prisma.products.create({
+      data: {
+        title,
+        short_description,
+        detailed_description,
+        warranty,
+        cashOnDelivery: cash_on_delivery,
+        slug,
+        shopId: req.seller?.shop?.id,
+        tags: Array.isArray(tags) ? tags : tags.split(","),
+        brand,
+        video_url,
+        category,
+        subCategory,
+        colors: colors || [],
+        discount_codes: discountCodes.map((codeId: string) => codeId),
+        sizes: sizes || [],
+        stock: parseInt(stock),
+        sale_price: parseFloat(sale_price),
+        regular_price: parseFloat(regular_price),
+        custom_properties: customProperties || {},
+        custom_specifications: custom_specifications || {},
+        images: images.map((image: any) => ({
+          file_id: image.fileId,
+          url: image.file_url,
+        })),
+      },
+      include: { images: true },
+    });
+
+    res.status(201).json({
+      success: true,
+      newProduct,
     });
   } catch (error) {
     next(error);
