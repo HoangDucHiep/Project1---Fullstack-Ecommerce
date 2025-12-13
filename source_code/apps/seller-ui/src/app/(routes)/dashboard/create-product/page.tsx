@@ -86,11 +86,11 @@ const Page = () => {
 
       const response = await axiosInstance.post(
         "/product/api/upload-product-image",
-        fileName
+        { fileName }
       );
 
       const updatedImages = [...images];
-      updatedImages[index] = response.data.file_name;
+      updatedImages[index] = response.data.file_url;
 
       if (index === images.length - 1 && updatedImages.length < 8) {
         updatedImages.push(null);
