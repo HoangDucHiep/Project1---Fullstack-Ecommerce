@@ -13,6 +13,13 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
+  images: {
+    remotePatterns: [
+      {
+        hostname: "ik.imagekit.io"
+      }
+    ]
+  }
 };
 
 const plugins = [

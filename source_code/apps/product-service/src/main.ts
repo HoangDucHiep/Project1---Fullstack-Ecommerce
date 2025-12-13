@@ -18,7 +18,8 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json()); // Body Parsing
+app.use(express.json({ limit: '50mb' })); // Body Parsing with increased limit for image uploads
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); // for parsing application/x-www-form-urlencoded
 
 app.get('/', (req, res) => {
